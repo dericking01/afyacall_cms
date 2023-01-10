@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="758e5517-343d-4c98-87ca-c5c8ffae3d73" name="afyacall" url="http://197.250.15.155">
+        <fileTransfer host="197.250.15.155" port="4357" rootFolder="/var/www/afyacall" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+          <option name="port" value="4357" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

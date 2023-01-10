@@ -1,0 +1,76 @@
+<?php
+
+namespace App\Console;
+
+use Illuminate\Console\Command;
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+
+class Kernel extends ConsoleKernel
+{
+    /**
+     * The Artisan commands provided by your application.
+     *
+     * @var array
+     */
+    protected $commands = [
+        Commands\SendDailySms::class,
+        Commands\unsubscribeCron::class,
+        Commands\ProcessChargingDailyCron::class,
+        Commands\ProcessMpesaDailyChargeCron::class
+    ];
+
+    /**
+     * Define the application's command schedule.
+     *
+     * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
+     * @return void
+     */
+    protected function schedule(Schedule $schedule)
+    {
+
+        $schedule->command('invoice:generator')
+            ->timezone('Africa/Dar_es_Salaam')
+            ->lastDayOfMonth('23:30');
+
+        $schedule->command('unsubscribe:cron')
+           ->timezone('Africa/Dar_es_Salaam')
+            ->cron('15,45 0,1,2,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23 * * * ');
+
+
+        //run charging airtime
+        $schedule->command('charging:daily')
+            ->timezone('Africa/Dar_es_Salaam')
+            ->cron('0 0,1,2,4,5,6,8,9,10,11,12,13,14,15,16,17,18,20,21,22,23 * * *');
+
+        //charge mpesa every hour at 30 minutes
+        $schedule->command('mpesa:daily')
+            ->timezone('Africa/Dar_es_Salaam')
+            ->cron('30 * * * *');
+
+
+
+        //send sms twice daily
+        $schedule->command('sms:daily')
+            ->timezone('Africa/Dar_es_Salaam')
+            ->twiceDaily(7, 19);
+
+	        //send ivr notification twice daily
+    //    $schedule->command('ivr:daily')
+      //      ->timezone('Africa/Dar_es_Salaam')
+        //    ->twiceDaily(7, 19);
+    }
+
+    /**
+     * Register the commands for the application.
+     *
+     * @return void
+     */
+    protected function commands()
+    {
+        $this->load(__DIR__.'/Commands');
+
+        require base_path('routes/console.php');
+    }
+}
+
