@@ -9,5 +9,5 @@ class ViewRevenue extends Model
 {
     use HasFactory;
 
-    public $table = "view_revenue_data";
+    public $table = "today_revenue_transaction_view";
 }

@@ -50,7 +50,7 @@ class ChargingExistingCustomer
         //check the customer balance first
 	            //check the customer balance first
 	    $balance = intval(abs($this->getBalance($cellNo)));
-	    Log::info($balance);
+	    // Log::info($balance);
         if ($balance >= 15000) {
             $amount = 15000;
         } elseif ($balance > 3000 && $balance < 15000) {

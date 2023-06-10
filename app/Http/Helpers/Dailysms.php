@@ -60,6 +60,32 @@ class Dailysms
         }
     }
 
+    public function is_message_sent2($message_sent_ids, $message_content_key)
+    {
+        $messagetype = ContentType::where('name', $message_content_key)->first();
+
+        // Retrieve all active messages
+        $query = Content::where('is_active', true);
+
+        if ($messagetype) {
+            // If a message content key is provided, filter by content type
+            $query->where('content_type', $messagetype['id']);
+        }
+
+        // Get all messages that meet the criteria and sort them by length
+        $allmessages = $query->orderBy('length')->get();
+
+        foreach ($allmessages as $message) {
+            if (!in_array($message->id, $message_sent_ids)) {
+                return $message->id;
+            }
+        }
+
+        // If no suitable message is found, return null or an appropriate value
+        return null;
+    }
+
+
     public function dailysmssent($msisdn, $content)
     {
 

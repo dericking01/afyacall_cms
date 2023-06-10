@@ -51,6 +51,7 @@ class HelperObd
         } catch (\Throwable $e) {
             Log::error($e->getMessage());
         }
+        return false;
     }
 
     public function deliverysms($campaing_id, $code, $msisdn)

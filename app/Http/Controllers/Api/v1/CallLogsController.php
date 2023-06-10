@@ -171,7 +171,7 @@ class CallLogsController extends Controller
                             'input_ProductID' => '921465_P01',
                             'input_RequestType' => 'Opt-Out',
                             'input_Username' => '921465',
-                            'input_Password' => 'JrF8#u73%&ev',
+                            'input_Password' => '5pmls4V!9]O]{IF',
                             'input_WASPShortcode' => '921465',
                             'input_CustomerMSISDN' => $request->msisdn,
                             'input_OriginatorConversationID' => $code,

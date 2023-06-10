@@ -47,21 +47,49 @@ class SendDailyReportEmail extends Command
     public function handle()
     {
         // $fileName = 'Daily Report As Of ' . Carbon::yesterday()->isoFormat('LL') . '.csv';
+        $fileName = 'Daily.csv';
 
         // Excel::store(new TransactionExport, $fileName);
 
-        // $path = storage_path('app\\'.$fileName);
+        $path = storage_path('app\public\\'.$fileName);
+
+        Log::info($path);
+
+        $data["email"] = "julius.john@it.co.tz";
+        $data["title"] = "Daily Reports";
+ 
+        $files = [
+            public_path('storage/Daily.csv')
+        ];
+  
+        Mail::send('emails.test', $data, function($message){
+            $message->to('john.haule@it.co.tz', 'Recipirnt Name');
+            $message->subject("Test Mail");
+        });
+        // Mail::to('julius.john@it.co.tz')
+        //     ->send(new DailyReportMail);
+
+        // Mail::send('admin.reports.emaildaily', $data, function($message)use($data, $files) {
+        //     $message->to($data["email"])
+        //             ->subject($data["title"]);
+ 
+        //     foreach ($files as $file){
+        //         $message->attach($file);
+        //     }            
+        // });
+
+        echo "Mail send successfully !!";
 
 
-        try {
+    //     try {
 
-         Mail::to('julius.john@it.co.tz')
-             ->send(new DailyReportMail);
+    //      Mail::to('julius.john@it.co.tz')
+    //          ->send(new DailyReportMail);
 
 
-       } catch (\Throwable $th) {
+    //    } catch (\Throwable $th) {
 
-       }
+    //    }
    
       
 

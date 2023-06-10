@@ -62,7 +62,7 @@ class TicketController extends Controller
            ];
 
         //  email to receive tickets
-          Mail::to('julius.john@it.co.tz')
+          Mail::to('john.haule@it.co.tz')
               ->send(new TicketMail($details));
               
         //send notification to normal sms

@@ -38,25 +38,47 @@ class ProcessMpesaDailyChargeCron extends Command
      *
      * @return int
      */
+
+
     public function handle()
     {
-        // charge number with inactive status before start sending content
-        Customer::where('status', 0)->where('enticement', 1)
-            ->chunkById(1000000, function ($customers) {
+        $this->chargeCustomersForService('SMS', '921465_P02', '150', 'status', 0, 'enticement', 1);
+        $this->chargeCustomersForService('IVR', '921465_P01', '300', 'ivr_status', 0, 'ivr_enticement', 1);
+    }
+    
+    private function chargeCustomersForService($service, $mpesaCode, $amount, $statusColumn, $statusValue, $enticementColumn, $enticementValue)
+    {
+        Customer::where($statusColumn, $statusValue)
+            ->where($enticementColumn, $enticementValue)
+            ->chunkById(1000, function ($customers) use ($service, $mpesaCode, $amount) {
+                $data = [];
+    
                 foreach ($customers as $customer) {
-                    Log::info('Mpesa charging for SMS .' . $customer->msisdn);
-		      ProcessMpesaDaily::dispatch('921465_P02', $customer->msisdn, '150')->onQueue('transaction');
+                    $data[] = [
+                        'service' => $service,
+                        'mpesa_code' => $mpesaCode,
+                        'amount' => $amount,
+                        'msisdn' => $customer->msisdn
+                    ];
                 }
-            });
-
-        // charge number with inactive status before start sending content
-        Customer::where('ivr_status', 0)->where('ivr_enticement', 1)
-            ->chunkById(1000000, function ($customers) {
-                foreach ($customers as $customer) {
-                    Log::info('Mpesa charging for IVR.' . $customer->msisdn);
-		     ProcessMpesaDaily::dispatch('921465_P01', $customer->msisdn, '300')->onQueue('transaction');
-                }
+    
+                $this->chargeCustomersWithMpesa($data);
             });
     }
+    
+    private function chargeCustomersWithMpesa($data)
+    {
+        foreach ($data as $customerData) {
+            $mpesaCode = $customerData['mpesa_code'];
+            $msisdn = $customerData['msisdn'];
+            $amount = $customerData['amount'];
+    
+            ProcessMpesaDaily::dispatch($mpesaCode, $msisdn, $amount)->onQueue('transaction');
+    
+            Log::info('Mpesa charging for ' . $customerData['service'] . ': ' . $msisdn);
+        }
+    }
+    
+
 }
 

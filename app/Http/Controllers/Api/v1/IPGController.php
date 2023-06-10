@@ -78,13 +78,19 @@ class IPGController extends Controller
                 //send notification to customer for successfully charges
                 $sw = 'Umefanikiwa kulipia Tsh 1000 kwa huduma ya Vodacom AfyaCall kuzungumza na daktari';
                 $en = 'You have Success fully paid Tsh 1000 for the Vodacom AfyaCall service to talk to a doctor';
-                ProcessLanguage::dispatchSync($msisdn, $sw, $en);
+		ProcessLanguage::dispatchSync($msisdn, $sw, $en);
+
+		Log::info("mbezi===========bando la 1000 ======================");
             }
 
+	    Log::info($thirdPartyReference);
+	    Log::info("mbezi===============start updated transaction==================");
             DB::table('transactions')
-                ->where('response', $thirdPartyReference)
+                ->where('conventions_ID', $thirdPartyReference)
                 ->where('currency', 'Mpesa')
-                ->update(['status' => 1]);
+		->update(['status' => 1]);
+
+	    Log::info("mbezi======================end updated transcation=========================");
 
         } else {
 
@@ -222,8 +228,8 @@ class IPGController extends Controller
                     $trans->status = 0;
                     $trans->product_id = $product->id;
                     $trans->currency = "Mpesa";
-                    $trans->response = $jdatason['response']['dataItem'][0]['value'];
-                    $trans->conventions_ID = $jdatason['response']['dataItem'][1]['value'];
+                    $trans->response = $jdatason['response']['dataItem'][1]['value'];
+                    $trans->conventions_ID = $jdatason['response']['dataItem'][0]['value'];
                     $trans->response_code = $jdatason['response']['dataItem'][2]['value'];
                     $trans->save();
                 } else {
@@ -251,8 +257,8 @@ class IPGController extends Controller
                     $trans->status = 0;
                     $trans->product_id = $product->id;
                     $trans->currency = "Mpesa";
-                    $trans->response = $jdatason['response']['dataItem'][0]['value'];
-                    $trans->conventions_ID = $jdatason['response']['dataItem'][1]['value'];
+                    $trans->response = $jdatason['response']['dataItem'][1]['value'];
+                    $trans->conventions_ID = $jdatason['response']['dataItem'][0]['value'];
                     $trans->response_code = $jdatason['response']['dataItem'][2]['value'];
                     $trans->save();
                 }

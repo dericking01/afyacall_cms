@@ -18,5 +18,9 @@ class Outboundcall extends Model
         return $this->hasMany(SmsDelivery::class,'obdid','id');
     }
 
+    protected $fillable = [
+        'obdname', 'maxretries','retrytime','waittime','created_by','other','uploadvia'
+    ];
+
 }
 

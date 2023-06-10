@@ -43,7 +43,7 @@ class ChargingMpesa
                 ],
                 'json' => [
                     'input_Username' => '921465',
-                    'input_Password' => 'JrF8#u73%&ev',
+                    'input_Password' => '5pmls4V!9]O]{IF',
                     'input_WASPShortcode' => '921465',
                     'input_ProductID' => $product_ID,
                     'input_CustomerMSISDN' => $cellNo,
@@ -55,7 +55,7 @@ class ChargingMpesa
             ]);
             $results = $response->getBody()->getContents();
 	    $data = json_decode($results, true);
-   Log::info($data);
+        Log::info($data);
             if ($data['output_ResponseCode'] == '-7' && $product->name == 'IVR' ) {
                 $customer->ivr_enticement = 0;
                 $customer->save();

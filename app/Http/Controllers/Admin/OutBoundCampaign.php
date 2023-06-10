@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Queue;
 
 class OutBoundCampaign extends Controller
 {
@@ -26,10 +27,8 @@ class OutBoundCampaign extends Controller
 
     public function show($id)
     {
-        $campaigns = Deliveryobd::where('obdid', $id)
-            ->select('status', DB::raw('count(*) as total'))
-            ->groupBy('status')
-            ->get();
+
+        $campaigns = Deliveryobd::campaignStatusCount($id)->get();
 
         return view('admin.campaign.show', compact('campaigns'));
     }
@@ -56,7 +55,7 @@ class OutBoundCampaign extends Controller
 
         return [];
     }
-    public function store(Request $request)
+    public function store2(Request $request)
     {
         $count = 0;
         $importData_arr = array();
@@ -91,6 +90,49 @@ class OutBoundCampaign extends Controller
 
             return redirect()->route('admin.contact.outboundcampaing')->with('success', 'Saved Successful!');
         }
+    }
+
+    public function store(Request $request)
+    {
+        $groupIds = $request->groups;
+        $groups = Group::withCount('contact')->with('contact')->whereIn('id', $groupIds)->get();
+
+        $importDataArr = [];
+        $groupNames = [];
+        $count = 0;
+
+        $campaignData = [
+            'obdname' => $request->obdname,
+            'maxretries' => $request->maxretries,
+            'retrytime' => $request->retrytime,
+            'waittime' => $request->waittime,
+            'created_by' => Auth::id()
+        ];
+
+        foreach ($groups as $group) {
+            $count += $group->contact_count;
+            $groupNames[] = $group->name;
+
+            foreach ($group->contact as $contact) {
+                $importDataArr[] = $contact->msisdn;
+            }
+        }
+
+        $campaignData['other'] = $count;
+        $campaignData['uploadvia'] = implode(",", $groupNames);
+
+        $campaign = Outboundcall::create($campaignData);
+
+        $contactsBatches = array_chunk($importDataArr, 100);
+
+        $batch  = Bus::batch([])->dispatch();
+
+        foreach ($contactsBatches as $contactsBatch) {
+            $receipts = implode(",", $contactsBatch);
+            $batch->add(new ProcessOBD($receipts, $campaign->id));
+        }
+
+        return redirect()->route('admin.contact.outboundcampaing')->with('success', 'Saved Successful!');
     }
 }
 

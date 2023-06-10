@@ -34,14 +34,32 @@ class ContactController extends Controller
         return view('admin.contacts.create', compact('groups'));
     }
 
+
     public function showcontact($id)
     {
-	            $group = Group::whereId($id)->first();
-        // return $post;
-        $contacts = Contact::with('campaign')->where('campaign_id', $id)->paginate(100);
-        $contactCounts = Contact::where('campaign_id', $id)->count();
-        return view('admin.contacts.contactview', compact('contacts', 'id', 'contactCounts','group'))->with('no', 1);
+        try {
+            $group = Group::findOrFail($id);
+            $contacts = Contact::where('campaign_id', $id)
+                ->with('campaign') // Assuming there is a relationship defined
+                ->paginate(100);
+            $contactCounts = Contact::where('campaign_id', $id)->count();
+            
+            return view('admin.contacts.contactview', compact('contacts', 'id', 'contactCounts', 'group'))
+                ->with('no', 1);
+        } catch (\Exception $e) {
+            // Handle the exception, display an error message, or redirect to an error page
+            return response()->view('error', ['message' => 'An error occurred.']);
+        }
     }
+    
+    // public function showcontact($id)
+    // {
+	//     $group = Group::whereId($id)->first();
+    //     // return $post;
+    //     $contacts = Contact::with('campaign')->where('campaign_id', $id)->paginate(100);
+    //     $contactCounts = Contact::where('campaign_id', $id)->count();
+    //     return view('admin.contacts.contactview', compact('contacts', 'id', 'contactCounts','group'))->with('no', 1);
+    // }
 
     public function fileUpload(Request $req)
     {

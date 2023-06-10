@@ -38,7 +38,7 @@ class TwoFactorAuthController extends Controller
 
         if ($exists) {
             Session::put('tfa', auth()->user()->id);
-	    return redirect()->route('admin.subscriptions.index');
+	    return redirect()->route('admin.home');
         }
 
         return redirect()

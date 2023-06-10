@@ -21,6 +21,6 @@ class Content extends Model
     }
 
     protected $fillable = [
-        'content_type', 'message','eng_message',
+        'content_type', 'message','eng_message','length',
     ];
 }

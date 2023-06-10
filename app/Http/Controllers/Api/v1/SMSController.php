@@ -32,8 +32,6 @@ class SMSController extends Controller
     public function receivedsmsfromkannel(Request $request)
     {
         //check the incoming requests and log into database
-
-
         FacadesLog::info($request);
 
         $content = $request->category;
@@ -41,38 +39,36 @@ class SMSController extends Controller
         if (strlen($request->service) > 4) {
 
             $content = $this->str_after(strtolower($request->service), 'afya');
-
         }
 
         //remove characters from beginning
         $phone = ltrim($request->sender, '+');
-    
-            $excustomer = Customer::where('msisdn', $phone)->get()->first();
-	if ($excustomer) {
-	    //save into smartbango table
-            if (strtolower($request->service) == 'afyabango' || strtolower($request->service) == 'afyasmart' ) {
-                $smartbango =  new SmartBango;
+
+        $excustomer = Customer::where('msisdn', $phone)->get()->first();
+        if ($excustomer) {
+            //save into smartbango table
+            if (in_array(strtolower($request->service), ['afyabango', 'afyasmart'])) {
+                // Save into smartbango table
+                $smartbango = new SmartBango;
                 $smartbango->msisdn = $phone;
                 $smartbango->state = "existing";
                 $smartbango->status = $excustomer->status;
                 $smartbango->keyword = $request->service;
                 $smartbango->save();
             }
-                //unsubsribe users
-                if (strtolower($request->service) == 'afyaivr') {
+            //unsubsribe users
+            if (strtolower($request->service) == 'afyaivr') {
 
-                    $product = Product::where('product_ID', '921465_P01')->get()->first();
+                $product = Product::where('product_ID', '921465_P01')->get()->first();
 
-                    if ($excustomer->ivr_status != -1) {
+                if ($excustomer->ivr_status != -1) {
 
-                        $sw = 'Tayari umejiunga na huduma hii piga namba 0900011111 kusikiliza dondoo za afya kwa gharama ya Tsh 300/IVR/siku.';
-                        $en = 'You are already subscribed to this service dial 0900011111 to listen to health tips at a cost of Tsh 300 /IVR/day.';
-		        ProcessLanguage::dispatchSync($phone, $sw, $en);
+                    $sw = 'Tayari umejiunga na huduma hii piga namba 0900011111 kusikiliza dondoo za afya kwa gharama ya Tsh 300/IVR/siku.';
+                    $en = 'You are already subscribed to this service dial 0900011111 to listen to health tips at a cost of Tsh 300 /IVR/day.';
+                    ProcessLanguage::dispatchSync($phone, $sw, $en);
 
-		    } else {
-
-
-		    //update the status to charging state
+                } else {
+                    //update the status to charging state
                     $excustomer->ivr_status = 0;
                     $excustomer->keyword = $request->service;
                     $excustomer->updated_at = Carbon::now();
@@ -86,29 +82,24 @@ class SMSController extends Controller
                     $opt->product_ID = $product->id;
                     $opt->opt_value = 1;
                     $opt->date = Opt::getServertime();
-		    $opt->save();
+                    $opt->save();
 
-                        //Notify customer on afyacall ivr only without charging
-                        $res = $this->chargivrtiartime($phone, $product->id, $product->price);
-                        if ($res) {
-                            //update customer with
+                    //Notify customer on afyacall ivr only without charging
+                    $res = $this->chargivrtiartime($phone, $product->id, $product->price);
+                    if ($res) {
+                        //update customer with
 
-                            $sw = 'Umelipia Kikamilifu Tsh ' . $product->price . ' kwenye huduma ya Vodacom AFYACALL IVR piga 0900011111 kusikiliza ';
-                            $en = 'You have Successfully paid Tsh ' . $product->price . ' for the Vodacom AFYACALL IVR service dial 0900011111 to listen';
-                            ProcessLanguage::dispatchSync($phone, $sw, $en);
+                        $sw = 'Umelipia Kikamilifu Tsh ' . $product->price . ' kwenye huduma ya Vodacom AFYACALL IVR piga 0900011111 kusikiliza ';
+                        $en = 'You have Successfully paid Tsh ' . $product->price . ' for the Vodacom AFYACALL IVR service dial 0900011111 to listen';
+                        ProcessLanguage::dispatchSync($phone, $sw, $en);
+                    } else {
 
-
-
-                        } else {
-
-                            $sw = 'Hauna salio la kutosha kupata huduma hii.Ongeza salio kisha Tuma neno AFYAIVR kwenda 15723 au piga 0900011111 kwa gharama ya Tsh.300/IVR/siku.';
-                            $en = 'You have insufficient balance.Please recharge and send keyword AFYAIVR to shortcode 15723 or dial 0900011111 at a cost of Tsh.300/ IVR/day.';
-			    ProcessLanguage::dispatchSync($phone, $sw, $en);
-
-
-                        }
+                        $sw = 'Hauna salio la kutosha kupata huduma hii.Ongeza salio kisha Tuma neno AFYAIVR kwenda 15723 au piga 0900011111 kwa gharama ya Tsh.300/IVR/siku.';
+                        $en = 'You have insufficient balance.Please recharge and send keyword AFYAIVR to shortcode 15723 or dial 0900011111 at a cost of Tsh.300/ IVR/day.';
+                        ProcessLanguage::dispatchSync($phone, $sw, $en);
                     }
-                } else
+                }
+            } else
                 if (strtolower($request->service) == 'ondoaivr') {
 
                     if ($excustomer->ivr_status != -1) {
@@ -128,168 +119,165 @@ class SMSController extends Controller
                             $opt->OriginatorConversationID = $content ?? '';
                             $opt->opt_value = -1;
                             $opt->date = Opt::getServertime();
-			    $opt->save();
+                            $opt->save();
 
-			    $subscribeid = Subscription::where('customer_ID', $excustomer->id)->first();
+                            $subscribeid = Subscription::where('customer_ID', $excustomer->id)->first();
                             if ($subscribeid) {
                                 $subscribeid->delete();
                             }
 
                             $sw = 'Umefanikiwa kujitoa kikamilifu kwenye huduma ya AFYACALL IVR.Kujiunga tena na huduma hii tuma neno AFYAIVR kwenda 15723 kwa gharama ya Tsh 300/siku.';
                             $en = 'You have successfully unsubscribed from AFYACALL IVR service. To rejoin this service send the word AFYAIVR to 15723 at a cost of Tzs 300/day';
-			     ProcessLanguage::dispatchSync($phone, $sw, $en);
-
-
+                            ProcessLanguage::dispatchSync($phone, $sw, $en);
                         } else {
-
-			   //initiate the unsubscription for a customer via ICG
-                           $this->keyword_icg_unsubscribe($phone);
+                            //initiate the unsubscription for a customer via ICG
+                            $this->keyword_icg_unsubscribe($phone);
                         }
                     } else {
                         //read customer language
                         $sw = 'Tayari ulijitoa kikamilifu kwenye huduma ya AFYACALL IVR.Kujiunga tena na huduma hii tuma neno AFYAIVR kwenda 15723 kwa gharama ya Tsh 300/siku.';
-			$en = 'You are already unsubscribed to this service. To subscribe send the word AFYAIVR to 15723';
+                        $en = 'You are already unsubscribed to this service. To subscribe send the word AFYAIVR to 15723';
 
-			 ProcessLanguage::dispatchSync($phone, $sw, $en);
-
-                    }
-                } else
-                if (strtolower($request->service) == 'ondoasms' || strtolower($request->service) == 'ondoa') {
-                    $product = Product::where('product_ID', '921465_P02')->get()->first();
-                    if ($excustomer->status != -1) {
-
-                        //check if the customer enticed via ICG
-                        if ($excustomer->enticement == 0) {
-				$excustomer->status = -1;
-				$excustomer->ivr_status = -1;
-                            $excustomer->keyword = $request->service;
-                            $excustomer->updated_at = Carbon::now();
-                            $excustomer->save();
-
-                            //update the values
-                            $opt = new Opt();
-                            $opt->customer_ID = $excustomer->id;
-                            $opt->ConversationID = $request->service;
-                            $opt->OriginatorConversationID = $content ?? '';
-                            $opt->product_ID = $product->id;
-                            $opt->opt_value = -1;
-                            $opt->date = Opt::getServertime();
-                            $opt->save();
-
-
-                            $subscribeid = Subscription::where('customer_ID', $excustomer->id)->first();
-                            if ($subscribeid) {
-				 $subscribeid->delete();
-                            }
-
-                            $sw = 'Umefanikiwa kujitoa kikamilifu kwenye huduma ya AFYACALL SMS.Kujiunga tena na huduma hii tuma neno AFYASMS kwenda 15723 kwa gharama ya Tsh 150/siku.';
-                            $en = 'You have successfully unsubscribed from AFYACALL SMS service. To rejoin this service send the word AFYASMS to 15723 at a cost of Tzs 150/day';
-                            ProcessLanguage::dispatchSync($phone, $sw, $en);
-                        } else {
-
-                        //initiate the unsubscription for a customer via ICG
-                        $this->keyword_icg_unsubscribe($phone);
-                        }
-		    } else {
-
-
-		       if ($excustomer->ivr_status != -1) {
-                        //check if the customer enticed via ICG
-                        if ($excustomer->enticement == 0) {
-                            $excustomer->ivr_status = -1;
-                            $excustomer->keyword = $request->service;
-                            $excustomer->updated_at = Carbon::now();
-                            $excustomer->save();
-
-                            //update the values
-                            $opt = new Opt();
-                            $opt->customer_ID = $excustomer->id;
-                            $opt->ConversationID = $request->service;
-                            $opt->OriginatorConversationID = $content ?? '';
-                            $opt->product_ID = 1;
-                            $opt->opt_value = -1;
-                            $opt->date = Opt::getServertime();
-                            $opt->save();
-
-
-                            $subscribeid = Subscription::where('customer_ID', $excustomer->id)->first();
-                            if ($subscribeid) {
-                                $subscribeid->delete();
-                            }
-
-                            $sw = 'Umefanikiwa kujitoa kikamilifu kwenye huduma ya AFYACALL IVR.Kujiunga tena na huduma hii tuma neno AFYAIVR kwenda 15723 kwa gharama ya Tsh 300/siku.';
-                            $en = 'You have successfully unsubscribed from AFYACALL IVR service. To rejoin this service send the word AFYAIVR to 15723 at a cost of Tzs 300/day';
-                            ProcessLanguage::dispatchSync($phone, $sw, $en);
-
-                        } else {
-
-                            //update ICG when customer try to unsubscription via Keyword
-                            $sw = 'Unakaribia kujiondoa kwenye huduma ya AfyaCall IVR. Piga *150*00# >6 Huduma za kifedha >7 Huduma za Kidigitali >10 Huduma nilizojiunga >Afyacall>Huduma ya IVR.';
-                            $en = 'You are about to unsubscribe to the Afyacall IVR service. Dial *150*00# >6 Financial services >7 Digitial services >10 My Subscriptions>Afyacall >Select IVR.';
-                            ProcessLanguage::dispatchSync($phone, $sw, $en);
-                        }
-                    } else {
-
-                        //read customer language
-                        $sw = 'Tayari ulijitoa kikamilifu kwenye huduma ya AFYACALL SMS.Kujiunga tena na huduma hii tuma neno AFYASMS kwenda 15723 kwa gharama ya Tsh 150/siku.';
-                        $en = 'You are already unsubscribed to this service. To subscribe send the word AFYASMS to 15723';
                         ProcessLanguage::dispatchSync($phone, $sw, $en);
-                    }
-                }
 
+                    }
                 } else
-                    if ($excustomer->status == 0 || $excustomer->status == -1) {
-			    //charge the user on successfully subscription and send welcome message
-	            ProcessCharging::dispatchSync($phone, '15000', $request->service, ucfirst($content));
+                    if (strtolower($request->service) == 'ondoasms' || strtolower($request->service) == 'ondoa') {
+                        $product = Product::where('product_ID', '921465_P02')->get()->first();
+                        if ($excustomer->status != -1) {
+
+                            //check if the customer enticed via ICG
+                            if ($excustomer->enticement == 0) {
+                                $excustomer->status = -1;
+                                $excustomer->ivr_status = -1;
+                                $excustomer->keyword = $request->service;
+                                $excustomer->updated_at = Carbon::now();
+                                $excustomer->save();
+
+                                //update the values
+                                $opt = new Opt();
+                                $opt->customer_ID = $excustomer->id;
+                                $opt->ConversationID = $request->service;
+                                $opt->OriginatorConversationID = $content ?? '';
+                                $opt->product_ID = $product->id;
+                                $opt->opt_value = -1;
+                                $opt->date = Opt::getServertime();
+                                $opt->save();
+
+
+                                $subscribeid = Subscription::where('customer_ID', $excustomer->id)->first();
+                                if ($subscribeid) {
+                                    $subscribeid->delete();
+                                }
+
+                                $sw = 'Umefanikiwa kujitoa kikamilifu kwenye huduma ya AFYACALL SMS.Kujiunga tena na huduma hii tuma neno AFYASMS kwenda 15723 kwa gharama ya Tsh 150/siku.';
+                                $en = 'You have successfully unsubscribed from AFYACALL SMS service. To rejoin this service send the word AFYASMS to 15723 at a cost of Tzs 150/day';
+                                ProcessLanguage::dispatchSync($phone, $sw, $en);
+                            } else {
+
+                                //initiate the unsubscription for a customer via ICG
+                                $this->keyword_icg_unsubscribe($phone);
+                            }
+                        } else {
+
+
+                            if ($excustomer->ivr_status != -1) {
+                                //check if the customer enticed via ICG
+                                if ($excustomer->enticement == 0) {
+                                    $excustomer->ivr_status = -1;
+                                    $excustomer->keyword = $request->service;
+                                    $excustomer->updated_at = Carbon::now();
+                                    $excustomer->save();
+
+                                    //update the values
+                                    $opt = new Opt();
+                                    $opt->customer_ID = $excustomer->id;
+                                    $opt->ConversationID = $request->service;
+                                    $opt->OriginatorConversationID = $content ?? '';
+                                    $opt->product_ID = 1;
+                                    $opt->opt_value = -1;
+                                    $opt->date = Opt::getServertime();
+                                    $opt->save();
+
+
+                                    $subscribeid = Subscription::where('customer_ID', $excustomer->id)->first();
+                                    if ($subscribeid) {
+                                        $subscribeid->delete();
+                                    }
+
+                                    $sw = 'Umefanikiwa kujitoa kikamilifu kwenye huduma ya AFYACALL IVR.Kujiunga tena na huduma hii tuma neno AFYAIVR kwenda 15723 kwa gharama ya Tsh 300/siku.';
+                                    $en = 'You have successfully unsubscribed from AFYACALL IVR service. To rejoin this service send the word AFYAIVR to 15723 at a cost of Tzs 300/day';
+                                    ProcessLanguage::dispatchSync($phone, $sw, $en);
+
+                                } else {
+
+                                    //update ICG when customer try to unsubscription via Keyword
+                                    $sw = 'Unakaribia kujiondoa kwenye huduma ya AfyaCall IVR. Piga *150*00# >6 Huduma za kifedha >7 Huduma za Kidigitali >10 Huduma nilizojiunga >Afyacall>Huduma ya IVR.';
+                                    $en = 'You are about to unsubscribe to the Afyacall IVR service. Dial *150*00# >6 Financial services >7 Digitial services >10 My Subscriptions>Afyacall >Select IVR.';
+                                    ProcessLanguage::dispatchSync($phone, $sw, $en);
+                                }
+                            } else {
+
+                                //read customer language
+                                $sw = 'Tayari ulijitoa kikamilifu kwenye huduma ya AFYACALL SMS.Kujiunga tena na huduma hii tuma neno AFYASMS kwenda 15723 kwa gharama ya Tsh 150/siku.';
+                                $en = 'You are already unsubscribed to this service. To subscribe send the word AFYASMS to 15723';
+                                ProcessLanguage::dispatchSync($phone, $sw, $en);
+                            }
+                        }
+
+                    } else
+                        if ($excustomer->status == 0 || $excustomer->status == -1) {
+                            //charge the user on successfully subscription and send welcome message
+                            ProcessCharging::dispatchSync($phone, '15000', $request->service, ucfirst($content));
+                        } else {
+                            $sw = 'Tayari umejiunga na huduma hii kwa gharama ya Tsh 150/siku.Kujitoa tuma neno ONDOASMS kwenda 15723';
+                            $en = 'You are already subscribed to this service. To unsubscribe send the word ONDOASMS to 15723';
+                            ProcessLanguage::dispatchSync($phone, $sw, $en);
+
+                        }
+        } else {
+            if (strtolower($request->service) == 'afyaivr') {
+
+                $product = Product::where('product_ID', '921465_P01')->get()->first();
+                //new customer on ivr
+                $customer = new Customer();
+                $customer->msisdn = $phone;
+                $customer->keyword = $request->service;
+                $customer->content = ucfirst($content) ?? '';
+                $customer->registered_at = Opt::getServertime();
+                $customer->ivr_status = 0;
+                $customer->save();
+
+
+                //update the values
+                $opt = new Opt();
+                $opt->customer_ID = $customer->id;
+                $opt->ConversationID = $request->service;
+                $opt->OriginatorConversationID = $content ?? '';
+                $opt->product_ID = $product->id;
+                $opt->opt_value = 1;
+                $opt->date = Opt::getServertime();
+                $opt->save();
+
+                $res = $this->chargivrtiartime($phone, $product->id, $product->price);
+                if ($res) {
+
+                    $sw = 'Umelipia Kikamilifu Tsh ' . $product->price . ' kwenye huduma ya Vodacom AFYACALL IVR piga 0900011111 kusikiliza ';
+                    $en = 'You have Successfully paid Tsh ' . $product->price . ' for the Vodacom AFYACALL IVR service dial 0900011111 to listen';
+                    ProcessLanguage::dispatchSync($phone, $sw, $en);
+
+
                 } else {
-                    $sw = 'Tayari umejiunga na huduma hii kwa gharama ya Tsh 150/siku.Kujitoa tuma neno ONDOASMS kwenda 15723';
-                    $en = 'You are already subscribed to this service. To unsubscribe send the word ONDOASMS to 15723';
-		     ProcessLanguage::dispatchSync($phone, $sw, $en);
+
+                    $sw = 'Hauna salio la kutosha kupata huduma hii.Ongeza salio kisha Tuma neno AFYAIVR kwenda 15723 au piga 0900011111 kwa gharama ya Tsh.300/IVR/siku.';
+                    $en = 'You have insufficient balance.Please recharge and send keyword AFYAIVR to shortcode 15723 or dial 0900011111 at a cost of Tsh.300/ IVR/day.';
+                    ProcessLanguage::dispatchSync($phone, $sw, $en);
 
                 }
             } else {
-                if (strtolower($request->service) == 'afyaivr') {
-
-                    $product = Product::where('product_ID', '921465_P01')->get()->first();
-                    //new customer on ivr
-                    $customer = new Customer();
-                    $customer->msisdn = $phone;
-                    $customer->keyword = $request->service;
-                    $customer->content = ucfirst($content) ?? '';
-                    $customer->registered_at = Opt::getServertime();
-                    $customer->ivr_status = 0;
-                    $customer->save();
 
 
-                    //update the values
-                    $opt = new Opt();
-                    $opt->customer_ID = $customer->id;
-                    $opt->ConversationID = $request->service;
-                    $opt->OriginatorConversationID = $content ?? '';
-                    $opt->product_ID = $product->id;
-                    $opt->opt_value = 1;
-                    $opt->date = Opt::getServertime();
-                    $opt->save();
-
-                    $res = $this->chargivrtiartime($phone, $product->id, $product->price);
-                    if ($res) {
-
-                        $sw = 'Umelipia Kikamilifu Tsh ' . $product->price . ' kwenye huduma ya Vodacom AFYACALL IVR piga 0900011111 kusikiliza ';
-                        $en = 'You have Successfully paid Tsh ' . $product->price . ' for the Vodacom AFYACALL IVR service dial 0900011111 to listen';
-			 ProcessLanguage::dispatchSync($phone, $sw, $en);
-
-
-                    } else {
-
-                        $sw = 'Hauna salio la kutosha kupata huduma hii.Ongeza salio kisha Tuma neno AFYAIVR kwenda 15723 au piga 0900011111 kwa gharama ya Tsh.300/IVR/siku.';
-                        $en = 'You have insufficient balance.Please recharge and send keyword AFYAIVR to shortcode 15723 or dial 0900011111 at a cost of Tsh.300/ IVR/day.';
-			 ProcessLanguage::dispatchSync($phone, $sw, $en);
-
-                    }
-                } else {
-
-
-	          if (strtolower($request->service) == 'ondoaivr' ||strtolower($request->service) == 'ondoasms' || strtolower($request->service) == 'ondoa') {
+                if (strtolower($request->service) == 'ondoaivr' || strtolower($request->service) == 'ondoasms' || strtolower($request->service) == 'ondoa') {
 
                     $customer = new Customer();
                     $customer->msisdn = $phone;
@@ -313,7 +301,7 @@ class SMSController extends Controller
                     $sw = 'Tafadhari jiunge na huduma hii kwa kutuma neno Afya kwenda 15723';
                     $en = 'Please subscribe this service by sending the keyword Afya to 15723';
                     ProcessLanguage::dispatchSync($phone, $sw, $en);
-                    } else {
+                } else {
 
                     if (strtolower($request->service) == 'afyabango') {
 
@@ -363,9 +351,7 @@ class SMSController extends Controller
                         $sw = 'Hongera!Umejiunga na Afyacall SMS. Umepokea siku mbili za kupata SMS bure. Kuendelea kupata huduma hii utalipia 150/siku.Kujiondoa tuma neno ondoa Kwenda 15723';
                         $en = 'You have subscribed to Afyacall SMS. You will receive 2 SMS for 2 days for FREE. You will then be charged 150/day to continue getting the services. To unsubscribe, send the word ONDOA to 15723';
                         ProcessLanguage::dispatchSync($phone, $sw, $en);
-                    }
-
-		    elseif (strtolower($request->service) == 'afyasmart') {
+                    } elseif (strtolower($request->service) == 'afyasmart') {
 
                         $product = Product::where('product_ID', '921465_P01')->get()->first();
                         $customer = new Customer();
@@ -407,64 +393,62 @@ class SMSController extends Controller
                         }
 
                         //notification
-                       $sw = 'Umejiunga na Afyacall IVR.Umepokea Siku mbili za bure za kusikiliza, kisha utalipia 300/siku kuendelea kupata huduma. Kujiondoa tuma neno ONDOAIVR Kwenda 15723.';
-                       $en =  'You have subscribed to Afyacall IVR. You have two days of Bonus. Thereafter you will listen to IVR at 300/day. To unsubscribe send the word ONDOAIVR TO 15723';
-                       ProcessLanguage::dispatchSync($phone, $sw, $en);
-                    }
-
-		    else{
-
-		    $product = Product::where('product_ID', '921465_P02')->get()->first();
-		    $customer = new Customer();
-                    $customer->msisdn = $phone;
-                    $customer->keyword = $request->service;
-                    $customer->registered_at = Opt::getServertime();
-                    $customer->status = 1;
-                    $customer->save();
-
-                    //update the values
-                    $opt = new Opt();
-                    $opt->customer_ID = $customer->id;
-                    $opt->ConversationID = $request->service;
-                    $opt->OriginatorConversationID = $content ?? '';
-                    $opt->product_ID = $product->id;
-                    $opt->opt_value = 1;
-                    $opt->date = Opt::getServertime();
-                    $opt->save();
-                    //charge customer airtime ivr
-
-                    //add the customer to subscribtion with 2 days offer
-                    $subscrb = Subscription::where('customer_ID', $customer->id)
-                    ->where('product_id', $product->id)
-                    ->get()->first();
-                    if ($subscrb) {
-                        $subscrb->customer_ID = $customer->id;
-                        $subscrb->product_id = $product->id;
-                        $subscrb->starts_at = Carbon::now();
-                        $subscrb->ends_at = Carbon::now()->addDays(2);
-                        $subscrb->save();
+                        $sw = 'Umejiunga na Afyacall IVR.Umepokea Siku mbili za bure za kusikiliza, kisha utalipia 300/siku kuendelea kupata huduma. Kujiondoa tuma neno ONDOAIVR Kwenda 15723.';
+                        $en = 'You have subscribed to Afyacall IVR. You have two days of Bonus. Thereafter you will listen to IVR at 300/day. To unsubscribe send the word ONDOAIVR TO 15723';
+                        ProcessLanguage::dispatchSync($phone, $sw, $en);
                     } else {
-                        $subscribe = new Subscription();
-                        $subscribe->customer_ID = $customer->id;
-                        $subscribe->product_id = $product->id;
-                        $subscribe->starts_at = Carbon::now();
-                        $subscribe->ends_at = Carbon::now()->addDays(2);
-                        $subscribe->save();
+
+                        $product = Product::where('product_ID', '921465_P02')->get()->first();
+                        $customer = new Customer();
+                        $customer->msisdn = $phone;
+                        $customer->keyword = $request->service;
+                        $customer->registered_at = Opt::getServertime();
+                        $customer->status = 1;
+                        $customer->save();
+
+                        //update the values
+                        $opt = new Opt();
+                        $opt->customer_ID = $customer->id;
+                        $opt->ConversationID = $request->service;
+                        $opt->OriginatorConversationID = $content ?? '';
+                        $opt->product_ID = $product->id;
+                        $opt->opt_value = 1;
+                        $opt->date = Opt::getServertime();
+                        $opt->save();
+                        //charge customer airtime ivr
+
+                        //add the customer to subscribtion with 2 days offer
+                        $subscrb = Subscription::where('customer_ID', $customer->id)
+                            ->where('product_id', $product->id)
+                            ->get()->first();
+                        if ($subscrb) {
+                            $subscrb->customer_ID = $customer->id;
+                            $subscrb->product_id = $product->id;
+                            $subscrb->starts_at = Carbon::now();
+                            $subscrb->ends_at = Carbon::now()->addDays(2);
+                            $subscrb->save();
+                        } else {
+                            $subscribe = new Subscription();
+                            $subscribe->customer_ID = $customer->id;
+                            $subscribe->product_id = $product->id;
+                            $subscribe->starts_at = Carbon::now();
+                            $subscribe->ends_at = Carbon::now()->addDays(2);
+                            $subscribe->save();
+                        }
+
+                        //send the first sms content
+                        $this->sendthefirstmessage($phone, null);
+
+                        //send the notification about the offer
+                        $sw = 'Hongera!Umejiunga na Afyacall SMS.Umepokea siku mbili za kupata SMS bure.Kuendelea kupata huduma hii utalipia 150/siku.Kujiondoa tuma neno ondoa Kwenda 15723';
+                        $en = 'You have subscribed to Afyacall SMS. You will receive 2 SMS for 2 days for FREE. You will then be charged 150/day to continue getting the services. To unsubscribe, send the word ONDOA to 15723';
+                        ProcessLanguage::dispatchSync($phone, $sw, $en);
+
                     }
 
-                    //send the first sms content
-                    $this->sendthefirstmessage($phone,null);
-
-                    //send the notification about the offer
-                    $sw = 'Hongera!Umejiunga na Afyacall SMS.Umepokea siku mbili za kupata SMS bure.Kuendelea kupata huduma hii utalipia 150/siku.Kujiondoa tuma neno ondoa Kwenda 15723';
-                    $en = 'You have subscribed to Afyacall SMS. You will receive 2 SMS for 2 days for FREE. You will then be charged 150/day to continue getting the services. To unsubscribe, send the word ONDOA to 15723';
-		    ProcessLanguage::dispatchSync($phone, $sw, $en);
-
-		    }
-
-		      //save into smartbango table
-                    if (strtolower($request->service) == 'afyabango' || strtolower($request->service) == 'afyasmart' ) {
-                        $smartbango =  new SmartBango;
+                    //save into smartbango table
+                    if (strtolower($request->service) == 'afyabango' || strtolower($request->service) == 'afyasmart') {
+                        $smartbango = new SmartBango;
                         $smartbango->msisdn = $phone;
                         $smartbango->state = "new";
                         $smartbango->keyword = $request->service;
@@ -472,7 +456,7 @@ class SMSController extends Controller
                     }
                 }
             }
-	 } 
+        }
     }
 
     function str_after($str, $search)
@@ -507,17 +491,17 @@ class SMSController extends Controller
         $messagetype = ContentType::where('name', $message_content_key)->first();
         if ($messagetype) {
             $allmessage = Content::where('content_type', $messagetype['id'])->get();
-            foreach ($allmessage as  $value) {
+            foreach ($allmessage as $value) {
                 if (!in_array($value->id, $message_sent_ids)) {
-                    return  $value->id;
+                    return $value->id;
                 }
             }
         } else {
             //without message keyword
             $allmessage = Content::all();
-            foreach ($allmessage as  $value) {
+            foreach ($allmessage as $value) {
                 if (!in_array($value->id, $message_sent_ids)) {
-                    return  $value->id;
+                    return $value->id;
                 }
             }
         }
@@ -534,8 +518,8 @@ class SMSController extends Controller
                 ],
                 'json' => [
 
-		    'input_Username' => '921465',
-		    'input_Password' => 'JrF8#u73%&ev',
+                    'input_Username' => '921465',
+                    'input_Password' => '5pmls4V!9]O]{IF',
                     'input_WASPShortcode' => '921465',
                     'input_ProductID' => $product,
                     'input_CustomerMSISDN' => $phone,
@@ -563,14 +547,14 @@ class SMSController extends Controller
         $product = Product::where('product_ID', $product_ID)->get()->first();
         try {
             $client = new \GuzzleHttp\Client();
-	    $response = $client->request('POST', 'https://197.250.9.191:23000/icg/Charge/', [
-		      'verify' => false,
+            $response = $client->request('POST', 'https://197.250.9.191:23000/icg/Charge/', [
+                'verify' => false,
                 'headers' => [
                     'Content-Type' => ' application/json',
                 ],
                 'json' => [
                     'input_Username' => '921465',
-                    'input_Password' => 'JrF8#u73%&ev',
+                    'input_Password' => '5pmls4V!9]O]{IF',
                     'input_WASPShortcode' => '921465',
                     'input_ProductID' => $product_ID,
                     'input_CustomerMSISDN' => $phone,
@@ -611,7 +595,7 @@ class SMSController extends Controller
         //update the payload
         $payload = [
             'type' => 'charge',
-            'id'   => [
+            'id' => [
                 array(
                     'value' => $cellNo,
                     'schemeName' => 'msisdn'
@@ -643,7 +627,7 @@ class SMSController extends Controller
                     'Authorization' => 'Basic ' . $credentials,
                     'Content-Type' => ' application/json',
                     'X-MessageId' => 'uuid: a5c49974-353e-11e5-a151-feff819cdc9f',
-                    'X-Source-Timestamp'  => $chargetime,
+                    'X-Source-Timestamp' => $chargetime,
                 ],
                 'json' => $payload
             ]);
@@ -688,15 +672,15 @@ class SMSController extends Controller
         $code = Opt::getCode();
         try {
             $client = new \GuzzleHttp\Client();
-	    $response = $client->request('POST', 'https://197.250.9.191:23000/icg/unsub/', [
-		      'verify' => false,
+            $response = $client->request('POST', 'https://197.250.9.191:23000/icg/unsub/', [
+                'verify' => false,
                 'headers' => [
                     'Content-Type' => ' application/json',
                 ],
                 'json' => [
                     'input_RequestType' => 'Bulk Opt-Out',
                     'input_Username' => '921465',
-                    'input_Password' => 'JrF8#u73%&ev',
+                    'input_Password' => '5pmls4V!9]O]{IF',
                     'input_WASPShortcode' => '921465',
                     'input_CustomerMSISDN' => $phone,
                     'input_OriginatorConversationID' => $code,
@@ -720,7 +704,6 @@ class SMSController extends Controller
                     //update the values
                     $opt = new Opt();
                     $opt->customer_ID = $excustomer->id;
-                    $opt->OriginatorConversationID = $content ?? '';
                     $opt->product_ID = 1;
                     $opt->opt_value = -1;
                     $opt->date = Opt::getServertime();
@@ -729,7 +712,6 @@ class SMSController extends Controller
                     //update the values
                     $opt = new Opt();
                     $opt->customer_ID = $excustomer->id;
-                    $opt->OriginatorConversationID = $content ?? '';
                     $opt->product_ID = 2;
                     $opt->opt_value = -1;
                     $opt->date = Opt::getServertime();

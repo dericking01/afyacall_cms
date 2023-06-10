@@ -26,53 +26,57 @@ class HomeController
     public function index()
     {
 
-        // return view('home');
-
-        $monthWiseSms = [];
         $recentmesages = Log::with('content')
             ->with('customer')
             ->skip(0)->take(20)->latest()
             ->get();
-
-
-        $contentcreats = Content::with('type')->skip(0)->take(4)->latest()
-            ->get();
-
-        // sms chart data
-        $dailytrans = $this->getDailyTransaction();
-        $weeklytrans = $this->getWeeklyTransaction();
-        $monthlytrans = $this->getMontlyTransaction();
-        $yearlytrans = $this->getYearlyTransaction();
-
-
+        $contentcreats = Content::with('type')->skip(0)->take(4)->latest()->get();
 	    $totalactive = Subscription::count();
 
-        $totalainctive = Customer::where('status',0)
-                                   ->where('ivr_status',0)
-                                   ->count();
-
-        $totalsubsc = DB::table('subscriptions')
-            ->count();
-
-        $totalcustomers = Customer::count();
-
-        try {
-            $todayrevenue = $this->getDailyTransaction();
-            $yesterdayrevenue = $this->getYesterdayTransaction();
-            $percentage = (($todayrevenue - $yesterdayrevenue) / ($todayrevenue + $yesterdayrevenue)) * 100;
-        } catch( Exception $e ){
-            $percentage = 0;
-        }
-
         // return $percentage;
-
         $percentage_active_sub  = 100;
         $percentage_inactive_sub = 100 -  $percentage_active_sub;
-        //rating
-        $totalratings = Rating::count();
-        $positiverating = Rating::where('rating',1)->orWhere('rating', 2)->count();
-        $neutralrating  = Rating::where('rating',3)->orWhere('rating', 4)->count();
-        $negativerating = Rating::where('rating',5)->count();
+
+        $today = Carbon::today();
+        $yesterday = Carbon::yesterday();
+        
+        $customerCounts = DB::table('customers')
+            ->selectRaw('COUNT(*) AS total_customers, 
+                         COUNT(CASE WHEN status = 0 AND ivr_status = 0 THEN 1 END) AS total_inactive,
+                         COUNT(CASE WHEN DATE(created_at) = ? THEN 1 END) AS today_count, 
+                         COUNT(CASE WHEN status IS NOT NULL THEN 1 END) AS total_sms, 
+                         COUNT(CASE WHEN status = 1 THEN 1 END) AS charged_sms, 
+                         COUNT(CASE WHEN status = -1 THEN 1 END) AS unsubscribed_sms, 
+                         COUNT(CASE WHEN status IN (0, 1) THEN 1 END) AS active_sms, 
+                         COUNT(CASE WHEN ivr_status IS NOT NULL THEN 1 END) AS total_ivr, 
+                         COUNT(CASE WHEN ivr_status = 1 THEN 1 END) AS charged_ivr, 
+                         COUNT(CASE WHEN ivr_status = -1 THEN 1 END) AS unsubscribed_ivr, 
+                         COUNT(CASE WHEN ivr_status IN (0, 1) THEN 1 END) AS active_ivr,
+                         COUNT(CASE WHEN DATE(created_at) = ? THEN 1 END) AS yesterday_count')
+            ->setBindings([$today, $yesterday])
+            ->first();
+        
+        $totalsmscustomer = $customerCounts->total_sms ?? 0;
+        $chargedsmssubsriber = $customerCounts->charged_sms ?? 0;
+        $unsubsmssubsriber = $customerCounts->unsubscribed_sms ?? 0;
+        $activesmssubsriber = $customerCounts->active_sms ?? 0;
+
+        $totalivrcustomer = $customerCounts->total_ivr ?? 0;
+        $chargedivrsubsriber = $customerCounts->charged_ivr ?? 0;
+        $unsubivrsubsriber = $customerCounts->unsubscribed_ivr ?? 0;
+        $activeivrsubsriber = $customerCounts->active_ivr ?? 0;
+
+        $customertoday = $customerCounts->today_count ?? 0;
+        $customeryesterday = $customerCounts->yesterday_count ?? 0;
+
+        if ($customeryesterday != 0) {
+            $percentageChange = (($customertoday - $customeryesterday) / ($customeryesterday + $customertoday)) * 100;
+        } else {
+            $percentageChange = 0; // or any other value you want to assign when $customeryesterday is zero
+        }
+        $totalcustomers = $customerCounts->total_customers ?? 0;
+        $totalainctive = $customerCounts->total_inactive ?? 0;
+
 
         return view('home', compact(
             'totalactive',
@@ -80,17 +84,20 @@ class HomeController
             'totalainctive',
             'percentage_inactive_sub',
             'recentmesages',
-            'dailytrans',
-            'weeklytrans',
-            'monthlytrans',
-            'yearlytrans',
             'totalcustomers',
             'contentcreats',
-            'percentage',
-            'totalratings',
-            'positiverating',
-            'neutralrating',
-            'negativerating',
+            'customertoday',
+            'customeryesterday',
+            'totalsmscustomer',
+            'chargedsmssubsriber',
+            'unsubsmssubsriber',
+            'activesmssubsriber',
+            'totalivrcustomer',
+            'chargedivrsubsriber',
+            'unsubivrsubsriber',
+            'activeivrsubsriber',
+            'percentageChange'
+
         ));
 
     }

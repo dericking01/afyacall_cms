@@ -19,7 +19,6 @@ class DeliverySMSCallbackController extends Controller
     }
     public function deliveryreport(Request $request)
     {
-
     ProcessDeliverySMS::dispatch('campaign', $request->id, $request->status)->onQueue('delivery');
     }
 

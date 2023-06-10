@@ -61,6 +61,7 @@ class DoctorApiController extends Controller
                             "msisdn" => $request->msisdn,
                             "amount" => $request->amount,
                         );
+                        Log::info($resp);
                         return response()->json($resp);
                     } elseif ($request->amount == 2000) {
                         //send notification to customer for successfully charges
@@ -79,6 +80,7 @@ class DoctorApiController extends Controller
                             "msisdn" => $request->msisdn,
                             "amount" => $request->amount,
                         );
+                        Log::info($resp);
                         return response()->json($resp);
                     } else {
                         //send notification to customer for successfully charges

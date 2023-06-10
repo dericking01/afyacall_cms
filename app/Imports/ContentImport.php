@@ -20,6 +20,7 @@ class ContentImport implements ToModel, WithHeadingRow
             'content_type'    => $row['id'],
             'message'    => $row['message'],
             'eng_message'    => $row['engmessage'],
+            'length'    => $row['priority'],
             'user_id'   => Auth::id(),
         ]);
     }

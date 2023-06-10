@@ -17,47 +17,7 @@
     <script src="{{ asset('assets/plugins/toast-master/js/jquery.toast.js') }}"></script>
     <!-- Chart JS -->
     <script src="{{ asset('vendor/js/dashboard1.js') }}"></script>
-    <script type="text/javascript">
-        $(document).ready(function() {
 
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                }
-            });
-
-            $.ajax({
-                type: 'GET',
-                url: "{{ route('admin.graphs_smschartsdata') }}",
-                success: function(response) {
-                    console.log(response);
-                    new Chartist.Line('.total-sms', {
-                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept',
-                            'Oct', 'Nov', 'Dec'
-                        ],
-                        series: [response]
-                    }, {
-                        low: 0,
-                        showArea: true,
-                        fullWidth: true,
-                        plugins: [
-                            Chartist.plugins.tooltip()
-                        ], // As this is axis specific we need to tell Chartist to use whole numbers only on the concerned axis
-                        axisY: {
-                            onlyInteger: true,
-                            offset: 20,
-                            labelInterpolationFnc: function(value) {
-                                return (value / 1000) + 'k';
-                            }
-                        }
-
-                    });
-                },
-            });
-
-
-        });
-    </script>
 @endpush
 @section('content')
     <!-- ============================================================== -->
@@ -65,54 +25,24 @@
     <!-- ============================================================== -->
     <!-- Row -->
     <div class="row">
-        <!-- Column -->
-        <div class="col-lg-3 col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h4 class="card-title">Daily Revenue</h4>
-                    @if ($percentage < 0)
-                        <div class="text-right">
-                            <h2 class="font-light mb-0"><i class="ti-arrow-down text-danger"></i>
-                                {{ number_format($dailytrans, 2) }}</h2>
-                            <span class="text-muted">Revenue Decrease by</span>
-                        </div>
-                     
-                    @else
-                        <div class="text-right">
-                            <h2 class="font-light mb-0"><i class="ti-arrow-up text-success"></i>
-                                {{ number_format($dailytrans, 2) }}</h2>
-                            <span class="text-muted">Revenue Increase by</span>
-                        </div>
 
-                    @endif
-                    <span class="text-success"> {{ sprintf('%.2f', $percentage) }}%</span>
-                    <div class="progress">
-                        <div class="progress-bar bg-success" role="progressbar"
-                            style="width: {{ $percentage }}%; height: 6px;" aria-valuenow="25" aria-valuemin="0"
-                            aria-valuemax="100"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Column -->
-        <!-- Column -->
         <div class="col-lg-3 col-md-6">
             <div class="card">
                 <div class="card-body">
-                    <h4 class="card-title">Weekly Transaction</h4>
+                    <h4 class="card-title">Total Customers</h4>
                     <div class="text-right">
-                        <h2 class="font-light mb-0"><i class="ti-arrow-up text-info"></i>
-                            {{ number_format($weeklytrans, 2) }}</h2>
-                        <span class="text-muted">Weekly Income</span>
+                        <h2 class="font-light mb-0"><i class="ti-arrow-up text-info"></i> {{ $totalcustomers }}</h2>
+                        <span class="text-muted">Customers</span>
                     </div>
-                    <span class="text-info">%</span>
+                    <span class="text-danger">%</span>
                     <div class="progress">
-                        <div class="progress-bar bg-info" role="progressbar" style="width: 0%; height: 6px;"
+                        <div class="progress-bar bg-danger" role="progressbar" style="width: 0%; height: 6px;"
                             aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
                     </div>
                 </div>
             </div>
         </div>
+        <!-- Column -->
         <!-- Column -->
         <!-- Column -->
         <div class="col-lg-3 col-md-6">
@@ -121,7 +51,7 @@
                     <h4 class="card-title">Total Subscriptions</h4>
                     <div class="text-right">
                         <h2 class="font-light mb-0"><i class="ti-arrow-up text-purple"></i> {{ $totalactive }} </h2>
-                        <span class="text-muted">subscribe data</span>
+                        <span class="text-muted">Today</span>
                     </div>
                     <span class="text-purple">%</span>
                     <div class="progress">
@@ -136,10 +66,27 @@
         <div class="col-lg-3 col-md-6">
             <div class="card">
                 <div class="card-body">
-                    <h4 class="card-title">Total Customer</h4>
+                    <h4 class="card-title">Today Customer</h4>
                     <div class="text-right">
-                        <h2 class="font-light mb-0"><i class="ti-arrow-up text-info"></i> {{ $totalcustomers }}</h2>
-                        <span class="text-muted">Customer Data</span>
+                        <h2 class="font-light mb-0"><i class="ti-arrow-up text-info"></i> {{ $customertoday }}</h2>
+                        <span class="text-muted">Joined Today</span>
+                    </div>
+                    <span class="text-danger">%</span>
+                    <div class="progress">
+                        <div class="progress-bar bg-danger" role="progressbar" style="width: {{$percentageChange}}%; height: 6px;"
+                            aria-valuenow="{{$percentageChange}}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Column -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Yesterday Customer</h4>
+                    <div class="text-right">
+                        <h2 class="font-light mb-0"><i class="ti-arrow-up text-info"></i> {{ $customeryesterday }}</h2>
+                        <span class="text-muted">Joined Yesterday</span>
                     </div>
                     <span class="text-danger">%</span>
                     <div class="progress">
@@ -149,29 +96,91 @@
                 </div>
             </div>
         </div>
-        <!-- Column -->
     </div>
     <!-- Row -->
     <!-- Row -->
+        <!-- Row -->
+    <div class="row">
+        <div class="col-lg-3 col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Total Subscriber</h4>
+                     <div class="row">
+                        <div class="text-center col-md-6">
+                            <h2 class="font-light center"> {{ $totalsmscustomer }}</h2>
+                            <span class="text-muted">SMS</span>
+                            
+                        </div>
+                        <div class="text-center col-md-6">
+                            <h2 class="font-light center"> {{ $totalivrcustomer }}</h2>
+                            <span class="text-muted">IVR</span>
+                        </div>
+                     </div>
 
-    <div class="col-lg-12">
-        <div class="card">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="d-flex flex-wrap">
-                            <div>
-                                <h3>Total Message Sent per Month</h3>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="total-sms" style="height: 350px;"></div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
+        <!-- Column -->
+        <!-- Column -->
+        <!-- Column -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Active  Subscriber</h4>
+                        <div class="row">
+                        <div class="text-center col-md-6">
+                            <h2 class="font-light center"> {{ $activesmssubsriber }}</h2>
+                            <span class="text-muted">SMS</span>
+                            
+                        </div>
+                        <div class="text-center col-md-6">
+                            <h2 class="font-light center"> {{ $activeivrsubsriber }}</h2>
+                            <span class="text-muted">IVR</span>
+                        </div>
+                     </div>
+                </div>
+            </div>
+        </div>
+        <!-- Column -->
+        <!-- Column -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Charged Successful</h4>
+                       <div class="row">
+                        <div class="text-center col-md-6">
+                            <h2 class="font-light center"> {{ $chargedsmssubsriber }}</h2>
+                            <span class="text-muted">SMS</span>
+                        </div>
+                        <div class="text-center col-md-6">
+                            <h2 class="font-light center"> {{ $chargedivrsubsriber }}</h2>
+                            <span class="text-muted">IVR</span>
+                        </div>
+                     </div>
+                </div>
+            </div>
+        </div>
+        <!-- Column -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Unsub</h4>
+                       <div class="row">
+                        <div class="text-center col-md-6">
+                            <h2 class="font-light center"> {{ $unsubsmssubsriber }}</h2>
+                            <span class="text-muted">SMS</span>
+                        </div>
+                        <div class="text-center col-md-6">
+                            <h2 class="font-light center"> {{ $unsubivrsubsriber }}</h2>
+                            <span class="text-muted">IVR</span>
+                        </div>
+                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <div class="col-lg-12">
         <div class="row">
             <div class="col-lg-6">
                 <div class="card">
@@ -230,76 +239,8 @@
                     </div>
                 </div>
             </div>
-
-
-
-
         </div>
 
 
-        <!-- Row -->
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="card">
-                    <div class="row">
-                        <!-- Column -->
-                        <div class="col-lg-5 col-xlg-3 col-md-6">
-			    <div class="card-body">
-                                <h3 class="card-title mb-4">IVR Reviews and Rating</h3>
-                                <span class="mt-5 display-6">{{$totalratings}}</span>
-                                <div class="clearfix"></div>
-                            </div>
-                        </div>
-                        <!-- Column -->
-                        <div class="col-lg-7 col-xlg-9 col-md-6 border-left pl-0">
-                            <ul class="product-review">
-                                <li>
-                                    <span class="text-muted display-5"><i class="mdi mdi-emoticon-cool"></i></span>
-                                    <div class="dl ml-2">
-                                        <h3 class="card-title">Positive Reviews</h3>
-                                        <h6 class="card-subtitle">{{$positiverating}} Reviews</h6>
-                                    </div>
-                                    <div class="progress">
-                                        <div class="progress-bar bg-success" role="progressbar"
- style="width: {{$positiverating * 100 / $totalratings }}%; height:6px;" aria-valuenow="25" aria-valuemin="0"					 
-                                            aria-valuemax="100"></div>
-                                    </div>
-				</li>
-
-
-
-                                <li>
-                                    <span class="text-muted display-5"><i class="mdi mdi-emoticon-sad"></i></span>
-                                    <div class="dl ml-2">
-                                        <h3 class="card-title">Negative Reviews</h3>
-                                        <h6 class="card-subtitle">{{$negativerating}} Reviews</h6>
-                                    </div>
-                                    <div class="progress">
-                                        <div class="progress-bar bg-danger" role="progressbar"
-                                            style="width: {{$negativerating * 100 / $totalratings }}%; height:6px;" aria-valuenow="25" aria-valuemin="0"
-                                            aria-valuemax="100"></div>
-                                    </div>
-                                </li>
-                                <li>
-                                    <span class="text-muted display-5"><i class="mdi mdi-emoticon-neutral"></i></span>
-                                    <div class="dl ml-2">
-                                        <h3 class="card-title">Neutral Reviews</h3>
-                                        <h6 class="card-subtitle">{{$neutralrating}}  Reviews</h6>
-                                    </div>
-                                    <div class="progress">
-                                        <div class="progress-bar bg-primary" role="progressbar"
-                                            style="width: {{$neutralrating * 100 / $totalratings }}%; height:6px;" aria-valuenow="25" aria-valuemin="0"
-                                            aria-valuemax="100"></div>
-                                    </div>
-				</li>
-
-
-                            </ul>
-                        </div>
-                        <!-- Column -->
-                    </div>
-                </div>
-            </div>
-        </div>
     @endsection
 
