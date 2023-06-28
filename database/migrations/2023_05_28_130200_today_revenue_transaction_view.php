@@ -35,6 +35,7 @@ class TodayRevenueTransactionView extends Migration
                 SUM(CASE WHEN product_id = 2 THEN amount_IN END) AS sms,
                 SUM(CASE WHEN product_id = 1 THEN amount_IN END) AS ivr,
                 SUM(CASE WHEN product_id = 3 THEN amount_IN END) AS calls,
+                SUM(CASE WHEN product_id = 4 THEN amount_IN END) AS doctor_subs,
                 SUM(amount_IN) AS total
             FROM
             (

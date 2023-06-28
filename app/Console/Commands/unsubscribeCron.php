@@ -55,6 +55,9 @@ class unsubscribeCron extends Command
                             if ($subscription->product_id == 1) {
                                 $customer->ivr_status = 0;
                                 $customer->save();
+                            } elseif ($subscription->product_id == 4) {
+                                $customer->doctor_subscription_status = 0;
+                                $customer->save();
                             } else {
                                 $customer->status = 0;
                                 $customer->save();

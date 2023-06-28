@@ -9,6 +9,10 @@ class Subscription extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'customer_ID', 'starts_at','ends_at','product_id'
+    ];
+    
     public function activate()
     {
         $this->update(['is_active' => true]);

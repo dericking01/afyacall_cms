@@ -137,7 +137,7 @@ class CustomerController
                 //send notification to a customer
                 $sw = 'Umefanikiwa kujitoa kikamilifu kwenye huduma ya AFYACALL .Kujiunga tena na huduma hii tuma neno AFYASMS kwenda 15723 kwa gharama ya Tsh 150/siku.';
                 $en = 'You have successfully unsubscribed from AFYACALL  service. To rejoin this service send the word AFYASMS to 15723 at a cost of Tzs 150/day';
-		  ProcessLanguage::dispatchSync($customer->msisdn, $sw, $en);
+		        ProcessLanguage::dispatchSync($customer->msisdn, $sw, $en);
         }
 
         return redirect()->route('admin.customers.index')->with('success', 'Successful!');
@@ -184,7 +184,7 @@ class CustomerController
     }
 
 
-        public function search(Request $request)
+    public function search(Request $request)
     {
         $search =  $request->input('q');
         if ($search != "") {

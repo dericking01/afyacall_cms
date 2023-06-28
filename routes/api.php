@@ -52,3 +52,8 @@ Route::middleware('api')->post('afyacall/customerrating', [RatingController::cla
 //charge doctor bundle using Airtime
 Route::post('/ivr/airtime-doctor-charge', [DoctorApiController::class, 'chargeDoctorAirtime']);
 
+//charge doctor subscription
+Route::post('doctor/subscription/charge', [DoctorApiController::class, 'chargedoctorrequestfrompbx']);
+Route::post('doctor/subscription/removeseconds', [DoctorApiController::class, 'removeseconds']);
+Route::get('doctor/subscription/status', [DoctorApiController::class, 'doctorsubscriptionstatus']);
+

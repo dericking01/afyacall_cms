@@ -9,6 +9,9 @@ class Opt extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'customer_ID','ConversationID','OriginatorConversationID','opt_value','product_ID','date'
+    ];
 
     public function customer()
     {

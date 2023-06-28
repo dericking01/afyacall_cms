@@ -8,4 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class SmartBango extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        'msisdn', 'state','keyword',
+    ];
 }

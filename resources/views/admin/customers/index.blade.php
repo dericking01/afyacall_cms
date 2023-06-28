@@ -19,7 +19,7 @@
             dom: 'Bfrtip',
             searching: false,
             order: [
-                [8, "desc"]
+                [6, "desc"]
             ],
             pageLength: 100,
             buttons: [{
@@ -79,9 +79,8 @@
                                     <th>IVR</th>
                                     <th>SMS</th>
                                     <th>Doctor</th>
+                                    <th>D-Sub</th>
                                     <th>Keyword</th>
-                                    <th>Content</th>
-                                    <th>Language</th>
                                     <th>Updated At</th>
                                     <th>Actions</th>
 
@@ -130,16 +129,21 @@
                                                 <span class="badge badge-pill badge-primary">Not Yet</span>
                                             @endif
                                         </td>
+
+                                        <td>
+                                            @if ($customer->doctor_subscription_status == '1')
+                                                <span class="badge badge-pill badge-success">Opt In</span>
+                                            @elseif ($customer->doctor_subscription_status == '-1')
+                                                <span class="badge badge-pill badge-danger">Removed Out</span>
+                                            @elseif ($customer->doctor_subscription_status == '0')
+                                                <span class="badge badge-pill badge-warning">Opt Out</span>
+                                            @elseif ($customer->doctor_subscription_status == null)
+                                                <span class="badge badge-pill badge-primary">Not Yet</span>
+                                            @endif
+                                        </td>
+
                                         <td>
                                             {{ $customer->keyword ?? '' }}
-                                        </td>
-
-                                        <td>
-                                            {{ $customer->content ?? '' }}
-                                        </td>
-
-                                        <td>
-                                            {{ $customer->language ?? '' }}
                                         </td>
 
                                         <td>

@@ -19,11 +19,32 @@ class CustomerService
         return $this->customerRepository->getAll();
     }
 
-    public function saveContactData($data)
+    public function subscribe_sms($data)
     {
-
-        $result = $this->customerRepository->savenewcontact($data);
-
-        return $result;
+        return $this->customerRepository->subscribe_sms($data);
     }
+    public function unsubscribe_sms($data){
+
+        return $this->customerRepository->unsubscribe_sms($data);
+    }
+    public function subscribe_ivr($data)
+    {
+        return $this->customerRepository->subscribe_ivr($data);
+    }
+
+    public function unsubscribe_ivr($data){
+
+        return $this->customerRepository->unsubscribe_ivr($data);
+    }
+
+    public function subscribe_doctor_sub($data)
+    {
+        return $this->customerRepository->subscribe_doctor_sub($data);
+    }
+
+    public function unsubscribe_doctor_subscription($data){
+        return $this->customerRepository->unsubscribe_doctor_subscription($data);
+    }
+
+
 }

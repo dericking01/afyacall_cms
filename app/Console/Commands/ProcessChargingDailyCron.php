@@ -43,7 +43,7 @@ class ProcessChargingDailyCron extends Command
     {
         // charge number with inactive status before start sending content
 
-	 Customer::where('status', 0)
+	    Customer::where('status', 0)
             ->chunkById(1000, function ($customers) {
                 foreach ($customers as $customer) {
                   Log::info('Start charging to customer.'.$customer->msisdn);
@@ -59,6 +59,14 @@ class ProcessChargingDailyCron extends Command
                 }
             });
 
+
+        Customer::where('doctor_subscription_status', 0)
+            ->chunkById(1000, function ($customers) {
+                foreach ($customers as $customer) {
+                  Log::info('charging airtime doctor subscription customer.'.$customer->msisdn);
+                  ProcessCharingDaily::dispatch('921465_P04', $customer->msisdn, '20000')->onQueue('transaction');
+                }
+            });
     }
 }
 

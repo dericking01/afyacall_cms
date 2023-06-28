@@ -48,6 +48,7 @@
                                 <th>D.Revenue (SMS-TIPS)</th>
                                 <th>D.Revenue (IVR-TIPS)</th>
                                 <th>D.Revenue (DOCTOR-TIPS)</th>
+                                <th>D.Revenue (DOCTOR-Subs)</th>
                                 <th>D.Revenue TOTAL</th>
                             </tr>
                         </thead>
@@ -74,9 +75,12 @@
         <script src="{{ asset('js/pdfmake.min.js') }}"></script>
         <script src="{{ asset('js/vfs_fonts.js') }}"></script>
         <script src="{{ asset('js/buttons.html5.min.js') }}"></script>
-	<script src="{{ asset('js/buttons.print.min.js') }}"></script>
+	    <script src="{{ asset('js/buttons.print.min.js') }}"></script>
+        
         <!-- start - This is for export functionality only -->
       <script>
+       $(document).ready(function () {
+
             $(".shawCalRanges").daterangepicker({
                 ranges: {
                     Today: [moment(), moment()],
@@ -91,6 +95,8 @@
                 },
                 alwaysShowCalendars: true,
             });
+        });
+
 
             function customerListSearch() {
                 var startDate = $(".shawCalRanges")
@@ -134,14 +140,70 @@
                                 targets: 1,
                                 render: function(data) {
                                     return moment(data).format("LL");
-                                },
+                                }
                                },
-
+                               {
+                                targets: 2,
+                                render: function (data) {
+                                    var roundedTotal = Number(parseFloat(data).toFixed(2));
+                                    return roundedTotal.toLocaleString("sw-TZ", {
+                                        style: "currency",
+                                        currency: "TZS"
+                                    });
+                                }
+                               },
+                               {
+                                targets: 3,
+                                render: function (data) {
+                                    var roundedTotal = Number(parseFloat(data).toFixed(2));
+                                    return roundedTotal.toLocaleString("sw-TZ", {
+                                        style: "currency",
+                                        currency: "TZS"
+                                    });
+                                }
+                               },
+                               {
+                                targets: 4,
+                                render: function (data) {
+                                    var roundedTotal = Number(parseFloat(data).toFixed(2));
+                                    if (isNaN(roundedTotal)) {
+                                    return "TSh 0.00";
+                                    } else {
+                                    return roundedTotal.toLocaleString("sw-TZ", {
+                                        style: "currency",
+                                        currency: "TZS"
+                                    });
+                                    }
+                                }
+                                },
+                                {
+                                targets: 5,
+                                render: function (data) {
+                                    var roundedTotal = Number(parseFloat(data).toFixed(2));
+                                    if (isNaN(roundedTotal)) {
+                                    return "TSh 0.00";
+                                    } else {
+                                    return roundedTotal.toLocaleString("sw-TZ", {
+                                        style: "currency",
+                                        currency: "TZS"
+                                    });
+                                    }
+                                }
+                                },
+                                {
+                                targets: 6,
+                                render: function (data) {
+                                var roundedTotal = Number(parseFloat(data).toFixed(2));
+                                return roundedTotal.toLocaleString("sw-TZ", {
+                                    style: "currency",
+                                    currency: "TZS"
+                                });
+                                }
+                               },
                          ],
                         });
                         dataTable.clear().draw();
-			var resultData = response.data;
-			console.log(resultData);
+                        var resultData = response.data;
                         $.each(resultData, function(index, row) {
                             dataTable.row
                                 .add([
@@ -150,10 +212,16 @@
                                     row.sms,
                                     row.ivr,
                                     row.calls,
+                                    row.doctor_subs,
                                     row.total
                                 ])
                                 .draw();
                         });
+                    },
+                     error: function (xhr, status, error) {
+                    // Handle AJAX error
+                    console.error(error);
+                    // Display appropriate error message to the user
                     },
                     complete: function(data) {
                         $("#loader").hide();
