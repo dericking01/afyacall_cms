@@ -93,7 +93,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'Admin', 'mi
     //customer reports
      Route::get('/reports/customer','CustomerReports@index')->name('customer.report');
      Route::post('/reports/customer/show','CustomerReports@customerList')->name('customer_list');
- Route::get('/reports/Monthly-revenue-views','ReportController@monthlyrevenueReport')->name('monthlyrevenueview');
+    Route::get('/reports/Monthly-revenue-views','ReportController@monthlyrevenueReport')->name('monthlyrevenueview');
      //blacklist reports
      Route::get('/reports/blacklist','CustomerReports@blacklist')->name('blacklist');
      Route::post('/reports/blacklist/search','CustomerReports@blacklistSearch')->name('blacklistSearch');
@@ -150,5 +150,11 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'Admin', 'mi
      Route::post('/contact/outboundcampaing/store','OutBoundCampaign@store')->name('contact.outboundcampaing.store');
      Route::get('/contact/outboundcampaing/create','OutBoundCampaign@create')->name('contact.outboundcampaing.create');
      Route::get('/contact/outboundcampaing','OutBoundCampaign@index')->name('contact.outboundcampaing');
-        Route::get('/contact/outboundcampaing/show/{id}','OutBoundCampaign@show')->name('contact.outboundcampaign.show');
+      Route::get('/contact/outboundcampaing/show/{id}','OutBoundCampaign@show')->name('contact.outboundcampaign.show');
+
+
+      //promotions
+      Route::resource('promotions', 'PromotionController');
+      Route::post('promotions/import', 'PromotionController@import')->name('promotion-import');
+
 });

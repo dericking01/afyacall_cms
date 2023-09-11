@@ -488,13 +488,13 @@ class DoctorApiController extends Controller
                     ->where('product_id', 4)
                     ->first();
 
-                if ($subscription) {
-                    $resp['starts_at'] = $subscription->starts_at->toDateTimeString();
-                    $resp['ends_at'] = $subscription->ends_at->toDateTimeString();
-                } else {
-                    $resp['starts_at'] = Carbon::now()->toDateTimeString();
-                    $resp['ends_at'] = Carbon::now()->addDays(1)->toDateTimeString();
-                }
+                // if ($subscription) {
+                //     $resp['starts_at'] = $subscription->starts_at->toDateTimeString() ;
+                //     $resp['ends_at'] = $subscription->ends_at->toDateTimeString();
+                // } else {
+                //     $resp['starts_at'] = Carbon::now()->toDateTimeString();
+                //     $resp['ends_at'] = Carbon::now()->addDays(1)->toDateTimeString();
+                // }
             }
 
             return response()->json($resp);
@@ -527,7 +527,7 @@ class DoctorApiController extends Controller
         $excustomer = Customer::where('msisdn', $request->msisdn)->first();
 
         if ($excustomer) {
-            if ($excustomer->other_status >= 1) {
+            if ($excustomer->other_status >= $request->seconds) {
                 $excustomer->other_status -= $request->seconds;
                 $excustomer->save();
 

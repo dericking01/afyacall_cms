@@ -127,7 +127,15 @@
                 </li>
 		@endcan
 
-
+                @can('view_tickets')
+                            <li class="nav-item">
+                                <a href="{{ route('admin.promotions.index') }}"
+                                    class="nav-link {{ request()->is('admin/promotion') || request()->is('admin/promotion/*') ? 'active' : '' }}">
+                                    <i class="mdi mdi-comment"></i>
+                                    <span class="hide-menu">Promotion</span>
+                                </a>
+                            </li>
+                @endcan
                 @can('view_tickets')
                     <li class="nav-item">
                         <a href="{{ route('admin.ticket.index') }}"
@@ -137,6 +145,7 @@
                         </a>
                     </li>
                 @endcan
+
                 @can('view_transactions')
                     <li>
                         <a class="has-arrow" href="#" aria-expanded="false">

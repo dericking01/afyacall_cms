@@ -16,6 +16,7 @@ class ProcessOBD implements ShouldQueue
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
     private $receipts = null;
     private $campaign_id = null;
+    public $tries = 1;
     /**
      * Create a new job instance.
      *

@@ -57,3 +57,5 @@ Route::post('doctor/subscription/charge', [DoctorApiController::class, 'chargedo
 Route::post('doctor/subscription/removeseconds', [DoctorApiController::class, 'removeseconds']);
 Route::get('doctor/subscription/status', [DoctorApiController::class, 'doctorsubscriptionstatus']);
 
+//afyacall promotions
+Route::get('promotions/status', [IVRController::class, 'promotionstatus']);

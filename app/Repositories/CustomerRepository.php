@@ -103,13 +103,14 @@ class CustomerRepository
 
                 $opt = new Opt();
                 $opt->customer_ID = $customer->id;
+                $opt->product_ID = $product->id;
                 $opt->ConversationID = $data['service'];
                 $opt->OriginatorConversationID = $data['content'] ?? '';
                 $opt->opt_value = -1;
                 $opt->date = Opt::getServertime();
                 $opt->save();
 
-                Subscription::where('customer_ID', $customer->id)->where('product_id', $product->id)->delete();
+                Subscription::where('customer_ID', $customer->id)->delete();
 
                 $message = [
                     'sw' => 'Umefanikiwa kujitoa kikamilifu kwenye huduma ya AFYACALL SMS.Kujiunga tena na huduma hii tuma neno AFYASMS kwenda 15723 kwa gharama ya Tsh 150/siku.',
@@ -195,13 +196,14 @@ class CustomerRepository
 
                 $opt = new Opt();
                 $opt->customer_ID = $customer->id;
+                $opt->product_ID = $product->id;
                 $opt->ConversationID = $data['service'];
                 $opt->OriginatorConversationID = $data['content'] ?? '';
                 $opt->opt_value = -1;
                 $opt->date = Opt::getServertime();
                 $opt->save();
 
-                Subscription::where('customer_ID', $customer->id)->where('product_id', $product->id)->delete();
+                Subscription::where('customer_ID', $customer->id)->delete();
 
                 $message = [
                     'sw' => 'Umefanikiwa kujitoa kikamilifu kwenye huduma ya AFYACALL IVR. Kujiunga tena na huduma hii tuma neno AFYAIVR kwenda 15723 kwa gharama ya Tsh 300/siku.',
@@ -528,6 +530,46 @@ class CustomerRepository
                     return $value->id;
                 }
             }
+        }
+    }
+
+    public function unsubscribe_allservices($data)
+    {
+        $msisdn = ltrim($data['sender'], '+');
+
+        $customer = Customer::where('msisdn', $msisdn)->first();
+        if ($customer) {
+            if ($customer->enticement == 0) {
+                $customer->status = -1;
+                $customer->ivr_status = -1;
+                $customer->doctor_subscription_status = -1;
+                $customer->keyword = $data['service'];
+                $customer->save();
+
+                $opt = new Opt();
+                $opt->customer_ID = $customer->id;
+                $opt->ConversationID = $data['service'];
+                $opt->OriginatorConversationID = $data['content'] ?? '';
+                $opt->opt_value = -1;
+                $opt->date = Opt::getServertime();
+                $opt->save();
+
+                Subscription::where('customer_ID', $customer->id)->delete();
+
+                $message = [
+                    'sw' => 'Umefanikiwa kujitoa kikamilifu kwenye huduma zote za AFYACALL .Kujiunga tena na huduma hizi tuma neno AFYA kwenda 15723 au piga 0900011111.',
+                    'en' => 'You have successfully unsubscribed from all AFYACALL services. To rejoin this service send the word AFYA to 15723 or call 0900011111'
+                ];
+                ProcessLanguage::dispatchSync($msisdn, $message['sw'], $message['en']);
+            } else {
+                $this->keyword_icg_unsubscribe($msisdn);
+            }
+        } else {
+            $message = [
+                'sw' => 'Tayari ulijitoa kikamilifu kwenye huduma zote za AFYACALL. Kujiunga tena na huduma hii tuma neno AFYA kwenda 15723 au piga 0900011111.',
+                'en' => 'You are already unsubscribed to this service. To subscribe send the word AFYA to 15723 or call 0900011111'
+            ];
+            ProcessLanguage::dispatchSync($msisdn, $message['sw'], $message['en']);
         }
     }
 }

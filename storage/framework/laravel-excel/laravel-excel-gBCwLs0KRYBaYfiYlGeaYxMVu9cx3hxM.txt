@@ -1,0 +1,4 @@
+msisdn,product_id,startdate,name,status
+255747740943,1,01/08/2023 00:00,30 Days Offer,1
+255754711547,1,01/08/2023 00:00,30 Days Offer,1
+255769712453,1,01/08/2023 00:00,30 Days Offer,1

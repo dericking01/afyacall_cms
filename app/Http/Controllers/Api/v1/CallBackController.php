@@ -36,7 +36,7 @@ class CallBackController extends Controller
 
             //post data to update the transaction status 
 
-	  TransactionMpesaUpdates::dispatchSync($request->output_ConversationID, $request->output_ResponseCode, $request->output_Receipt, $request->output_ResponseDesc,abs($request->output_ChargedAmount));
+	        TransactionMpesaUpdates::dispatchSync($request->output_ConversationID, $request->output_ResponseCode, $request->output_Receipt, $request->output_ResponseDesc,abs($request->output_ChargedAmount));
 
             if ($request->output_ResponseCode == '0') {
                 //update users info and add to the subscription lists

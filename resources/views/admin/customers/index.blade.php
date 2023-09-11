@@ -147,7 +147,7 @@
                                         </td>
 
                                         <td>
-                                            {{ $customer->updated_at->diffForHumans() ?? '' }}
+                                            {{ $customer->created_at ?? '' }}
                                         </td>
 
 

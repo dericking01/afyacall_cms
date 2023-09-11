@@ -169,7 +169,7 @@ return [
             'queue' => ['high', 'default'],
             'balance' => 'auto',
             'maxProcesses' => 4,
-            'memory' => 2048,
+            'memory' => 1024,
             'timeout' => 3600,
             'nice' => 0,
         ],
@@ -177,8 +177,8 @@ return [
             'connection' => 'redis',
             'queue' => ['delivery'],
             'balance' => 'auto',
-            'maxProcesses' => 50,
-            'memory' => 4096,
+            'maxProcesses' => 250,
+            'memory' => 1024,
             'timeout' => 3600,
             'nice' => 0,
         ],
@@ -187,8 +187,8 @@ return [
             'connection' => 'redis',
             'queue' => ['transaction'],
             'balance' => 'auto',
-            'maxProcesses' => 300,
-            'memory' => 4096,
+            'maxProcesses' => 500,
+            'memory' => 1024,
             'timeout' => 3600,
             'nice' => 0,
         ],
@@ -196,8 +196,8 @@ return [
             'connection' => 'redis',
             'queue' => ['upload'],
             'balance' => 'auto',
-            'maxProcesses' => 20,
-            'memory' => 4096,
+            'maxProcesses' => 220,
+            'memory' => 1024,
             'timeout' => 3600,
             'nice' => 0,
         ],
@@ -207,7 +207,7 @@ return [
     'environments' => [
         'production' => [
             'supervisor-1' => [
-                'maxProcesses' => 10,
+                'maxProcesses' => 100,
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
@@ -215,16 +215,16 @@ return [
 
         'local' => [
             'supervisor-1' => [
-                'maxProcesses' => 50,
+                'maxProcesses' => 250,
             ],
             'supervisor-2' => [
-                'maxProcesses' => 50,
+                'maxProcesses' => 250,
             ],
             'supervisor-3' => [
-                'maxProcesses' => 300,
+                'maxProcesses' => 500,
             ],
             'supervisor-4' => [
-                'maxProcesses' => 50,
+                'maxProcesses' => 250,
             ],
 
         ],

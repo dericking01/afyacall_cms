@@ -304,10 +304,7 @@ class ChargingExistingCustomer
 
     private function chargeviaairtime_doctorsubscription($product_ID, $cellNo, $amount)
     {
-        try {
-            // Log the cell number and amount charged
-            Log::info($cellNo . ' Amount Charged is ' . $amount);
-            
+        try {           
             // Prepare the payload for the charging request
             $payload = [
                 'type' => 'charge',
@@ -362,27 +359,26 @@ class ChargingExistingCustomer
                 $customer->other_status += 60;
                 $customer->save();
 
-                // Register a successful transaction
-                $transaction = new Transaction([
-                    'customer_ID' => $customer->id,
-                    'amount_IN' => $amount / 100,
-                    'product_id' => $product->id,
-                    'transaction_date' => Opt::getServertime(),
-                    'status' => 1,
-                    'currency' => "Airtime",
-                    'response' => 'Process service request successfully.'
-                ]);
-                $transaction->save();
 
-                // Register the subscription
-                $subscription = new Subscription([
-                    'customer_ID' => $customer->id,
-                    'product_id' => $product->id,
-                    'starts_at' => Carbon::now(),
-                    'ends_at' => Carbon::now()->addDays(1),
-                    'status' => 1
-                ]);
-                $subscription->save();
+                //register successfully transaction
+                $trans = new Transaction();
+                $trans->customer_ID = $customer->id;
+                $trans->amount_IN = $amount / 100;
+                $trans->product_id = $product->id;
+                $trans->transaction_date = Opt::getServertime();
+                $trans->status = 1;
+                $trans->currency = "Airtime";
+                $trans->response = 'Process service request successfully.';
+                $trans->save();
+
+                //register the subscription
+                $subscribe = new Subscription();
+                $subscribe->customer_ID = $customer->id;
+                $subscribe->product_id = $product->id;
+                $subscribe->starts_at = Carbon::now();
+                $subscribe->ends_at = Carbon::now()->addDays(1);
+                $subscribe->status = 1;
+                $subscribe->save();
 
                 return true;
             } else {

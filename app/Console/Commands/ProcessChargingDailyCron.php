@@ -66,7 +66,8 @@ class ProcessChargingDailyCron extends Command
                   Log::info('charging airtime doctor subscription customer.'.$customer->msisdn);
                   ProcessCharingDaily::dispatch('921465_P04', $customer->msisdn, '20000')->onQueue('transaction');
                 }
-            });
+	    });
+ 
     }
 }
 

@@ -50,6 +50,7 @@ class HelperObd
             return true;
         } catch (\Throwable $e) {
             Log::error($e->getMessage());
+            return false;
         }
         return false;
     }

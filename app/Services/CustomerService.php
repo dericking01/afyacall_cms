@@ -46,5 +46,7 @@ class CustomerService
         return $this->customerRepository->unsubscribe_doctor_subscription($data);
     }
 
-
+    public function unsubscribe_allservices($data){
+        return $this->customerRepository->unsubscribe_allservices($data);
+    }
 }
