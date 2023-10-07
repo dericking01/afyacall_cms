@@ -92,7 +92,7 @@ class ChargingExistingCustomer
         //try charging the customer
         try {
             $client = new \GuzzleHttp\Client;
-            $credentials = base64_encode('svc_afyacall:gCt5mos5QAJtcqN5');
+            $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');
             $response = $client->post('https://197.250.9.149:6202/middlewarev2/serviceAccountAdjustment', [
                 'verify' => false,
                 'headers' => [
@@ -199,7 +199,7 @@ class ChargingExistingCustomer
         //try charging the customer
         try {
             $client = new \GuzzleHttp\Client;
-            $credentials = base64_encode('svc_afyacall:gCt5mos5QAJtcqN5');
+            $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');
             $response = $client->post('https://197.250.9.149:6202/middlewarev2/serviceAccountAdjustment', [
                 'verify' => false,
                 'headers' => [
@@ -279,7 +279,7 @@ class ChargingExistingCustomer
         $chargetime = Opt::getServertime();
         try {
             $client = new \GuzzleHttp\Client;
-            $credentials = base64_encode('svc_afyacall:gCt5mos5QAJtcqN5');
+            $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');
             $response = $client->post('https://197.250.9.149:6202/middlewarev2/serviceBalance', [
                 'verify' => false,
                 'headers' => [
@@ -337,7 +337,7 @@ class ChargingExistingCustomer
             if ($customer && $product) {
                 // Try charging the customer
                 $client = new \GuzzleHttp\Client;
-                $credentials = base64_encode('svc_afyacall:gCt5mos5QAJtcqN5');
+                $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');
                 
                 // Send a POST request to the charging endpoint
                 $response = $client->post('https://197.250.9.149:6202/middlewarev2/serviceAccountAdjustment', [

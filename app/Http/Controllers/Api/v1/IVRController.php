@@ -312,7 +312,7 @@ class IVRController extends Controller
         //try charging
         try {
             $client = new \GuzzleHttp\Client;
-            $credentials = base64_encode('svc_afyacall:gCt5mos5QAJtcqN5');
+            $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');
             $response = $client->post('https://197.250.9.149:6202/middlewarev2/serviceAccountAdjustment', [
                 'verify' => false,
                 'headers' => [
@@ -585,7 +585,7 @@ class IVRController extends Controller
         //try charging
         try {
             $client = new \GuzzleHttp\Client;
-            $credentials = base64_encode('svc_afyacall:gCt5mos5QAJtcqN5');
+            $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');
             $response = $client->post('https://197.250.9.149:6202/middlewarev2/serviceAccountAdjustment', [
                 'verify' => false,
                 'headers' => [

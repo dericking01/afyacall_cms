@@ -352,7 +352,7 @@ class CustomerRepository
             $client = new \GuzzleHttp\Client;
 
             // Prepare the request headers
-            $credentials = base64_encode('svc_afyacall:gCt5mos5QAJtcqN5');
+            $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');
             $headers = [
                 'Authorization' => 'Basic ' . $credentials,
                 'Content-Type' => 'application/json',

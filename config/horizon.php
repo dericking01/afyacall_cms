@@ -177,7 +177,7 @@ return [
             'connection' => 'redis',
             'queue' => ['delivery'],
             'balance' => 'auto',
-            'maxProcesses' => 250,
+            'maxProcesses' => 50,
             'memory' => 1024,
             'timeout' => 3600,
             'nice' => 0,
@@ -187,7 +187,7 @@ return [
             'connection' => 'redis',
             'queue' => ['transaction'],
             'balance' => 'auto',
-            'maxProcesses' => 500,
+            'maxProcesses' => 300,
             'memory' => 1024,
             'timeout' => 3600,
             'nice' => 0,
@@ -196,7 +196,7 @@ return [
             'connection' => 'redis',
             'queue' => ['upload'],
             'balance' => 'auto',
-            'maxProcesses' => 220,
+            'maxProcesses' => 20,
             'memory' => 1024,
             'timeout' => 3600,
             'nice' => 0,
@@ -215,16 +215,16 @@ return [
 
         'local' => [
             'supervisor-1' => [
-                'maxProcesses' => 250,
+                'maxProcesses' => 50,
             ],
             'supervisor-2' => [
-                'maxProcesses' => 250,
+                'maxProcesses' => 50,
             ],
             'supervisor-3' => [
-                'maxProcesses' => 500,
+                'maxProcesses' => 300,
             ],
             'supervisor-4' => [
-                'maxProcesses' => 250,
+                'maxProcesses' => 50,
             ],
 
         ],

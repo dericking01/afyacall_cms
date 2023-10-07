@@ -59,6 +59,10 @@ class LoginController extends Controller
 	if (auth()->user()->email == 'skevy20@gmail.com') {
             return redirect()->route('admin.customers.index');
 	}
+
+    if (auth()->user()->email == 'derrick@afyacall.co.tz') {
+        return redirect()->route('admin.customers.index');
+     }
 	 if (auth()->user()->email == 'john.haule@it.co.tz') {
             return redirect()->route('admin.customers.index');
         }
