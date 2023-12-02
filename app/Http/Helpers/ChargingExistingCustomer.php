@@ -126,13 +126,22 @@ class ChargingExistingCustomer
                 $trans->save();
 
                 //register the subscription
-                $subscribe = new Subscription();
-                $subscribe->customer_ID = $customer->id;
-                $subscribe->product_id = $product->id;
-                $subscribe->starts_at = Carbon::now();
-                $subscribe->ends_at = Carbon::now()->addDays(1);
-                $subscribe->status = 1;
-                $subscribe->save();
+                $subscribeid = Subscription::where('customer_ID', $customer->id)->where('product_id', $product->id)->first();
+                if ($subscribeid) {
+                    $subscribeid->starts_at = Carbon::now();
+                    $subscribeid->ends_at = Carbon::now()->addDays(1);
+                    $subscribeid->status = 1;
+                    $subscribeid->save();
+                } else {
+                     //register the subscription
+                    $subscribe = new Subscription();
+                    $subscribe->customer_ID = $customer->id;
+                    $subscribe->product_id = $product->id;
+                    $subscribe->starts_at = Carbon::now();
+                    $subscribe->ends_at = Carbon::now()->addDays(1);
+                    $subscribe->status = 1;
+                    $subscribe->save();
+                }
 
                 return true;
             }
@@ -157,7 +166,7 @@ class ChargingExistingCustomer
     //charge via airtime ivr
     private function chargeviaairtimeivr($product_ID, $cellNo, $amount)
     {
-	            //check the customer balance first
+	    //check the customer balance first
 	    $balance = intval(abs($this->getBalance($cellNo)));
         if ($balance >= 30000) {
             $amount = 30000;
@@ -232,13 +241,22 @@ class ChargingExistingCustomer
                 $trans->save();
 
                 //register the subscription
-                $subscribe = new Subscription();
-                $subscribe->customer_ID = $customer->id;
-                $subscribe->product_id = $product->id;
-                $subscribe->starts_at = Carbon::now();
-                $subscribe->ends_at = Carbon::now()->addDays(1);
-                $subscribe->status = 1;
-                $subscribe->save();
+                $subscribeid = Subscription::where('customer_ID', $customer->id)->where('product_id', $product->id)->first();
+                if ($subscribeid) {
+                    $subscribeid->starts_at = Carbon::now();
+                    $subscribeid->ends_at = Carbon::now()->addDays(1);
+                    $subscribeid->status = 1;
+                    $subscribeid->save();
+                } else {
+                     //register the subscription
+                    $subscribe = new Subscription();
+                    $subscribe->customer_ID = $customer->id;
+                    $subscribe->product_id = $product->id;
+                    $subscribe->starts_at = Carbon::now();
+                    $subscribe->ends_at = Carbon::now()->addDays(1);
+                    $subscribe->status = 1;
+                    $subscribe->save();
+                }
 
                 return true;
             }
@@ -304,6 +322,26 @@ class ChargingExistingCustomer
 
     private function chargeviaairtime_doctorsubscription($product_ID, $cellNo, $amount)
     {
+
+        //check balance
+	    $balance = intval(abs($this->getBalance($cellNo)));
+        if ($balance >= 20000) {
+            $amount = 20000;
+            $seconds = 60;
+        } elseif ($balance > 15000 && $balance < 20000) {
+            $amount = 15000;
+            $seconds = 45;
+        } elseif ($balance > 10000 && $balance < 15000) {
+            $amount = 10000;
+            $seconds = 30;
+        } elseif ($balance > 5000 && $balance < 10000) {
+            $amount = 5000;
+            $seconds = 15;
+        } else {
+		Log::info($cellNo . ' Insufficient Balance for Doctor Subscription ' . $balance);
+		   return true;
+        }
+
         try {           
             // Prepare the payload for the charging request
             $payload = [
@@ -356,7 +394,7 @@ class ChargingExistingCustomer
 
                 // Update customer status
                 $customer->doctor_subscription_status = 1;
-                $customer->other_status += 60;
+                $customer->other_status += $seconds;
                 $customer->save();
 
 
@@ -371,14 +409,23 @@ class ChargingExistingCustomer
                 $trans->response = 'Process service request successfully.';
                 $trans->save();
 
-                //register the subscription
-                $subscribe = new Subscription();
-                $subscribe->customer_ID = $customer->id;
-                $subscribe->product_id = $product->id;
-                $subscribe->starts_at = Carbon::now();
-                $subscribe->ends_at = Carbon::now()->addDays(1);
-                $subscribe->status = 1;
-                $subscribe->save();
+
+                $subscribeid = Subscription::where('customer_ID', $customer->id)->where('product_id', $product->id)->first();
+                if ($subscribeid) {
+                    $subscribeid->starts_at = Carbon::now();
+                    $subscribeid->ends_at = Carbon::now()->addDays(1);
+                    $subscribeid->status = 1;
+                    $subscribeid->save();
+                } else {
+                     //register the subscription
+                    $subscribe = new Subscription();
+                    $subscribe->customer_ID = $customer->id;
+                    $subscribe->product_id = $product->id;
+                    $subscribe->starts_at = Carbon::now();
+                    $subscribe->ends_at = Carbon::now()->addDays(1);
+                    $subscribe->status = 1;
+                    $subscribe->save();
+                }
 
                 return true;
             } else {

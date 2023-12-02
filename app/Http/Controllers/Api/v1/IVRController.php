@@ -21,7 +21,7 @@ class IVRController extends Controller
 
     public function chargeMpesaAirtimeIvr(Request $request)
     {
-        Log::info($request);
+
         $validator = Validator::make(
             $request->all(),
             [
@@ -44,30 +44,69 @@ class IVRController extends Controller
                 if ($excustomer->doctor_status != 1) {
                     //charge doctor amount
                     if ($request->via == '4') {
-
-                        $res = $this->chargiartimedoctor($request->Caller_Number, $product->id, $product->price);
+                        $res = $this->chargiartimedoctor($request->Caller_Number, $product->id, $request->amount);
                         if ($res) {
                             //update customer with 
                             $updatecustomer = Customer::where('msisdn', $request->Caller_Number)->get()->first();
                             $updatecustomer->doctor_status = 0;
                             $updatecustomer->save();
-
                             //send notification to customer for successfully charges
-                            $sw = 'Hongera! Umepata dakika 15 za kuongea na Daktari wa Afyacall . Zitumike hadi ' . Carbon::now()->addDays(7);
-                            $en = 'Congratulations! You have 15 minutes to speak with the Afyacall Doctor. To be used untill ' . Carbon::now()->addDays(7);
-			                ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
-
-                            //send notification to customer for successfully charges
-                            $sw = 'Umefanikiwa kulipia Tsh 3000 kwa huduma ya Vodacom AfyaCall kuzungumza na daktari';
-                            $en = 'You haveSuccess fully paid Tsh 3000 for the Vodacom AfyaCall service to talk to a doctor';
- 			                ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
-
-                            $resp = array(
-                                "status" => "1",
-                                "message" => "success",
-                                "msisdn" => $request->Caller_Number,
-                            );
-                            return response()->json($resp);
+                            if ($request->amount == 3000) {
+                                //send notification to customer for successfully charges
+                                $sw = 'Hongera! Umepata dakika 15 za kuongea na Daktari wa Afyacall . Zitumike hadi ' . Carbon::now()->addDays(7);
+                                $en = 'Congratulations! You have 15 minutes to speak with the Afyacall Doctor. To be used untill ' . Carbon::now()->addDays(7);
+                                ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
+        
+                                //send notification to customer for successfully charges
+                                $sw = 'Umefanikiwa kulipia Tsh 3000 kwa huduma ya Vodacom AfyaCall kuzungumza na daktari';
+                                $en = 'You haveSuccess fully paid Tsh 3000 for the Vodacom AfyaCall service to talk to a doctor';
+                                ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
+        
+                                $resp = array(
+                                    "status" => "1",
+                                    "message" => "success",
+                                    "msisdn" => $request->Caller_Number,
+                                    "amount" => $request->amount,
+                                );
+                                return response()->json($resp);
+                            } elseif ($request->amount == 2000) {
+                                //send notification to customer for successfully charges
+                                $sw = 'Hongera! Umepata dakika 10 za kuongea na Daktari wa Afyacall . Zitumike hadi ' . Carbon::now()->addDays(7);
+                                $en = 'Congratulations! You have 10 minutes to speak with the Afyacall Doctor. To be used untill ' . Carbon::now()->addDays(7);
+                                ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
+        
+                                //send notification to customer for successfully charges
+                                $sw = 'Umefanikiwa kulipia Tsh 2000 kwa huduma ya Vodacom AfyaCall kuzungumza na daktari';
+                                $en = 'You haveSuccess fully paid Tsh 2000 for the Vodacom AfyaCall service to talk to a doctor';
+                                ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
+        
+                                $resp = array(
+                                    "status" => "1",
+                                    "message" => "success",
+                                    "msisdn" => $request->Caller_Number,
+                                    "amount" => $request->amount,
+                                );
+        
+                                return response()->json($resp);
+                            } else {
+                                //send notification to customer for successfully charges
+                                $sw = 'Hongera! Umepata dakika 5 za kuongea na Daktari wa Afyacall . Zitumike hadi ' . Carbon::now()->addDays(7);
+                                $en = 'Congratulations! You have 5 minutes to speak with the Afyacall Doctor. To be used untill ' . Carbon::now()->addDays(7);
+                                ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
+        
+                                //send notification to customer for successfully charges
+                                $sw = 'Umefanikiwa kulipia Tsh 1000 kwa huduma ya Vodacom AfyaCall kuzungumza na daktari';
+                                $en = 'You haveSuccess fully paid Tsh 1000 for the Vodacom AfyaCall service to talk to a doctor';
+                                ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
+        
+                                $resp = array(
+                                    "status" => "1",
+                                    "message" => "success",
+                                    "msisdn" => $request->Caller_Number,
+                                    "amount" => $request->amount,
+                                );
+                                return response()->json($resp);
+                            }
                         } else {
                             $sw = 'Hauna salio la kutosha kupata huduma hii.Ongeza salio kisha  piga 0900011111 kwa gharama ya Tsh.3000/Wiki ';
                             $en = 'You have insufficient balance.Please recharge and dial 0900011111 at a cost of Tsh.3000/Week';
@@ -82,11 +121,11 @@ class IVRController extends Controller
                     }
                     //charge the customer airtime
                     if ($request->via == '1') {
-                        $res = $this->chargiartime($request->Caller_Number, $product->id, $product->price);
+                        $res = $this->chargiartime($request->Caller_Number, $product->id, $request->amount);
                         if ($res) {
 
-                            $sw = 'Umelipia Kikamilifu Tsh ' . $product->price . ' kwenye huduma ya Vodacom AFYACALL IVR';
-                            $en = 'You have Successfully paid Tsh ' . $product->price . ' for the Vodacom AFYACALL IVR service';
+                            $sw = 'Umelipia Kikamilifu Tsh ' . $request->amount . ' kwenye huduma ya Vodacom AFYACALL IVR';
+                            $en = 'You have Successfully paid Tsh ' . $request->amount . ' for the Vodacom AFYACALL IVR service';
 			                ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
 
 
@@ -98,8 +137,8 @@ class IVRController extends Controller
                             return response()->json($resp);
                         } else {
 
-                            $sw = 'Hauna salio la kutosha kupata huduma hii.Ongeza salio kisha piga namba 0900011111 kwa gharama ya Tsh ' . $product->price . '/ ugonjwa';
-                            $en = 'You have insufficient balance.Please recharge and dial number  0900011111 at a cost of Tzs ' . $product->price . ' per Tip';
+                            $sw = 'Hauna salio la kutosha kupata huduma hii.Ongeza salio kisha piga namba 0900011111 kwa gharama ya Tsh ' . $request->amount . '/ ugonjwa';
+                            $en = 'You have insufficient balance.Please recharge and dial number  0900011111 at a cost of Tzs ' . $request->amount . ' per Tip';
 			                ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
 
                             $resp = array(
@@ -142,7 +181,7 @@ class IVRController extends Controller
                             }
                         } else {
 
-                            $resmpesa = $this->chargempesa($request->Caller_Number, $request->productID, $product->price);
+                            $resmpesa = $this->chargempesa($request->Caller_Number, $request->productID, $request->amount);
                             return $resmpesa;
                         }
                     }
@@ -181,29 +220,69 @@ class IVRController extends Controller
                 $opt->save();
 
                 if ($request->via == '4') {
-                    $res = $this->chargiartimedoctor($request->Caller_Number, $product->id, $product->price);
+                    $res = $this->chargiartimedoctor($request->Caller_Number, $product->id, $request->amount);
                     if ($res) {
                         //update customer with 
                         $updatecustomer = Customer::where('msisdn', $request->Caller_Number)->get()->first();
                         $updatecustomer->doctor_status = 0;
                         $updatecustomer->save();
 
-                        //send notification to customer for successfully charges
-                        $sw = 'Hongera! Umepata dakika 15 za kuongea na Daktari wa Afyacall . Zitumike hadi ' . Carbon::now()->addDays(7);
-                        $en = 'Congratulations! You have 15 minutes to speak with the Afyacall Doctor. To be used untill ' . Carbon::now()->addDays(7);
-			            ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
-
-                        //send notification to customer for successfully charges
-                        $sw = 'Umefanikiwa kulipia Tsh 3000 kwa huduma ya Vodacom AfyaCall kuzungumza na daktari';
-                        $en = 'You haveSuccess fully paid Tsh 3000 for the Vodacom AfyaCall service to talk to a doctor';
-		                ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
-
-                        $resp = array(
-                            "status" => "1",
-                            "message" => "success",
-                            "msisdn" => $request->Caller_Number,
-                        );
-                        return response()->json($resp);
+                        if ($request->amount == 3000) {
+                            //send notification to customer for successfully charges
+                            $sw = 'Hongera! Umepata dakika 15 za kuongea na Daktari wa Afyacall . Zitumike hadi ' . Carbon::now()->addDays(7);
+                            $en = 'Congratulations! You have 15 minutes to speak with the Afyacall Doctor. To be used untill ' . Carbon::now()->addDays(7);
+                            ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
+    
+                            //send notification to customer for successfully charges
+                            $sw = 'Umefanikiwa kulipia Tsh 3000 kwa huduma ya Vodacom AfyaCall kuzungumza na daktari';
+                            $en = 'You haveSuccess fully paid Tsh 3000 for the Vodacom AfyaCall service to talk to a doctor';
+                            ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
+    
+                            $resp = array(
+                                "status" => "1",
+                                "message" => "success",
+                                "msisdn" => $request->Caller_Number,
+                                "amount" => $request->amount,
+                            );
+                            return response()->json($resp);
+                        } elseif ($request->amount == 2000) {
+                            //send notification to customer for successfully charges
+                            $sw = 'Hongera! Umepata dakika 10 za kuongea na Daktari wa Afyacall . Zitumike hadi ' . Carbon::now()->addDays(7);
+                            $en = 'Congratulations! You have 10 minutes to speak with the Afyacall Doctor. To be used untill ' . Carbon::now()->addDays(7);
+                            ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
+    
+                            //send notification to customer for successfully charges
+                            $sw = 'Umefanikiwa kulipia Tsh 2000 kwa huduma ya Vodacom AfyaCall kuzungumza na daktari';
+                            $en = 'You haveSuccess fully paid Tsh 2000 for the Vodacom AfyaCall service to talk to a doctor';
+                            ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
+    
+                            $resp = array(
+                                "status" => "1",
+                                "message" => "success",
+                                "msisdn" => $request->Caller_Number,
+                                "amount" => $request->amount,
+                            );
+    
+                            return response()->json($resp);
+                        } else {
+                            //send notification to customer for successfully charges
+                            $sw = 'Hongera! Umepata dakika 5 za kuongea na Daktari wa Afyacall . Zitumike hadi ' . Carbon::now()->addDays(7);
+                            $en = 'Congratulations! You have 5 minutes to speak with the Afyacall Doctor. To be used untill ' . Carbon::now()->addDays(7);
+                            ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
+    
+                            //send notification to customer for successfully charges
+                            $sw = 'Umefanikiwa kulipia Tsh 1000 kwa huduma ya Vodacom AfyaCall kuzungumza na daktari';
+                            $en = 'You haveSuccess fully paid Tsh 1000 for the Vodacom AfyaCall service to talk to a doctor';
+                            ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
+    
+                            $resp = array(
+                                "status" => "1",
+                                "message" => "success",
+                                "msisdn" => $request->Caller_Number,
+                                "amount" => $request->amount,
+                            );
+                            return response()->json($resp);
+                        }
                     } else {
                         $sw = 'Hauna salio la kutosha kupata huduma hii.Ongeza salio kisha  piga 0900011111 kwa gharama ya Tsh.3000/Wiki ';
                         $en = 'You have insufficient balance.Please recharge and dial 0900011111 at a cost of Tsh.3000/ Week';
@@ -218,11 +297,11 @@ class IVRController extends Controller
                 }
 
                 if ($request->via == '1') {
-                    $res = $this->chargiartime($request->Caller_Number, $product->id, $product->price);
+                    $res = $this->chargiartime($request->Caller_Number, $product->id, $request->amount);
                     if ($res) {
 
-                        $sw = 'Umelipia Kikamilifu Tsh ' . $product->price . ' kwenye huduma ya Vodacom AFYACALL IVR';
-                        $en = 'You have Successfully paid Tsh ' . $product->price . ' for the Vodacom AFYACALL IVR service';
+                        $sw = 'Umelipia Kikamilifu Tsh ' . $request->amount . ' kwenye huduma ya Vodacom AFYACALL IVR';
+                        $en = 'You have Successfully paid Tsh ' . $request->amount . ' for the Vodacom AFYACALL IVR service';
 			            ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
 
                         $resp = array(
@@ -326,7 +405,7 @@ class IVRController extends Controller
             $results = $response->getBody()->getContents();
             //convert into json
             $data = json_decode($results, true);
-            Log::info($data);
+
 
             $amountcharged = $data['parts']['serviceBalance'][0]['adjustmentAmount'];
             $amountremain = $data['parts']['serviceBalance'][0]['balanceAmount'];
@@ -351,7 +430,7 @@ class IVRController extends Controller
 
 		//subscribe user in the system
 		
-		$subscrb = Subscription::where('customer_ID', $customer->id)
+		        $subscrb = Subscription::where('customer_ID', $customer->id)
                 ->where('product_id', $product_id)
                 ->get()->first();
                 if ($subscrb) {
@@ -416,8 +495,6 @@ class IVRController extends Controller
             $results = $response->getBody()->getContents();
             $data = json_decode($results, true);
 
-            Log::info($data);
-
             //register transaction
             $trans = new Transaction();
             $trans->customer_ID = $customer->id;
@@ -429,7 +506,7 @@ class IVRController extends Controller
             $trans->response = $data['output_ResponseDesc'];
             $trans->conventions_ID = $data['output_ConversationID'];
             $trans->response_code = $data['output_ResponseCode'];
-	    $trans->save();
+	        $trans->save();
 
 
            if ($data['output_ResponseCode'] == '-7' ) {
@@ -480,7 +557,7 @@ class IVRController extends Controller
 
             $results = $response->getBody()->getContents();
             $data = json_decode($results, true);
-            Log::info($data);
+
             return $data;
         } catch (\Throwable $th) {
             Log::error("There is an error on ivr enticement " . $phone);
@@ -515,7 +592,6 @@ class IVRController extends Controller
                         "starts_at" => $subscrb->starts_at,
                         "ends_at" => $subscrb->ends_at,
 		);
-		    Log::info($resp);
                     return response()->json($resp);
                 } else {
                     $resp = array(
@@ -524,9 +600,8 @@ class IVRController extends Controller
                         "message" => "success",
 			"msisdn" => $request->Caller_Number,
 			"starts_at" => Carbon::now()->toDateTimeString(),
-                        "ends_at" => Carbon::now()->addDays(1)->toDateTimeString(),
+            "ends_at" => Carbon::now()->addDays(1)->toDateTimeString(),
 		);
-		    Log::info($resp);
                     return response()->json($resp);
                 }
             } else {
@@ -538,7 +613,6 @@ class IVRController extends Controller
 		    "starts_at" => "0000-00-00 00:00:00",
                     "ends_at" => "0000-00-00 00:00:00",
 	    );
-		Log::info($resp);
                 return response()->json($resp);
             }
         } else {
@@ -550,7 +624,6 @@ class IVRController extends Controller
 	        "starts_at" => "0000-00-00 00:00:00",
                 "ends_at" => "0000-00-00 00:00:00",
 	    );
-	    Log::info($resp);
             return response()->json($resp);
         }
     }
@@ -584,6 +657,7 @@ class IVRController extends Controller
         $customer = Customer::where('msisdn', $cellNo)->get()->first();
         //try charging
         try {
+            Log::info("test here to cahrge");
             $client = new \GuzzleHttp\Client;
             $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');
             $response = $client->post('https://197.250.9.149:6202/middlewarev2/serviceAccountAdjustment', [
@@ -599,7 +673,7 @@ class IVRController extends Controller
             $results = $response->getBody()->getContents();
             //convert into json
             $data = json_decode($results, true);
-            Log::info($data);
+
 
             $amountcharged = $data['parts']['serviceBalance'][0]['adjustmentAmount'];
             $amountremain = $data['parts']['serviceBalance'][0]['balanceAmount'];
@@ -622,6 +696,7 @@ class IVRController extends Controller
                 $trans->currency = "Airtime";
                 $trans->response = 'Process service request successfully.';
                 $trans->save();
+                Log::info("test ".$trans);
 
                 return true;
             }
@@ -636,9 +711,10 @@ class IVRController extends Controller
             $trans->currency = "Airtime";
             $trans->response = 'Insufficient Balance';
             $trans->save();
-
-            Log::error('error on charging airtime on ivr or unsufficient balance ' . $cellNo);
+            Log::info("test ".$th->getMessage());
+            Log::error('test error on charging airtime on ivr or unsufficient balance ' . $cellNo);
             Log::error($th->getMessage());
+            Log::info("test ".$trans);
             return false;
         }
     }

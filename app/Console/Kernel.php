@@ -47,7 +47,10 @@ class Kernel extends ConsoleKernel
             ->timezone('Africa/Dar_es_Salaam')
             ->cron('30 * * * *');
 
-
+        $schedule->command('remove:agedays')
+            ->timezone('Africa/Dar_es_Salaam')
+            ->lastDayOfMonth('23:00');
+            
 
         //send sms twice daily
         $schedule->command('sms:daily')

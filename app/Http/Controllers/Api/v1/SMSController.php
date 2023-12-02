@@ -16,7 +16,7 @@ class SMSController extends Controller
     {
         //check the incoming requests and log into database
         FacadesLog::info($request);
-        if (in_array(strtolower($request->sender), ['+255746805383','+255757223687','+255745821232','+255745994671','+255766992111','+255747234197','+255744663450'])) {
+        if (in_array(strtolower($request->sender), ['+255746805383','+255757223687','+255745821232','+255745994671','+255766992111','+255747234197','+255744663450','+255754711547','+255747778248','+255767455554'])) {
 
             try {
                 $client = new \GuzzleHttp\Client();

@@ -21,7 +21,7 @@ class IPGController extends Controller
 {
     public function callbacksrequests(Request $request)
     {
-      
+        Log::info("======================updated request=========================");
         $xml_data = $request->getContent();
         $response = preg_replace("/(<\/?)(\w+):([^>]*>)/", "$1$2$3", $xml_data);
         $xml = new SimpleXMLElement($response);
@@ -29,7 +29,7 @@ class IPGController extends Controller
         $data = json_encode($body);
         $jdatason = json_decode($data, true);
 
-        Log::info($jdatason);
+
 
         $insightReference = $jdatason['dataItem'][12]['value'];
         $conversationID = $jdatason['dataItem'][5]['value'];
@@ -78,19 +78,15 @@ class IPGController extends Controller
                 //send notification to customer for successfully charges
                 $sw = 'Umefanikiwa kulipia Tsh 1000 kwa huduma ya Vodacom AfyaCall kuzungumza na daktari';
                 $en = 'You have Success fully paid Tsh 1000 for the Vodacom AfyaCall service to talk to a doctor';
-		ProcessLanguage::dispatchSync($msisdn, $sw, $en);
+		        ProcessLanguage::dispatchSync($msisdn, $sw, $en);
 
-		Log::info("mbezi===========bando la 1000 ======================");
-            }
+                 }
 
-	    Log::info($thirdPartyReference);
-	    Log::info("mbezi===============start updated transaction==================");
             DB::table('transactions')
                 ->where('conventions_ID', $thirdPartyReference)
                 ->where('currency', 'Mpesa')
 		->update(['status' => 1]);
 
-	    Log::info("mbezi======================end updated transcation=========================");
 
         } else {
 

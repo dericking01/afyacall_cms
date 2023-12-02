@@ -13,7 +13,9 @@ class Customer extends Model
     use SoftDeletes;
 
     protected $dates = ['deleted_at'];
-
+    protected $fillable = [
+        'msisdn', 'status','ivr_status','doctor_subscription_status','keyword'
+    ];
     public function products()
     {
         return $this->hasMany(Product::class, 'id', 'product_id');

@@ -103,6 +103,8 @@
                                                 <span class="badge badge-pill badge-warning">Opt Out</span>
                                             @elseif ($customer->ivr_status == null)
                                                 <span class="badge badge-pill badge-primary">Not Yet</span>
+                                            @elseif ($customer->ivr_status == '-5')
+                                                <span class="badge badge-pill badge-dark">N/A</span>
                                             @endif
                                         </td>
 
@@ -115,6 +117,8 @@
                                                 <span class="badge badge-pill badge-warning">Opt Out</span>
                                             @elseif ($customer->status == null)
                                                 <span class="badge badge-pill badge-primary">Not Yet</span>
+                                            @elseif ($customer->status == '-5')
+                                               <span class="badge badge-pill badge-dark">N/A</span>
                                             @endif
                                         </td>
 
@@ -127,6 +131,8 @@
                                                 <span class="badge badge-pill badge-warning">Opt Out</span>
                                             @elseif ($customer->doctor_status == null)
                                                 <span class="badge badge-pill badge-primary">Not Yet</span>
+                                            @elseif ($customer->doctor_status == '-5')
+                                               <span class="badge badge-pill badge-dark">N/A</span>
                                             @endif
                                         </td>
 
@@ -139,6 +145,8 @@
                                                 <span class="badge badge-pill badge-warning">Opt Out</span>
                                             @elseif ($customer->doctor_subscription_status == null)
                                                 <span class="badge badge-pill badge-primary">Not Yet</span>
+                                            @elseif ($customer->doctor_subscription_status == '-5')
+                                               <span class="badge badge-pill badge-dark">N/A</span>
                                             @endif
                                         </td>
 
