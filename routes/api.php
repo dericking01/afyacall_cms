@@ -41,6 +41,7 @@ Route::get('/ivr/subscription-status', [IVRController::class, 'subscriptionstatu
 Route::post('/ivr/airtime-mpesa-charge', [IVRController::class, 'chargeMpesaAirtimeIvr']);
 Route::post('ivr/deactivate', [IVRController::class, 'deactivate']);
 Route::post('ivr/chargempesa', [IVRController::class, 'chargempesa']);
+Route::post('ivr/testenticement', [IVRController::class, 'testenticement']);
 Route::get('ivr/sendsms', [IVRController::class, 'sendsms']);
 Route::post('ivr/acceptRequestFromPBX', [IVRController::class, 'acceptRequestFromPBX']);
 Route::middleware('api')->post('afyacall/campaign/obd', [DeliverySMSCallbackController::class, 'deliveryobd']);

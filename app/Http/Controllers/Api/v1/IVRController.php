@@ -720,6 +720,40 @@ class IVRController extends Controller
     }
 
 
+        public function testenticement(Request $request)
+    {
+        //push enticement
+        $code = Opt::getCode();
+        try {
+            $client = new \GuzzleHttp\Client();
+
+	     $response = $client->request('POST', 'https://197.250.9.191:23000/icg/Charge/', [
+                'verify' => false,
+                'headers' => [
+                    'Content-Type' => ' application/json',
+                ],
+                'json' => [
+                    'input_Username' => '921465',
+                    'input_Password' => '5pmls4V!9]O]{IF',
+                    'input_WASPShortcode' => '921465',
+                    'input_ProductID' => '921465_P01',
+                    'input_CustomerMSISDN' => $request->phone,
+                    'input_Currency' => 'TZS',
+                    'input_Amount' => 300,
+                    'input_ChargeType' => 'Subscription',
+                    'input_OriginatorConversationID' => $code,
+                ]
+            ]);
+
+            $results = $response->getBody()->getContents();
+            $data = json_decode($results, true);
+
+            return $data;
+        } catch (\Throwable $th) {
+            Log::error("There is an error on ivr enticement " . $request->phone);
+            return true;
+        }
+    }
     public function acceptRequestFromPBX(Request $request)
     {
 
