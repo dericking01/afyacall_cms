@@ -15,5 +15,7 @@ class WebsiteApiController extends Controller
 
     public function websiteEnticement(Request $request)
     {
+
+        return "success";
     }
 }

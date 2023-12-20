@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\v1\RatingController;
 use App\Http\Controllers\Api\v1\SMSController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\v1\DoctorApiController;
+use App\Http\Controllers\Api\v1\WebsiteApiController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -60,3 +61,10 @@ Route::get('doctor/subscription/status', [DoctorApiController::class, 'doctorsub
 
 //afyacall promotions
 Route::get('promotions/status', [IVRController::class, 'promotionstatus']);
+
+
+//afyacall api for website
+Route::middleware('auth:api')->group(function () {
+    // our routes to be protected will go in here
+    Route::post('/sms/afyacall/enticement',  [WebsiteApiController::class, 'websiteEnticement']);
+});
