@@ -14,9 +14,7 @@ class AddDeliveryFiledsToLogsTable extends Migration
     public function up()
     {
         Schema::table('logs', function (Blueprint $table) {
-            $table->string('status')->after('language')->nullable();
             $table->string('delivery_id')->after('language')->nullable();
-            $table->datetime('sent_at')->after('language')->nullable();
             $table->datetime('delivery_at')->after('language')->nullable();
             $table->string('other')->after('language')->nullable();
         });
@@ -30,7 +28,7 @@ class AddDeliveryFiledsToLogsTable extends Migration
     public function down()
     {
         Schema::table('logs', function (Blueprint $table) {
-            $table->dropColumn(['status','sent_at','delivery_at','delivery_id','other']);
+            $table->dropColumn(['delivery_at','delivery_id','other']);
         });
 
     }
