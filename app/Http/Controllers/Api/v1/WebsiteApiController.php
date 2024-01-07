@@ -31,12 +31,11 @@ class WebsiteApiController extends Controller
             return response()->json(['Validation errors' => $validator->errors()]);
         }
         $product = Product::where('product_ID', $request->product)->get()->first();
-        if ($product) {
+        if ($product->name == "SMS") {
             $excustomer = Customer::where('msisdn', $request->msisdn)->get()->first();
             if ($excustomer) {
 
                 if ($excustomer->enticement == 0) {
-                    # code...
                     $data = $this->pushenticement($request->msisdn, $product->product_ID);
 
                     if ($data['output_ResponseCode'] == 0) {
@@ -103,6 +102,76 @@ class WebsiteApiController extends Controller
 
             }
 
+        } elseif ($product->name == "IVR") {
+            $excustomer = Customer::where('msisdn', $request->msisdn)->get()->first();
+            if ($excustomer) {
+
+                if ($excustomer->ivr_enticement == 0) {
+                    $data = $this->pushenticement($request->msisdn, $product->product_ID);
+
+                    if ($data['output_ResponseCode'] == 0) {
+
+                        $resp = array(
+                            "status" => "success",
+                            "message" => $data['output_ResponseDesc'],
+                            "msisdn" => $request->msisdn,
+                        );
+                        return response()->json($resp);
+                    } else {
+
+                        $resp = array(
+                            "status" => "failed",
+                            "message" => $data['output_ResponseDesc'],
+                            "msisdn" => $request->msisdn,
+                        );
+                        return response()->json($resp);
+                    }
+                } else {
+
+                    $resp = array(
+                        "status" => "failed",
+                        "message" => "Arleady subscribed to this service",
+                        "msisdn" => $request->msisdn,
+                    );
+                    return response()->json($resp);
+                }
+            } else {
+                //create new customer
+                $customer = new Customer();
+                $customer->msisdn = $request->msisdn;
+                $customer->registered_at = Opt::getServertime();
+                $customer->ivr_status = 0;
+                $customer->source = "Website";
+                $customer->save();
+
+                //update the values
+                $opt = new Opt();
+                $opt->customer_ID = $customer->id;
+                $opt->product_ID = $product->id;
+                $opt->opt_value = 1;
+                $opt->date = Opt::getServertime();
+                $opt->save();
+
+                $data = $this->pushenticement($request->msisdn, $product->product_ID);
+
+                if ($data['output_ResponseCode'] == 0) {
+
+                    $resp = array(
+                        "status" => "success",
+                        "message" => $data['output_ResponseDesc'],
+                        "msisdn" => $request->msisdn,
+                    );
+                    return response()->json($resp);
+                } else {
+                    $resp = array(
+                        "status" => "failed",
+                        "message" => $data['output_ResponseDesc'],
+                        "msisdn" => $request->msisdn,
+                    );
+                    return response()->json($resp);
+                }
+
+            }
         } else {
             $resp = array(
                 "status" => "99",
