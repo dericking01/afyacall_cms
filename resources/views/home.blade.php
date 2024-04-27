@@ -66,7 +66,7 @@
         <div class="col-lg-3 col-md-6">
             <div class="card">
                 <div class="card-body">
-                    <h4 class="card-title">Today Customers</h4>
+                    <h4 class="card-title">Today Customer</h4>
                     <div class="text-right">
                         <h2 class="font-light mb-0"><i class="ti-arrow-up text-info"></i> {{ $customertoday }}</h2>
                         <span class="text-muted">Joined Today</span>
@@ -83,7 +83,7 @@
         <div class="col-lg-3 col-md-6">
             <div class="card">
                 <div class="card-body">
-                    <h4 class="card-title">Yesterday's Customers</h4>
+                    <h4 class="card-title">Yesterday Customers</h4>
                     <div class="text-right">
                         <h2 class="font-light mb-0"><i class="ti-arrow-up text-info"></i> {{ $customeryesterday }}</h2>
                         <span class="text-muted">Joined Yesterday</span>
