@@ -66,7 +66,6 @@
                         <tbody>
                             @foreach($products as $key => $product)
                             <tr data-entry-id="{{ $product->id }}">
-                              
                                 <td>
                                     {{ $product->name ?? '' }}
                                 </td>

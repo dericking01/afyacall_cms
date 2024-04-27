@@ -58,11 +58,12 @@ class ProcessContactFilterDND implements ShouldQueue
 
         Log::info("this is the results " . count($results));
         foreach ($results as $key => $value) {
-            $contact = new Contact();
-            $contact->msisdn = $value;
-            $contact->campaign_id =  $this->groupid;
-            $contact->save();
+            $contacts[] = [
+                'msisdn' => $value,
+                'campaign_id' => $this->groupid,
+            ];
         }
+        Contact::insert($contacts);
         Log::info("insert data to database successfully ");
     }
 }

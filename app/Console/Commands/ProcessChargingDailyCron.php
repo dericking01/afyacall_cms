@@ -41,20 +41,30 @@ class ProcessChargingDailyCron extends Command
      */
     public function handle()
     {
-        // charge number with inactive status before start sending content
 
+        // $counter = 0; // Initialize counter
+        // Customer::where('status', 0)
+        //   ->chunkById(1000, function ($customers) use (&$counter) {
+        //     foreach ($customers as $customer) {
+        //         if ($counter >= 10000) {
+        //             break; // Exit loop if 1000 requests are reached
+        //         }
+        //         Log::info('Start charging to customer.'.$customer->msisdn);
+        //         ProcessCharingDaily::dispatch('921465_P02', $customer->msisdn, '150')->onQueue('transaction');
+        //         $counter++; // Increment counter
+        //     }
+        // });
 	    Customer::where('status', 0)
             ->chunkById(1000, function ($customers) {
                 foreach ($customers as $customer) {
-                  Log::info('Start charging to customer.'.$customer->msisdn);
                   ProcessCharingDaily::dispatch('921465_P02', $customer->msisdn, '15000')->onQueue('transaction');
                 }
             });
+            
 
         Customer::where('ivr_status', 0)
             ->chunkById(1000, function ($customers) {
                 foreach ($customers as $customer) {
-                  Log::info('charging airtime ivr customer.'.$customer->msisdn);
                   ProcessCharingDaily::dispatch('921465_P01', $customer->msisdn, '30000')->onQueue('transaction');
                 }
             });
@@ -63,8 +73,7 @@ class ProcessChargingDailyCron extends Command
         Customer::where('doctor_subscription_status', 0)
             ->chunkById(1000, function ($customers) {
                 foreach ($customers as $customer) {
-                  Log::info('charging airtime doctor subscription customer.'.$customer->msisdn);
-                  ProcessCharingDaily::dispatch('921465_P04', $customer->msisdn, '20000')->onQueue('transaction');
+                  ProcessCharingDaily::dispatch('921465_P03', $customer->msisdn, '20000')->onQueue('transaction');
                 }
 	    });
  

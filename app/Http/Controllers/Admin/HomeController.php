@@ -78,6 +78,11 @@ class HomeController
         $totalainctive = $customerCounts->total_inactive ?? 0;
 
 
+        // $dailytrans = $this->getDailyTransaction();
+
+        // return $dailytrans;
+
+
         return view('home', compact(
             'totalactive',
             'percentage_active_sub',
@@ -102,7 +107,33 @@ class HomeController
 
     }
 
+    private function getDailyTransaction()
+    {
+        // Get today's date
+        $todayDate = now()->toDateString();
 
+        // Step 1: Retrieve the aggregated data from the database for today's date
+        $aggregatedTransactions = DB::table('transactions')
+            ->select(DB::raw('product_id, DATE_FORMAT(created_at, "%Y-%m-%d %H") as hour, SUM(amount_IN) as total_amount'))
+            ->whereDate('created_at', $todayDate)
+            ->where('status', 1)
+            ->groupBy('product_id', DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d %H")'))
+            ->get();
+
+        // Step 2: Format the data for the graph
+        $graphData = [];
+        foreach ($aggregatedTransactions as $transaction) {
+            $productId = $transaction->product_id;
+            $hour = $transaction->hour;
+            $totalAmount = $transaction->total_amount;
+            if (!isset($graphData[$productId])) {
+                $graphData[$productId] = [];
+            }
+            $graphData[$productId][$hour] = $totalAmount;
+        }
+
+        return response()->json(['transactions' => $graphData]);
+    }
 
     public function getSmsChartData()
     {
@@ -200,16 +231,16 @@ class HomeController
 
 
     //get the daily transaction
-    private function getDailyTransaction()
-    {
-        $sales = DB::table('transactions')->select(DB::raw('id', 'amount_IN'), DB::raw('sum(amount_IN) as totalAmount'))
-            ->whereDate('created_at', Carbon::today())
-            ->where('status', 1)
-            ->groupby('id')
-            ->get();
-        $dailytransactions = $sales->sum('totalAmount');
-        return $dailytransactions;
-    }
+    // private function getDailyTransaction()
+    // {
+    //     $sales = DB::table('transactions')->select(DB::raw('id', 'amount_IN'), DB::raw('sum(amount_IN) as totalAmount'))
+    //         ->whereDate('created_at', Carbon::today())
+    //         ->where('status', 1)
+    //         ->groupby('id')
+    //         ->get();
+    //     $dailytransactions = $sales->sum('totalAmount');
+    //     return $dailytransactions;
+    // }
 
 
         //get the yesterday transaction

@@ -301,7 +301,6 @@ class CustomerRepository
             $opt->save();
 
             Subscription::where('customer_ID', $customer->id)
-                ->where('product_id', $product->id)
                 ->delete();
 
             $message = [

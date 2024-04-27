@@ -22,6 +22,7 @@ class IVRController extends Controller
     public function chargeMpesaAirtimeIvr(Request $request)
     {
 
+        Log::info($request->all());
         $validator = Validator::make(
             $request->all(),
             [
@@ -108,8 +109,8 @@ class IVRController extends Controller
                                 return response()->json($resp);
                             }
                         } else {
-                            $sw = 'Hauna salio la kutosha kupata huduma hii.Ongeza salio kisha  piga 0900011111 kwa gharama ya Tsh.3000/Wiki ';
-                            $en = 'You have insufficient balance.Please recharge and dial 0900011111 at a cost of Tsh.3000/Week';
+                            $sw = 'Hauna salio la kutosha kupata huduma hii.Ongeza salio kisha  piga 0900011111.';
+                            $en = 'You have insufficient balance.Please recharge and dial 0900011111.';
  			                ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
                             $resp = array(
                                 "status" => "0",
@@ -221,6 +222,7 @@ class IVRController extends Controller
 
                 if ($request->via == '4') {
                     $res = $this->chargiartimedoctor($request->Caller_Number, $product->id, $request->amount);
+                    Log::info("==============================after charging====================================");
                     if ($res) {
                         //update customer with 
                         $updatecustomer = Customer::where('msisdn', $request->Caller_Number)->get()->first();
@@ -284,8 +286,9 @@ class IVRController extends Controller
                             return response()->json($resp);
                         }
                     } else {
-                        $sw = 'Hauna salio la kutosha kupata huduma hii.Ongeza salio kisha  piga 0900011111 kwa gharama ya Tsh.3000/Wiki ';
-                        $en = 'You have insufficient balance.Please recharge and dial 0900011111 at a cost of Tsh.3000/ Week';
+
+                        $sw = 'Hauna salio la kutosha kupata huduma hii.Ongeza salio kisha  piga 0900011111.';
+                        $en = 'You have insufficient balance.Please recharge and dial 0900011111.';
                          ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
                         $resp = array(
                             "status" => "0",
@@ -620,15 +623,15 @@ class IVRController extends Controller
                 "status" => '0',
                 "ivr_enticement" => '0',
                 "message" => 'customer not found',
-		"Caller_Number" => $request->Caller_Number,
-	        "starts_at" => "0000-00-00 00:00:00",
+		        "Caller_Number" => $request->Caller_Number,
+	            "starts_at" => "0000-00-00 00:00:00",
                 "ends_at" => "0000-00-00 00:00:00",
 	    );
             return response()->json($resp);
         }
     }
 
-    public function chargiartimedoctor($cellNo, $product_id, $amount)
+    public function chargiartimedoctorold($cellNo, $product_id, $amount)
     {
         //update the payload 
         $payload = [
@@ -711,16 +714,123 @@ class IVRController extends Controller
             $trans->currency = "Airtime";
             $trans->response = 'Insufficient Balance';
             $trans->save();
-            Log::info("test ".$th->getMessage());
+
             Log::error('test error on charging airtime on ivr or unsufficient balance ' . $cellNo);
             Log::error($th->getMessage());
-            Log::info("test ".$trans);
             return false;
         }
     }
 
+    public function chargiartimedoctor($msisdn,$product,$amount)
+    {
+        if ($amount == 1000) {
+            $product_ID = "921465_P04";
+        } elseif ($amount == 2000) {
+            $product_ID = "921465_P05";
+        } else {
+            $product_ID = "921465_P06";
+        }
 
-        public function testenticement(Request $request)
+        $balance = intval(abs($this->checkbalance($product_ID,$msisdn)));
+        if ($balance < $amount) {
+            Log::info($msisdn . ' Insufficient Balance ' . $balance);
+            return false;
+        } 
+        Log::info('Product ID for this charge' .  $product_ID);
+        $code = Opt::getCode();
+        $customer = Customer::where('msisdn', $msisdn)->get()->first();
+        $product = Product::where('product_ID', $product_ID)->get()->first();
+        try {
+            $client = new \GuzzleHttp\Client();
+            $response = $client->request('POST', 'https://197.250.9.191:23000/icg/charge/without/sub', [
+                'verify' => false,
+                'headers' => [
+                    'Content-Type' => ' application/json',
+                ],
+                'json' => [
+                    'input_Username' => '921465',
+                    'input_Password' => '5pmls4V!9]O]{IF',
+                    'input_WASPShortcode' => '921465',
+                    'input_ProductID' => $product_ID,
+                    'input_CustomerMSISDN' => $msisdn,
+                    'input_Currency' => 'TZS',
+                    'input_Amount' => $amount,
+                    'input_ChargeType' => 'Subscription',
+                    'input_ChargeChannel' =>'Synchronous',
+                    'input_OriginatorConversationID' => $code,
+                ]
+            ]);
+            $results = $response->getBody()->getContents();
+            $data = json_decode($results, true);
+            Log::info($data);
+         
+            if ($data['output_ResponseDesc'] == 'Processed Successfully') {
+                //check if customer found in database
+                if ($customer) {
+    
+                    $customer->doctor_status = 1;
+                    $customer->save();
+
+                    //register successfully transaction
+                    $trans = new Transaction();
+                    $trans->customer_ID = $customer->id;
+                    $trans->amount_IN = $amount;
+                    $trans->transaction_date = Opt::getServertime();
+                    $trans->status = 1;
+                    $trans->product_id = $product->id;
+                    $trans->currency = "Mpesa";
+                    $trans->response = $data['output_ResponseDesc'];
+                    $trans->conventions_ID = $data['output_ConversationID'];
+                    $trans->response_code = $data['output_ResponseCode'];
+                    $trans->save();
+
+                    return true;
+                }
+            } else {
+                return false;
+            }
+
+        } catch (\Throwable $th) {
+            Log::info($th->getMessage());
+        }
+
+    }
+
+    public function checkbalance($productID, $msisdn){
+        
+        $code = Opt::getCode();
+        try {
+            $client = new \GuzzleHttp\Client();
+            $response = $client->request('POST', 'https://197.250.9.191:23000/icg/query/balance/', [
+                'verify' => false,
+                'headers' => [
+                    'Content-Type' => ' application/json',
+                ],
+                'json' => [
+                    'input_Username' => '921465',
+                    'input_Password' => '5pmls4V!9]O]{IF',
+                    'input_WASPShortcode' => '921465',
+                    'input_ChannelType' => 'API',
+                    'input_ProductID' => $productID,
+                    'input_CustomerMSISDN' => $msisdn,
+                    'input_OriginatorConversationID' => $code,
+                ]
+            ]);
+            $results = $response->getBody()->getContents();
+            $data = json_decode($results, true);
+            Log::info($data);
+            if ($data['output_ResponseCode'] == '0'){
+                return $data['output_AirtimeBalance'];
+            } else {
+                Log::info($data);
+                return 0;
+            }
+        } catch (\Throwable $th) {
+            Log::info($th->getMessage());
+        }
+
+    }
+    public function testenticement(Request $request)
     {
         //push enticement
         $code = Opt::getCode();

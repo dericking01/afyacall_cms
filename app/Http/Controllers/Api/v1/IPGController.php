@@ -23,6 +23,7 @@ class IPGController extends Controller
     {
         Log::info("======================updated request=========================");
         $xml_data = $request->getContent();
+        Log::info($xml_data);
         $response = preg_replace("/(<\/?)(\w+):([^>]*>)/", "$1$2$3", $xml_data);
         $xml = new SimpleXMLElement($response);
         $body = $xml->xpath('//Request')[0];
@@ -182,7 +183,7 @@ class IPGController extends Controller
             <dataItem>
                 <name>CallbackDestination</name>
                 <type>String</type>
-                <value>http://197.250.15.156/api/afyacall/TransactionListener2</value>
+                <value>http://192.168.1.10/api/afyacall/TransactionListener2</value>
             </dataItem>
             <dataItem>
                 <name>Username</name>
@@ -195,6 +196,7 @@ class IPGController extends Controller
             </soapenv:Envelope>
             ';
 
+            Log::info($transactionpayload);
             try {
                 $client = new \GuzzleHttp\Client;
                 $response = $client->post('https://41.217.203.61:30010/iPG/b2c/ussd_push?wsdl', [
@@ -207,12 +209,14 @@ class IPGController extends Controller
                 ]);
                 $result = $response->getBody()->getContents();
 
+                Log::info($result);
+
                 $response = preg_replace("/(<\/?)(\w+):([^>]*>)/", "$1$2$3", $result);
                 $xml = new SimpleXMLElement($response);
                 $body = $xml->xpath('//SOAPAPIResult')[0];
                 $data = json_encode($body);
                 $jdatason = json_decode($data, true);
-
+                Log::info($jdatason);
                 $customer = Customer::where('msisdn', $request->msisdn)->get()->first();
 
                 if ($customer) {

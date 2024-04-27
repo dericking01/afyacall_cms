@@ -142,7 +142,7 @@ class DoctorApiController extends Controller
             $opt->date = Opt::getServertime();
             $opt->save();
 
-            $res = $this->chargiartimedoctor($request->msisdn, $request->amount);
+            $res = $this->chargiartimedoctoricg($request->msisdn, $request->amount);
             if ($res) {
                 
 	        //update customer with status of 0 after success charging
@@ -300,6 +300,113 @@ class DoctorApiController extends Controller
         }
     }
 
+
+    public function chargiartimedoctoricg($msisdn, $amount)
+    {
+        if ($amount == 1000) {
+            $product_ID = "921465_P04";
+        } elseif ($amount == 2000) {
+            $product_ID = "921465_P05";
+        } else {
+            $product_ID = "921465_P06";
+        }
+
+        $balance = intval(abs($this->checkbalance($product_ID,$msisdn)));
+        if ($balance != $amount) {
+            Log::info($msisdn . ' Insufficient Balance ' . $balance);
+            return false;
+        } 
+
+        $code = Opt::getCode();
+        $customer = Customer::where('msisdn', $msisdn)->get()->first();
+        $product = Product::where('product_ID', $product_ID)->get()->first();
+        try {
+            $client = new \GuzzleHttp\Client();
+            $response = $client->request('POST', 'https://197.250.9.191:23000/icg/Charge/', [
+                'verify' => false,
+                'headers' => [
+                    'Content-Type' => ' application/json',
+                ],
+                'json' => [
+                    'input_Username' => '921465',
+                    'input_Password' => '5pmls4V!9]O]{IF',
+                    'input_WASPShortcode' => '921465',
+                    'input_ProductID' => $product_ID,
+                    'input_CustomerMSISDN' => $msisdn,
+                    'input_Currency' => 'TZS',
+                    'input_Amount' => $amount,
+                    'input_ChargeType' => 'Subscription',
+                    'input_ChargeChannel' =>'Synchronous',
+                    'input_OriginatorConversationID' => $code,
+                ]
+            ]);
+            $results = $response->getBody()->getContents();
+            $data = json_decode($results, true);
+            Log::info("===========results======");
+            Log::info($data);
+            //register transaction
+
+
+                //check if customer found in database
+                if ($customer) {
+    
+                    //register successfully transaction
+                    $trans = new Transaction();
+                    $trans->customer_ID = $customer->id;
+                    $trans->amount_IN = $amount;
+                    $trans->transaction_date = Opt::getServertime();
+                    $trans->status = 1;
+                    $trans->product_id = $product->id;
+                    $trans->currency = "Mpesa";
+                    $trans->response = $data['output_ResponseDesc'];
+                    $trans->conventions_ID = $data['output_ConversationID'];
+                    $trans->response_code = $data['output_ResponseCode'];
+                    $trans->save();
+
+                    return true;
+
+                }
+
+        } catch (\Throwable $th) {
+            Log::info($th->getMessage());
+        }
+
+    }
+
+    public function checkbalance($productID, $msisdn){
+        
+        $code = Opt::getCode();
+        try {
+            $client = new \GuzzleHttp\Client();
+            $response = $client->request('POST', 'https://197.250.9.191:23000/icg/query/balance/', [
+                'verify' => false,
+                'headers' => [
+                    'Content-Type' => ' application/json',
+                ],
+                'json' => [
+                    'input_Username' => '921465',
+                    'input_Password' => '5pmls4V!9]O]{IF',
+                    'input_WASPShortcode' => '921465',
+                    'input_ChannelType' => 'API',
+                    'input_ProductID' => $productID,
+                    'input_CustomerMSISDN' => $msisdn,
+                    'input_OriginatorConversationID' => $code,
+                ]
+            ]);
+            $results = $response->getBody()->getContents();
+            $data = json_decode($results, true);
+            Log::info($data);
+            if ($data['output_ResponseCode'] == '0'){
+                return $data['output_AirtimeBalance'];
+            } else {
+                Log::info($data);
+                return 0;
+            }
+        } catch (\Throwable $th) {
+            Log::info($th->getMessage());
+        }
+
+    }
     public function chargedoctorrequestfrompbx(Request $request)
     {
         // Log all incoming requests

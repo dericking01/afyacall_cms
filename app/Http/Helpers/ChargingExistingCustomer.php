@@ -32,7 +32,7 @@ class ChargingExistingCustomer
                 return $this->chargeviaairtimeivr($this->product_ID, $cellNo, $amount);
             } elseif ($this->product_ID == '921465_P02') {
                 return $this->chargeviaairtime($this->product_ID, $cellNo, $amount);
-            } elseif ($this->product_ID == '921465_P04') {
+            } elseif ($this->product_ID == '921465_P03') {
                 return $this->chargeviaairtime_doctorsubscription($this->product_ID, $cellNo, $amount);
             } else {
                 Log::info('No Product is selected');
@@ -44,8 +44,125 @@ class ChargingExistingCustomer
         return true;
     }
 
+    public function checkbalance($productID, $msisdn){
+        
+        $code = Opt::getCode();
+        try {
+            $client = new \GuzzleHttp\Client();
+            $response = $client->request('POST', 'https://197.250.9.191:23000/icg/query/balance/', [
+                'verify' => false,
+                'headers' => [
+                    'Content-Type' => ' application/json',
+                ],
+                'json' => [
+                    'input_Username' => '921465',
+                    'input_Password' => '5pmls4V!9]O]{IF',
+                    'input_WASPShortcode' => '921465',
+                    'input_ChannelType' => 'API',
+                    'input_ProductID' => $productID,
+                    'input_CustomerMSISDN' => $msisdn,
+                    'input_OriginatorConversationID' => $code,
+                ]
+            ]);
+            $results = $response->getBody()->getContents();
+            $data = json_decode($results, true);
+            Log::info($data);
+            if ($data['output_ResponseCode'] == '0'){
+                return $data['output_AirtimeBalance'];
+            } else {
+                Log::info($data);
+                return 0;
+            }
+        } catch (\Throwable $th) {
+            Log::info($th->getMessage());
+        }
+
+    }
+
+    // private function chargeviaairtimetest($product_ID, $cellNo, $amount)
+    // {
+
+    //     $balance = intval(abs($this->checkbalance($product_ID,$cellNo)));
+    //     Log::info($balance);
+    //     if ($balance < 150) {
+    //         Log::info($cellNo . ' Insufficient Balance ' . $balance);
+    //         return true;
+    //     } 
+    //     $code = Opt::getCode();
+    //     $customer = Customer::where('msisdn', $cellNo)->get()->first();
+    //     $product = Product::where('product_ID', $product_ID)->get()->first();
+    //     Log::info("charching now================to ".$cellNo);
+    //     try {
+    //         $client = new \GuzzleHttp\Client();
+    //         $response = $client->request('POST', 'https://197.250.9.191:23000/icg/Charge/', [
+    //             'verify' => false,
+    //             'headers' => [
+    //                 'Content-Type' => ' application/json',
+    //             ],
+    //             'json' => [
+    //                 'input_Username' => '921465',
+    //                 'input_Password' => '5pmls4V!9]O]{IF',
+    //                 'input_WASPShortcode' => '921465',
+    //                 'input_ProductID' => $product_ID,
+    //                 'input_CustomerMSISDN' => $cellNo,
+    //                 'input_Currency' => 'TZS',
+    //                 'input_Amount' => $amount,
+    //                 'input_ChargeType' => 'Subscription',
+    //                 'input_ChargeChannel' =>'Synchronous',
+    //                 'input_OriginatorConversationID' => $code,
+    //             ]
+    //         ]);
+    //         $results = $response->getBody()->getContents();
+    //         $data = json_decode($results, true);
+    //         Log::info("===========results======");
+    //         Log::info($data);
+    //         //register transaction
 
 
+    //             //check if customer found in database
+    //             if ($customer) {
+    //                 //update customer status
+    //                 $customer->status = 1;
+    //                 $customer->save();
+    
+    //                 //register successfully transaction
+    //                 $trans = new Transaction();
+    //                 $trans->customer_ID = $customer->id;
+    //                 $trans->amount_IN = $amount;
+    //                 $trans->transaction_date = Opt::getServertime();
+    //                 $trans->status = 1;
+    //                 $trans->product_id = $product->id;
+    //                 $trans->currency = "Mpesa";
+    //                 $trans->response = $data['output_ResponseDesc'];
+    //                 $trans->conventions_ID = $data['output_ConversationID'];
+    //                 $trans->response_code = $data['output_ResponseCode'];
+    //                 $trans->save();
+    
+    //                 //register the subscription
+    //                 $subscribeid = Subscription::where('customer_ID', $customer->id)->where('product_id', $product->id)->first();
+    //                 if ($subscribeid) {
+    //                     $subscribeid->starts_at = Carbon::now();
+    //                     $subscribeid->ends_at = Carbon::now()->addDays(1);
+    //                     $subscribeid->status = 1;
+    //                     $subscribeid->save();
+    //                 } else {
+    //                         //register the subscription
+    //                     $subscribe = new Subscription();
+    //                     $subscribe->customer_ID = $customer->id;
+    //                     $subscribe->product_id = $product->id;
+    //                     $subscribe->starts_at = Carbon::now();
+    //                     $subscribe->ends_at = Carbon::now()->addDays(1);
+    //                     $subscribe->status = 1;
+    //                     $subscribe->save();
+    //                 }
+
+    //             }
+
+    //     } catch (\Throwable $th) {
+    //         Log::info($th->getMessage());
+    //     }
+
+    // }
     //charge via airtime
     private function chargeviaairtime($product_ID, $cellNo, $amount)
     {
@@ -58,7 +175,6 @@ class ChargingExistingCustomer
         } elseif ($balance > 3000 && $balance < 15000) {
             $amount = $balance;
         } else {
-            Log::info($cellNo . ' Insufficient Balance for SMS ' . $balance);
             return true;
         }
         Log::info($cellNo . ' Amount Charged is ' . $amount);
@@ -173,8 +289,7 @@ class ChargingExistingCustomer
         } elseif ($balance > 5000 && $balance < 30000) {
             $amount = $balance;
         } else {
-		Log::info($cellNo . ' Insufficient Balance for IVR ' . $balance);
-		return true;
+	    	return true;
         }
 
         Log::info($cellNo . ' Amount Charged is ' . $amount);
@@ -275,6 +390,107 @@ class ChargingExistingCustomer
         }
     }
 
+    // private function chargeviaairtimeivr($product_ID, $cellNo, $amount)
+    // {
+	//     $balance = intval(abs($this->getBalance($cellNo)));
+    //     if ($balance >= 30000) {
+    //         $amount = 30000;
+    //     } elseif ($balance > 5000 && $balance < 30000) {
+    //         $amount = $balance;
+    //     } else {
+	// 	Log::info($cellNo . ' Insufficient Balance for IVR ' . $balance);
+	// 	return true;
+    //     }
+
+    //     Log::info($cellNo . ' Amount Charged is ' . $amount);
+
+    //     $payload = [
+    //         'type' => 'charge',
+    //         'id'   => [
+    //             [
+    //                 'value' => $cellNo,
+    //                 'schemeName' => 'msisdn'
+    //             ]
+    //         ],
+    //         'details' => [
+    //             'adjustmentAmount' => strval($amount)
+    //         ],
+    //         'name' => 'MW',
+    //         'desc' => 'Afya Call',
+    //         'category' => [
+    //             [
+    //                 'value' => 'MW',
+    //                 'listHierarchyId' => 'eventClass'
+    //             ]
+    //         ]
+    //     ];
+
+    //     $chargetime = Opt::getServertime();
+    //     $customer = Customer::where('msisdn', $cellNo)->first();
+    //     $product = Product::find($product_ID);
+
+    //     if (!$customer || !$product) {
+    //         Log::error('Customer or Product not found.');
+    //         return false;
+    //     }
+
+    //     try {
+    //         $client = new \GuzzleHttp\Client;
+    //         $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');
+    //         $response = $client->post('https://197.250.9.149:6202/middlewarev2/serviceAccountAdjustment', [
+    //             'verify' => false,
+    //             'headers' => [
+    //                 'Authorization' => 'Basic ' . $credentials,
+    //                 'Content-Type' => 'application/json',
+    //                 'X-MessageId' => 'uuid: a5c49974-353e-11e5-a151-feff819cdc9f',
+    //                 'X-Source-Timestamp'  => $chargetime,
+    //             ],
+    //             'json' => $payload
+    //         ]);
+    //         $results = json_decode($response->getBody()->getContents(), true);
+
+    //         if ($results['status'] === 'success') {
+    //             $customer->ivr_status = 1;
+    //             $customer->save();
+
+    //             $trans = new Transaction();
+    //             $trans->customer_ID = $customer->id;
+    //             $trans->amount_IN = $amount / 100;
+    //             $trans->product_id = $product->id;
+    //             $trans->transaction_date = Opt::getServertime();
+    //             $trans->status = 1;
+    //             $trans->currency = "Airtime";
+    //             $trans->response = 'Process service request successfully.';
+    //             $trans->save();
+
+    //             $subscribe = Subscription::updateOrCreate(
+    //                 ['customer_ID' => $customer->id, 'product_id' => $product->id],
+    //                 ['starts_at' => Carbon::now(), 'ends_at' => Carbon::now()->addDays(1), 'status' => 1]
+    //             );
+
+    //             return true;
+    //         } else {
+    //             Log::error('Failed in charging airtime ivr: ' . $results['message']);
+    //             return false;
+    //         }
+    //     } catch (\Throwable $th) {
+
+
+    //         $trans = new Transaction();
+    //         $trans->customer_ID = $customer->id;
+    //         $trans->amount_IN = $amount / 100;
+    //         $trans->product_id = $product->id;
+    //         $trans->transaction_date = Opt::getServertime();
+    //         $trans->status = 0;
+    //         $trans->currency = "Airtime";
+    //         $trans->response = 'Insufficient Balance';
+    //         $trans->save();
+
+    //         return false;
+    //     }
+    // }
+
+
         //function to check the balance
     private function getBalance($msisdn)
     {
@@ -338,7 +554,6 @@ class ChargingExistingCustomer
             $amount = 5000;
             $seconds = 15;
         } else {
-		Log::info($cellNo . ' Insufficient Balance for Doctor Subscription ' . $balance);
 		   return true;
         }
 
