@@ -32,10 +32,10 @@ class TodayRevenueTransactionView extends Migration
             CREATE VIEW today_revenue_transaction_view AS
             SELECT 
                 DateCreated,
-                SUM(CASE WHEN product_id = 2 THEN amount_IN END) AS sms,
                 SUM(CASE WHEN product_id = 1 THEN amount_IN END) AS ivr,
-                SUM(CASE WHEN product_id = 3 THEN amount_IN END) AS calls,
+                SUM(CASE WHEN product_id = 2 THEN amount_IN END) AS sms,
                 SUM(CASE WHEN product_id = 4 THEN amount_IN END) AS doctor_subs,
+                SUM(CASE WHEN product_id IN (3, 5, 6) THEN amount_IN ELSE 0 END) AS calls,
                 SUM(amount_IN) AS total
             FROM
             (
