@@ -38,10 +38,10 @@ class SMSController extends Controller
                 FacadesLog::error("there is an error on redirect to UAT");
                 FacadesLog::error($th->getMessage());
             }
-           
+
             return true;
         }
-        //validate data 
+        //validate data
 
         //update to the smartbango tables
         if (in_array(strtolower($request->service), ['afyabango', 'afyasmart', 'afyasmartd','afyasmartdoc'])) {
@@ -65,6 +65,8 @@ class SMSController extends Controller
             return $customerService->subscribe_ivr($request);
         } elseif (strtolower($request->service) == 'afyasmartd' || strtolower($request->service) == 'afyasmartdoc') {
             return $customerService->subscribe_doctor_sub($request);
+        } elseif (strtolower($request->service) == 'afya1' || strtolower($request->service) == 'afya01') {
+            return $customerService->subscribe_doctor_sub($request);
         } elseif (strtolower($request->service) == 'afyadoc') {
             return $customerService->subscribe_doctor_sub($request);
         } elseif ($this->searchKeyword($request->service) == 'ondoadoc') {
@@ -79,22 +81,22 @@ class SMSController extends Controller
     public function searchKeyword($searchTerm){
 
         $afyacallkeywords = ['ondoadoc', 'ondoaivr', 'ondoasms','afyaivr','afyasms','afyadoc'];
-        
 
-        $threshold = 0.8; 
-        $maxDistance = 5; 
-        
+
+        $threshold = 0.8;
+        $maxDistance = 5;
+
         $searchTerm = trim(strtolower($searchTerm));
-        
+
         $closestafyacallkeyword = '';
         $closestSimilarity = 0;
         $closestDistance = PHP_INT_MAX;
-        
+
         foreach ($afyacallkeywords as $afyacallkeyword) {
             $afyacallkeyword = trim(strtolower($afyacallkeyword));
             similar_text($afyacallkeyword, $searchTerm, $similarity);
             $levenshteinDistance = levenshtein($afyacallkeyword, $searchTerm);
-            
+
             if ($similarity >= ($threshold * 100) || $levenshteinDistance <= $maxDistance) {
                 if ($similarity > $closestSimilarity || ($similarity == $closestSimilarity && $levenshteinDistance < $closestDistance)) {
                     $closestafyacallkeyword = $afyacallkeyword;
@@ -103,12 +105,12 @@ class SMSController extends Controller
                 }
             }
         }
-        
+
         if ($closestafyacallkeyword !== '') {
            return $closestafyacallkeyword;
         } else {
            return $searchTerm;
         }
-    
+
     }
 }
