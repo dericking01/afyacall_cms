@@ -122,7 +122,8 @@ class IPGController extends Controller
         Log::info($current_timestamp);
 
         //check if the product exists in the system
-        $product = Product::where('product_ID', '921465_P03')->get()->first();
+        //product id (921465_P04) is for doctor bundle
+        $product = Product::where('product_ID', '921465_P04')->get()->first();
         if ($product) {
             $reference = Opt::getCode();
             $loginrequest = new IPGCharging;
@@ -183,7 +184,7 @@ class IPGController extends Controller
             <dataItem>
                 <name>CallbackDestination</name>
                 <type>String</type>
-                <value>http://192.168.1.10/api/afyacall/TransactionListener2</value>
+                <value>https://sms.afyacall.co.tz/api/afyacall/TransactionListener2</value>
             </dataItem>
             <dataItem>
                 <name>Username</name>
