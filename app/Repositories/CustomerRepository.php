@@ -35,7 +35,7 @@ class CustomerRepository
 
     public function subscribe_sms($data)
     {
-        //remove 
+        //remove
         $msisdn = ltrim($data['sender'], '+');
         $product = Product::where('product_ID', '921465_P02')->first();
 
@@ -131,7 +131,7 @@ class CustomerRepository
 
     public function subscribe_ivr($data)
     {
-        //remove 
+        //remove
         $msisdn = ltrim($data['sender'], '+');
         $product = Product::where('product_ID', '921465_P01')->first();
 
@@ -160,7 +160,7 @@ class CustomerRepository
         if ($customer->ivr_status == 1) {
             $swMessage = 'Tayari umejiunga na huduma hii piga namba 0900011111 kusikiliza dondoo za afya kwa gharama ya Tsh 300/IVR/siku.';
             $enMessage = 'You are already subscribed to this service dial 0900011111 to listen to health tips at a cost of Tsh 300 /IVR/day.';
-        } else {    
+        } else {
             $res = $this->chargivrtiartime($customer->id, $customer->msisdn, $product->id, $product->price);
 
             if ($res) {
@@ -223,21 +223,27 @@ class CustomerRepository
     }
     public function subscribe_doctor_sub($data)
     {
-        //remove 
+        //remove
         $msisdn = ltrim($data['sender'], '+');
         $product = Product::where('product_ID', '921465_P04')->first();
 
         $customer = Customer::where('msisdn', $msisdn)->first();
 
         if (!$customer) {
-            //register new customer
+            // Register new customer
             $customer = new Customer();
             $customer->msisdn = $msisdn;
             $customer->keyword = $data['service'];
             $customer->registered_at = Opt::getServertime();
             $customer->doctor_subscription_status = 0;
-            $customer->save();
+          }
+
+            // Check for 'afya01' or 'afya1' and set source if true
+        if (strtolower($data['service']) == 'afya01' || strtolower($data['service']) == 'afya1') {
+            $customer->source = 'INSTAGRAM';
         }
+
+        $customer->save();
 
         //update the values
         $opt = new Opt();
@@ -301,6 +307,7 @@ class CustomerRepository
             $opt->save();
 
             Subscription::where('customer_ID', $customer->id)
+                ->where('product_id', $product->id)
                 ->delete();
 
             $message = [
@@ -392,7 +399,7 @@ class CustomerRepository
             Log::error("there is network problem or the customer has insufficient balance");
             Log::error($th->getMessage());
 
-            #save the transaction 
+            #save the transaction
             $transaction = new Transaction();
             $transaction->customer_ID = $customer_id;
             $transaction->amount_IN = $amount;
