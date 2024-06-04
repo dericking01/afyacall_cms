@@ -57,6 +57,7 @@ class ProcessContactFilterDND implements ShouldQueue
         // $rnewresults = $this->new_array_diff($importData_arr, $blacklistArray);
 
         Log::info("this is the results " . count($results));
+        $contacts = array();
         foreach ($results as $key => $value) {
             $contacts[] = [
                 'msisdn' => $value,
