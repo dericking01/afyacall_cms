@@ -256,8 +256,8 @@ class CustomerRepository
             $customer->keyword = $data['service'];
             $customer->registered_at = Opt::getServertime();
             $customer->doctor_subscription_status = 0;
-            // Check for 'afya01' or 'afya1' and set source reference to Instgram
-            if (strtolower($data['service']) == 'afya01' || strtolower($data['service']) == 'afya1') {
+            // Check for 'afya 1' or 'afya1' and set source reference to Instgram
+            if (strtolower($data['service']) == 'afya 1' || strtolower($data['service']) == 'afya1') {
              $customer->source = 'INSTAGRAM';
             }
             $customer->save();
