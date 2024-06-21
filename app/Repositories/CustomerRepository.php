@@ -225,25 +225,48 @@ class CustomerRepository
     {
         //remove
         $msisdn = ltrim($data['sender'], '+');
-        $product = Product::where('product_ID', '921465_P04')->first();
+        //assign the product id for doctor sub 921465_P03
+        $product = Product::where('product_ID', '921465_P03')->first();
 
+        //check if the customer exists on the system
         $customer = Customer::where('msisdn', $msisdn)->first();
 
-        if (!$customer) {
-            // Register new customer
+        if ($customer){
+
+            if($customer->doctor_subscription_status != -1){
+                //send the notification to customer for succefull subscribed on doctor subs
+                $swMessage = 'Tayari umejiunga na huduma hii. Kujitoa tuma neno ONDOADOC kwenda 15723';
+                $enMessage = 'You are already subscribed to this service. To unsubscribe send the word ONDOADOC to 15723';
+                ProcessLanguage::dispatchSync($msisdn, $swMessage, $enMessage);
+            } else {
+            //update its status to 0 as to be charged
+                $customer->doctor_subscription_status = 0;
+                $customer->save();
+
+                //send the notification to customer for succefull subscribed on doctor subs
+                $messageSwahili = 'Umejiunga na huduma ya Kuongea na madktari wa Afyacall.Utapokea dakika moja zitazokusanywa kila siku kwa TSH 200/Siku.Kujiondoa Tuma Neno ONDOADOC Kwenda 15723.';
+                $messageEnglish = 'You have subscribed Afyacall Direct Doctors call Service.You will receive accumulative 1 min daily for TSH 200 per Day.To unsubscribe send ONDOADOC TO 15723.';
+                ProcessLanguage::dispatchSync($msisdn, $messageSwahili, $messageEnglish);
+            }
+
+        } else {
+            //register the customer, not found on database
             $customer = new Customer();
             $customer->msisdn = $msisdn;
             $customer->keyword = $data['service'];
             $customer->registered_at = Opt::getServertime();
             $customer->doctor_subscription_status = 0;
-          }
+            // Check for 'afya01' or 'afya1' and set source reference to Instgram
+            if (strtolower($data['service']) == 'afya01' || strtolower($data['service']) == 'afya1') {
+             $customer->source = 'INSTAGRAM';
+            }
+            $customer->save();
 
-            // Check for 'afya01' or 'afya1' and set source if true
-        if (strtolower($data['service']) == 'afya01' || strtolower($data['service']) == 'afya1') {
-            $customer->source = 'INSTAGRAM';
+            //send the notification to customer for succefull subscribed on doctor subs
+            $messageSwahili = 'Umejiunga na huduma ya Kuongea na madktari wa Afyacall.Utapokea dakika moja zitazokusanywa kila siku kwa TSH 200/Siku.Kujiondoa Tuma Neno ONDOADOC Kwenda 15723.';
+            $messageEnglish = 'You have subscribed Afyacall Direct Doctors call Service.You will receive accumulative 1 min daily for TSH 200 per Day.To unsubscribe send ONDOADOC TO 15723.';
+            ProcessLanguage::dispatchSync($msisdn, $messageSwahili, $messageEnglish);
         }
-
-        $customer->save();
 
         //update the values
         $opt = new Opt();
@@ -274,13 +297,7 @@ class CustomerRepository
             $enMessage = 'You have insufficient balance. Please recharge and send keyword AFYADOC to shortcode 15723 or dial 0900011111 at a cost of Tsh.200/day.';
 
         }
-        //send the notification to customer for succefull subscribed on doctor subs
-        $messageSwahili = 'Umejiunga na huduma ya Kuongea na madktari wa Afyacall.Utapokea dakika moja zitazokusanywa kila siku kwa TSH 200/Siku.Kujiondoa Tuma Neno ONDOADOC Kwenda 15723.';
-        $messageEnglish = 'You have subscribed Afyacall Direct Doctors call Service.You will receive accumulative 1 min daily for TSH 200 per Day.To unsubscribe send ONDOADOC TO 15723.';
-        ProcessLanguage::dispatchSync($msisdn, $messageSwahili, $messageEnglish);
-
         ProcessLanguage::dispatchSync($msisdn, $swMessage, $enMessage);
-
 
     }
 
@@ -289,7 +306,7 @@ class CustomerRepository
         $msisdn = ltrim($data['sender'], '+');
 
         $customer = Customer::where('msisdn', $msisdn)->first();
-        $product = Product::where('product_ID', '921465_P04')->first();
+        $product = Product::where('product_ID', '921465_P03')->first();
 
         if ($customer->doctor_subscription_status != -1) {
             $customer->doctor_subscription_status = -1;
@@ -396,8 +413,8 @@ class CustomerRepository
             return true;
         } catch (\Throwable $th) {
             // Log the error for debugging purposes
-            Log::error("there is network problem or the customer has insufficient balance");
-            Log::error($th->getMessage());
+            Log::error("dc there is network problem or the customer has insufficient balance");
+            Log::error('dc ' .$th->getMessage());
 
             #save the transaction
             $transaction = new Transaction();

@@ -16,31 +16,31 @@ class SMSController extends Controller
     {
         //check the incoming requests and log into database
         FacadesLog::info($request);
-        if (in_array(strtolower($request->sender), ['+255746805383','+255757223687','+255745821232','+255745994671','+255766992111','+255747234197','+255744663450','+255754711547','+255747778248','+255767455554'])) {
+        // if (in_array(strtolower($request->sender), ['+255757223687','+255745821232','+255745994671','+255766992111','+255747234197','+255744663450','+255754711547','+255747778248','+255767455554'])) {
 
-            try {
-                $client = new \GuzzleHttp\Client();
-                $response = $client->request('POST', 'http://192.168.1.50:6000/api/sms/receivedsms', [
-                    'verify' => false,
-                    'headers' => [
-                        'Content-Type' => ' application/json',
-                    ],
-                    'json' => [
-                        'sender' => $request->sender,
-                        'service' => $request->service
-                    ]
-                ]);
-                $results = $response->getBody()->getContents();
-                $data = json_decode($results, true);
+        //     try {
+        //         $client = new \GuzzleHttp\Client();
+        //         $response = $client->request('POST', 'http://192.168.1.50:6000/api/sms/receivedsms', [
+        //             'verify' => false,
+        //             'headers' => [
+        //                 'Content-Type' => ' application/json',
+        //             ],
+        //             'json' => [
+        //                 'sender' => $request->sender,
+        //                 'service' => $request->service
+        //             ]
+        //         ]);
+        //         $results = $response->getBody()->getContents();
+        //         $data = json_decode($results, true);
 
-                return true;
-            } catch (\Throwable $th) {
-                FacadesLog::error("there is an error on redirect to UAT");
-                FacadesLog::error($th->getMessage());
-            }
+        //         return true;
+        //     } catch (\Throwable $th) {
+        //         FacadesLog::error("there is an error on redirect to UAT");
+        //         FacadesLog::error($th->getMessage());
+        //     }
 
-            return true;
-        }
+        //     return true;
+        // }
         //validate data
 
         //update to the smartbango tables
