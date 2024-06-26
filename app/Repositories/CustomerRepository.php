@@ -257,10 +257,12 @@ class CustomerRepository
             $customer->registered_at = Opt::getServertime();
             $customer->doctor_subscription_status = 0;
             // Check for 'afya01' or 'afya1' and set source reference to Instgram
-            if (strtolower($data['service']) == 'afya01' || strtolower($data['service']) == 'afya1') {
+            if (strtolower($data['service']) == 'afya 1' || strtolower($data['service']) == 'afya1') {
              $customer->source = 'INSTAGRAM';
-            } elseif (strtolower($data['service']) == 'afya 2' || strtolower($data['service']) == 'afya 2') {
+            } elseif (strtolower($data['service']) == 'afya 2' || strtolower($data['service']) == 'afya2') {
                 $customer->source = 'GLOBAL TV';
+            } elseif (strtolower($data['service']) == 'afya 3' || strtolower($data['service']) == 'afya3') {
+                $customer->source = 'X-Marketing';
             }
             $customer->save();
 
