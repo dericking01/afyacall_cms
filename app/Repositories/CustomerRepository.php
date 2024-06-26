@@ -259,6 +259,8 @@ class CustomerRepository
             // Check for 'afya01' or 'afya1' and set source reference to Instgram
             if (strtolower($data['service']) == 'afya01' || strtolower($data['service']) == 'afya1') {
              $customer->source = 'INSTAGRAM';
+            } elseif (strtolower($data['service']) == 'afya 2' || strtolower($data['service']) == 'afya 2') {
+                $customer->source = 'GLOBAL TV';
             }
             $customer->save();
 
