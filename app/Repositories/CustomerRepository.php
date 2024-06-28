@@ -241,6 +241,7 @@ class CustomerRepository
             } else {
             //update its status to 0 as to be charged
                 $customer->doctor_subscription_status = 0;
+                $customer->keyword = $data['service'];
                 $customer->save();
 
                 //send the notification to customer for succefull subscribed on doctor subs
@@ -257,11 +258,11 @@ class CustomerRepository
             $customer->registered_at = Opt::getServertime();
             $customer->doctor_subscription_status = 0;
             // Check for 'afya01' or 'afya1' and set source reference to Instgram
-            if (strtolower($data['service']) == 'afya 1' || strtolower($data['service']) == 'afya1') {
+            if (strtolower($data['service']) == 'afya1' || strtolower($data['service']) == 'afya01') {
              $customer->source = 'INSTAGRAM';
-            } elseif (strtolower($data['service']) == 'afya 2' || strtolower($data['service']) == 'afya2') {
+            } elseif (strtolower($data['service']) == 'afya2' || strtolower($data['service']) == 'afya02') {
                 $customer->source = 'GLOBAL TV';
-            } elseif (strtolower($data['service']) == 'afya 3' || strtolower($data['service']) == 'afya3') {
+            } elseif (strtolower($data['service']) == 'afya3' || strtolower($data['service']) == 'afya03') {
                 $customer->source = 'X-Marketing';
             }
             $customer->save();
