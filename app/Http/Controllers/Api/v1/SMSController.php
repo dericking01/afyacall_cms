@@ -65,7 +65,7 @@ class SMSController extends Controller
             return $customerService->subscribe_ivr($request);
         } elseif (strtolower($request->service) == 'afyasmartd' || strtolower($request->service) == 'afyasmartdoc') {
             return $customerService->subscribe_doctor_sub($request);
-        } elseif (strtolower($request->service) == 'afya1' || strtolower($request->service) == 'afya 1') {
+        } elseif (strtolower($request->service) == 'afya1' || strtolower($request->service) == 'afya01') {
             return $customerService->subscribe_doctor_sub($request);
         } elseif (strtolower($request->service) == 'afyadoc') {
             return $customerService->subscribe_doctor_sub($request);
