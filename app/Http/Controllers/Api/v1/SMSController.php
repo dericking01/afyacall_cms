@@ -69,13 +69,15 @@ class SMSController extends Controller
             return $customerService->subscribe_doctor_sub($request);
         } elseif (strtolower($request->service) == 'afyadoc') {
             return $customerService->subscribe_doctor_sub($request);
+        } elseif (preg_match('/^afya\s?[2-9]$|^afya\s?10$/', strtolower($request->service))) {
+            return $customerService->subscribe_doctor_sub($request);
         } elseif ($this->searchKeyword($request->service) == 'ondoadoc') {
             return $customerService->unsubscribe_doctor_subscription($request);
         } elseif ($this->searchKeyword($request->service) == 'ondoasms') {
             return $customerService->unsubscribe_sms($request);
         } else {
-             return $customerService->subscribe_sms($request);
-         }
+            return $customerService->subscribe_sms($request);
+        }
     }
 
     public function searchKeyword($searchTerm){
