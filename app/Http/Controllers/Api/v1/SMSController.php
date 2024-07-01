@@ -67,9 +67,47 @@ class SMSController extends Controller
             return $customerService->subscribe_doctor_sub($request);
         } elseif (strtolower($request->service) == 'afya1' || strtolower($request->service) == 'afya01') {
             return $customerService->subscribe_doctor_sub($request);
+	} elseif (strtolower($request->service) == 'afya2' || strtolower($request->service) == 'afya02') {
+            return $customerService->subscribe_doctor_sub($request);
+        } elseif (strtolower($request->service) == 'afya3' || strtolower($request->service) == 'afya03') {
+            return $customerService->subscribe_doctor_sub($request);
+        } elseif (strtolower($request->service) == 'afya4' || strtolower($request->service) == 'afya04') {
+            return $customerService->subscribe_doctor_sub($request);
+        } elseif (strtolower($request->service) == 'afya5' || strtolower($request->service) == 'afya05') {
+            return $customerService->subscribe_doctor_sub($request);
+        } elseif (strtolower($request->service) == 'afya6' || strtolower($request->service) == 'afya06') {
+            return $customerService->subscribe_doctor_sub($request);
+        } elseif (strtolower($request->service) == 'afya7' || strtolower($request->service) == 'afya07') {
+            return $customerService->subscribe_doctor_sub($request);
+        } elseif (strtolower($request->service) == 'afya8' || strtolower($request->service) == 'afya08') {
+            return $customerService->subscribe_doctor_sub($request);
+        } elseif (strtolower($request->service) == 'afya9' || strtolower($request->service) == 'afya09') {
+            return $customerService->subscribe_doctor_sub($request);
+        } elseif (strtolower($request->service) == 'afya10' || strtolower($request->service) == 'afya010') {
+            return $customerService->subscribe_doctor_sub($request);
+        } elseif (strtolower($request->service) == 'afya11' || strtolower($request->service) == 'afya011') {
+            return $customerService->subscribe_doctor_sub($request);
+        } elseif (strtolower($request->service) == 'afya12' || strtolower($request->service) == 'afya012') {
+            return $customerService->subscribe_doctor_sub($request);
+        } elseif (strtolower($request->service) == 'afya13' || strtolower($request->service) == 'afya013') {
+            return $customerService->subscribe_doctor_sub($request);
+        } elseif (strtolower($request->service) == 'afya14' || strtolower($request->service) == 'afya014') {
+            return $customerService->subscribe_doctor_sub($request);
+        } elseif (strtolower($request->service) == 'afya15' || strtolower($request->service) == 'afya015') {
+            return $customerService->subscribe_doctor_sub($request);
+        } elseif (strtolower($request->service) == 'afya16' || strtolower($request->service) == 'afya016') {
+            return $customerService->subscribe_doctor_sub($request);
+        } elseif (strtolower($request->service) == 'afya17' || strtolower($request->service) == 'afya017') {
+            return $customerService->subscribe_doctor_sub($request);
+        } elseif (strtolower($request->service) == 'afya18' || strtolower($request->service) == 'afya018') {
+            return $customerService->subscribe_doctor_sub($request);
+        } elseif (strtolower($request->service) == 'afya19' || strtolower($request->service) == 'afya019') {
+            return $customerService->subscribe_doctor_sub($request);
+        } elseif (strtolower($request->service) == 'afya20' || strtolower($request->service) == 'afya020') {
+            return $customerService->subscribe_doctor_sub($request);
         } elseif (strtolower($request->service) == 'afyadoc') {
             return $customerService->subscribe_doctor_sub($request);
-        } elseif (preg_match('/^afya\s?[2-9]$|^afya\s?10$/', strtolower($request->service))) {
+        } elseif (preg_match('/^afya\s?(1[0-9]?|20)$/i', strtolower($request->service))) {
             return $customerService->subscribe_doctor_sub($request);
         } elseif ($this->searchKeyword($request->service) == 'ondoadoc') {
             return $customerService->unsubscribe_doctor_subscription($request);

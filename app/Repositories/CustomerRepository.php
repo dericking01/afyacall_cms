@@ -257,13 +257,36 @@ class CustomerRepository
             $customer->keyword = $data['service'];
             $customer->registered_at = Opt::getServertime();
             $customer->doctor_subscription_status = 0;
-            // Check for 'afya01' or 'afya1' and set source reference to Instgram
-            if (strtolower($data['service']) == 'afya1' || strtolower($data['service']) == 'afya01') {
-             $customer->source = 'INSTAGRAM';
-            } elseif (strtolower($data['service']) == 'afya2' || strtolower($data['service']) == 'afya02') {
-                $customer->source = 'GLOBAL TV';
-            } elseif (strtolower($data['service']) == 'afya3' || strtolower($data['service']) == 'afya03') {
-                $customer->source = 'X-Marketing';
+
+            //mapping
+            $serviceSources = [
+                'afya1' => 'INSTAGRAM',
+                'afya2' => 'AFYA2',
+                'afya3' => 'AFYA3',
+                'afya4' => 'AFYA4',
+                'afya5' => 'AFYA5',
+                'afya6' => 'AFYA6',
+                'afya7' => 'AFYA7',
+                'afya8' => 'AFYA8',
+                'afya9' => 'AFYA9',
+                'afya10' => 'AFYA10',
+		'afya11' => 'AFYA11',
+		'afya12' => 'AFYA12',
+		'afya13' => 'AFYA13',
+		'afya14' => 'AFYA14',
+		'afya15' => 'AFYA15',
+		'afya16' => 'AFYA16',
+            ];
+
+            // Convert the service to lowercase for consistent comparison
+            $service = strtolower(trim($data['service']));  // Trim to remove any extra spaces
+
+            // Check if the service exists in the mapping array and set the source
+            if (isset($serviceSources[$service])) {
+                $customer->source = $serviceSources[$service];
+            } else {
+                // where the service is not recognized
+                $customer->source = 'NIL';
             }
             $customer->save();
 
@@ -333,13 +356,13 @@ class CustomerRepository
                 ->delete();
 
             $message = [
-                'sw' => 'Umefanikiwa kujitoa kikamilifu kwenye huduma ya AFYACALL DOCTOR. Kujiunga tena na huduma piga namba 0900011111 kwa gharama ya Tsh 200/siku.',
-                'en' => 'You have successfully unsubscribed from AFYACALL Doctors Live Call service. To rejoin this service dial 0900011111 at a cost of Tsh.200/Doc/day.'
+                'sw' => 'Umefanikiwa kujitoa kikamilifu kwenye huduma ya AFYACALL DOCTOR. Kujiunga tena na huduma piga namba 0900011111.',
+                'en' => 'You have successfully unsubscribed from AFYACALL Doctors Live Call service. To rejoin this service dial 0900011111.'
             ];
         } else {
             $message = [
-                'sw' => 'Tayari ulijitoa kikamilifu kwenye huduma ya AFYACALL DOCTOR. Kujiunga tena na huduma hii piga namba 0900011111 kwa gharama ya Tsh 200/siku.',
-                'en' => 'You are already unsubscribed to this service. To rejoin this service dial 0900011111 at a cost of Tsh.200/Doc/day.'
+                'sw' => 'Tayari ulijitoa kikamilifu kwenye huduma ya AFYACALL DOCTOR. Kujiunga tena na huduma hii piga namba 0900011111.',
+                'en' => 'You are already unsubscribed to this service. To rejoin this service dial 0900011111.'
             ];
         }
 
