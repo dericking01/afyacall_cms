@@ -51,7 +51,14 @@ class Opt extends Model
     {
         $localTime = new \DateTime("now", new \DateTimeZone('Africa/Dar_es_Salaam'));
         $serverTime = $localTime->format('Y-m-d H:i:s');
+        return $serverTime;
+    }
 
+
+    public static function getTimestamp()
+    {
+        $localTime = new \DateTime("now", new \DateTimeZone('Africa/Dar_es_Salaam'));
+        $serverTime = $localTime->format('Y-m-d H:i:s.u');
         return $serverTime;
     }
 }

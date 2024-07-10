@@ -55,7 +55,7 @@ class ChargingHelper
         ];
 
         //time for charging
-        $chargetime = Opt::getServertime();
+        $chargetime = Opt::getTimestamp();
         $customer = Customer::where('msisdn', $cellNo)->get()->first();
         //try charging
         try {
@@ -160,7 +160,7 @@ class ChargingHelper
         ];
 
         //time for charging
-        $chargetime = Opt::getServertime();
+        $chargetime = Opt::getTimestamp();
         $customer = Customer::where('msisdn', $cellNo)->get()->first();
         $product = Product::where('product_ID', '921465_P02')->get()->first();
 

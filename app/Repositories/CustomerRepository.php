@@ -242,6 +242,7 @@ class CustomerRepository
             //update its status to 0 as to be charged
                 $customer->doctor_subscription_status = 0;
                 $customer->keyword = $data['service'];
+		$customer->source = $data['service'];
                 $customer->save();
 
                 //send the notification to customer for succefull subscribed on doctor subs

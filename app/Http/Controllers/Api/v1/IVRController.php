@@ -389,7 +389,7 @@ class IVRController extends Controller
         ];
 
         //time for charging
-        $chargetime = Opt::getServertime();
+        $chargetime = Opt::getTimestamp();
         $customer = Customer::where('msisdn', $cellNo)->get()->first();
         //try charging
         try {
@@ -656,7 +656,7 @@ class IVRController extends Controller
         ];
 
         //time for charging
-        $chargetime = Opt::getServertime();
+        $chargetime = Opt::getTimestamp();
         $customer = Customer::where('msisdn', $cellNo)->get()->first();
         //try charging
         try {

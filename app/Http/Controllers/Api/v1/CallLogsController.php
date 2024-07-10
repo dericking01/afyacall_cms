@@ -81,7 +81,7 @@ class CallLogsController extends Controller
         ];
 
         //time 
-        $chargetime = Opt::getServertime();
+        $chargetime = Opt::getTimestamp();
         try {
             $client = new \GuzzleHttp\Client;
             $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');

@@ -41,19 +41,7 @@ class ProcessChargingDailyCron extends Command
      */
     public function handle()
     {
-
-        // $counter = 0; // Initialize counter
-        // Customer::where('status', 0)
-        //   ->chunkById(1000, function ($customers) use (&$counter) {
-        //     foreach ($customers as $customer) {
-        //         if ($counter >= 10000) {
-        //             break; // Exit loop if 1000 requests are reached
-        //         }
-        //         Log::info('Start charging to customer.'.$customer->msisdn);
-        //         ProcessCharingDaily::dispatch('921465_P02', $customer->msisdn, '150')->onQueue('transaction');
-        //         $counter++; // Increment counter
-        //     }
-        // });
+        
 	    Customer::where('status', 0)
             ->chunkById(1000, function ($customers) {
                 foreach ($customers as $customer) {
