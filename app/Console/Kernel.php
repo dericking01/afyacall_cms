@@ -57,6 +57,11 @@ class Kernel extends ConsoleKernel
             ->timezone('Africa/Dar_es_Salaam')
             ->twiceDaily(7, 19);
 
+	//send revenue sms notifications
+	 $schedule->command('sms:revenue')
+            ->timezone('Africa/Dar_es_Salaam')
+            ->cron('0 */6 * * *');
+
 	        //send ivr notification twice daily
     //    $schedule->command('ivr:daily')
       //      ->timezone('Africa/Dar_es_Salaam')
