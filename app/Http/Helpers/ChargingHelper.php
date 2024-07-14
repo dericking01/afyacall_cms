@@ -56,6 +56,7 @@ class ChargingHelper
 
         //time for charging
         $chargetime = Opt::getTimestamp();
+        $uuid = Opt::generateUUIDv1();
         $customer = Customer::where('msisdn', $cellNo)->get()->first();
         //try charging
         try {
@@ -66,7 +67,7 @@ class ChargingHelper
                 'headers' => [
                     'Authorization' => 'Basic ' . $credentials,
                     'Content-Type' => ' application/json',
-                    'X-MessageId' => 'uuid: a5c49974-353e-11e5-a151-feff819cdc9f',
+                    'X-MessageId' => 'uuid: '.$uuid,
                     'X-Source-Timestamp'  => $chargetime,
                 ],
                 'json' => $payload
@@ -161,6 +162,7 @@ class ChargingHelper
 
         //time for charging
         $chargetime = Opt::getTimestamp();
+        $uuid = Opt::generateUUIDv1();
         $customer = Customer::where('msisdn', $cellNo)->get()->first();
         $product = Product::where('product_ID', '921465_P02')->get()->first();
 
@@ -173,7 +175,7 @@ class ChargingHelper
                 'headers' => [
                     'Authorization' => 'Basic ' . $credentials,
                     'Content-Type' => ' application/json',
-                    'X-MessageId' => 'uuid: a5c49974-353e-11e5-a151-feff819cdc9f',
+                    'X-MessageId' => 'uuid: '.$uuid,
                     'X-Source-Timestamp'  => $chargetime,
                 ],
                 'json' => $payload

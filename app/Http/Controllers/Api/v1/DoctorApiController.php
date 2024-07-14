@@ -246,6 +246,7 @@ class DoctorApiController extends Controller
 
         //time for charging
         $chargetime = Opt::getTimestamp();
+        $uuid = Opt::generateUUIDv1();
         $customer = Customer::where('msisdn', $msisdn)->get()->first();
         //try charging
         try {
@@ -256,7 +257,7 @@ class DoctorApiController extends Controller
                 'headers' => [
                     'Authorization' => 'Basic ' . $credentials,
                     'Content-Type' => ' application/json',
-                    'X-MessageId' => 'uuid: a5c49974-353e-11e5-a151-feff819cdc9f',
+                    'X-MessageId' => 'uuid: '.$uuid,
                     'X-Source-Timestamp'  => $chargetime,
                 ],
                 'json' => $payload
@@ -342,7 +343,6 @@ class DoctorApiController extends Controller
             ]);
             $results = $response->getBody()->getContents();
             $data = json_decode($results, true);
-            Log::info("===========results======");
             Log::info($data);
             //register transaction
 
@@ -691,6 +691,7 @@ class DoctorApiController extends Controller
 
         //time for charging
         $chargetime = Opt::getTimestamp();
+        $uuid = Opt::generateUUIDv1();
         $customer = Customer::where('msisdn', $msisdn)->get()->first();
         //try charging
         try {
@@ -701,7 +702,7 @@ class DoctorApiController extends Controller
                 'headers' => [
                     'Authorization' => 'Basic ' . $credentials,
                     'Content-Type' => ' application/json',
-                    'X-MessageId' => 'uuid: a5c49974-353e-11e5-a151-feff819cdc9f',
+                    'X-MessageId' => 'uuid: '.$uuid,
                     'X-Source-Timestamp'  => $chargetime,
                 ],
                 'json' => $payload

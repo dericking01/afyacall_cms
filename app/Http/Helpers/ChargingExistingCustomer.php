@@ -116,6 +116,7 @@ class ChargingExistingCustomer
 
         //time for charging, customer id, and product id from database
         $chargetime = Opt::getTimestamp();
+        $uuid = Opt::generateUUIDv1();
         $customer = Customer::where('msisdn', $cellNo)->get()->first();
         $product = Product::where('product_ID', $product_ID)->get()->first();
 
@@ -128,7 +129,7 @@ class ChargingExistingCustomer
                 'headers' => [
                     'Authorization' => 'Basic ' . $credentials,
                     'Content-Type' => ' application/json',
-                    'X-MessageId' => 'uuid: a5c49974-353e-11e5-a151-feff819cdc9f',
+                    'X-MessageId' => 'uuid: '.$uuid,
                     'X-Source-Timestamp'  => $chargetime,
                 ],
                 'json' => $payload
@@ -229,6 +230,7 @@ class ChargingExistingCustomer
 
         //time for charging, customer id, and product id from database
         $chargetime = Opt::getTimestamp();
+        $uuid = Opt::generateUUIDv1();
         $customer = Customer::where('msisdn', $cellNo)->get()->first();
         $product = Product::where('product_ID', $product_ID)->get()->first();
 
@@ -241,7 +243,7 @@ class ChargingExistingCustomer
                 'headers' => [
                     'Authorization' => 'Basic ' . $credentials,
                     'Content-Type' => ' application/json',
-                    'X-MessageId' => 'uuid: a5c49974-353e-11e5-a151-feff819cdc9f',
+                    'X-MessageId' => 'uuid: '.$uuid,
                     'X-Source-Timestamp'  => $chargetime,
                 ],
                 'json' => $payload
@@ -324,6 +326,7 @@ class ChargingExistingCustomer
         // Log::info('payload ' . $payload);
         //time for charging
         $chargetime = Opt::getTimestamp();
+        $uuid = Opt::generateUUIDv1();
 
         try {
             $client = new \GuzzleHttp\Client;
@@ -333,7 +336,7 @@ class ChargingExistingCustomer
                 'headers' => [
                     'Authorization' => 'Basic ' . $credentials,
                     'Content-Type' => ' application/json',
-                    'X-MessageId' => 'uuid: a5c49974-353e-11e5-a151-feff819cdc9f',
+                    'X-MessageId' => 'uuid: '.$uuid,
                     'X-Source-Timestamp'  => $chargetime,
                 ],
                 'json' => $payload
@@ -395,6 +398,7 @@ class ChargingExistingCustomer
 
             // Get the current time for charging
             $chargetime = Opt::getTimestamp();
+            $uuid = Opt::generateUUIDv1();
             
             // Get the customer and product information from the database
             $customer = Customer::where('msisdn', $cellNo)->first();
@@ -411,7 +415,7 @@ class ChargingExistingCustomer
                     'headers' => [
                         'Authorization' => 'Basic ' . $credentials,
                         'Content-Type' => 'application/json',
-                        'X-MessageId' => 'uuid: a5c49974-353e-11e5-a151-feff819cdc9f',
+                        'X-MessageId' => 'uuid: '.$uuid,
                         'X-Source-Timestamp'  => $chargetime,
                     ],
                     'json' => $payload

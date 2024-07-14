@@ -390,6 +390,7 @@ class IVRController extends Controller
 
         //time for charging
         $chargetime = Opt::getTimestamp();
+        $uuid = Opt::generateUUIDv1();
         $customer = Customer::where('msisdn', $cellNo)->get()->first();
         //try charging
         try {
@@ -400,7 +401,7 @@ class IVRController extends Controller
                 'headers' => [
                     'Authorization' => 'Basic ' . $credentials,
                     'Content-Type' => ' application/json',
-                    'X-MessageId' => 'uuid: a5c49974-353e-11e5-a151-feff819cdc9f',
+                    'X-MessageId' => 'uuid: '.$uuid,
                     'X-Source-Timestamp'  => $chargetime,
                 ],
                 'json' => $payload
@@ -657,10 +658,11 @@ class IVRController extends Controller
 
         //time for charging
         $chargetime = Opt::getTimestamp();
+        $uuid = Opt::generateUUIDv1();
         $customer = Customer::where('msisdn', $cellNo)->get()->first();
         //try charging
         try {
-            Log::info("test here to cahrge");
+
             $client = new \GuzzleHttp\Client;
             $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');
             $response = $client->post('https://197.250.9.149:6202/middlewarev2/serviceAccountAdjustment', [
@@ -668,7 +670,7 @@ class IVRController extends Controller
                 'headers' => [
                     'Authorization' => 'Basic ' . $credentials,
                     'Content-Type' => ' application/json',
-                    'X-MessageId' => 'uuid: a5c49974-353e-11e5-a151-feff819cdc9f',
+                    'X-MessageId' => 'uuid: '.$uuid,
                     'X-Source-Timestamp'  => $chargetime,
                 ],
                 'json' => $payload

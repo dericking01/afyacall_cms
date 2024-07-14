@@ -35,6 +35,7 @@ class LanguageHelper
         //time 
         $excustomer = Customer::where('msisdn',$number)->get()->first();
         $chargetime = Opt::getTimestamp();
+        $uuid = Opt::generateUUIDv1();
         try {
             $client = new \GuzzleHttp\Client;
             $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');
@@ -43,7 +44,7 @@ class LanguageHelper
                 'headers' => [
                     'Authorization' => 'Basic ' . $credentials,
                     'Content-Type' => ' application/json',
-                    'X-MessageId' => 'uuid: a5c49974-353e-11e5-a151-feff819cdc9f',
+                    'X-MessageId' => 'uuid: '.$uuid,
                     'X-Source-Timestamp'  => $chargetime,
                 ],
                 'json' => $payload

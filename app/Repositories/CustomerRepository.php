@@ -35,13 +35,42 @@ class CustomerRepository
 
     public function subscribe_sms($data)
     {
-        //remove
+        //remove + sign on the 
         $msisdn = ltrim($data['sender'], '+');
+        
         $product = Product::where('product_ID', '921465_P02')->first();
 
         $customer = Customer::where('msisdn', $msisdn)->first();
 
-        if (!$customer) {
+        if ($customer) {
+            if ($customer->status == 1 || $customer->status == 0 ){
+                $swMessage = 'Tayari umejiunga na huduma hii kwa gharama ya Tsh 150/siku.Kujitoa tuma neno ONDOASMS kwenda 15723';
+                $enMessage = 'You are already subscribed to this service. To unsubscribe send the word ONDOASMS to 15723';
+                ProcessLanguage::dispatchSync($msisdn, $swMessage, $enMessage);
+
+                return true;
+            } else {
+
+                $opt = new Opt();
+                $opt->customer_ID = $customer->id;
+                $opt->ConversationID = $data['service'];
+                $opt->OriginatorConversationID = $data['content'] ?? '';
+                $opt->product_ID = $product->id;
+                $opt->opt_value = 1;
+                $opt->date = Opt::getServertime();
+                $opt->save();
+
+                $customer->keyword = $data['service'];
+                $customer->status = 0;
+                $customer->save();
+
+                //Notify the user on success opt in
+                $sw = 'Karibu tena katika huduma ya Vodacom Afyacall.Utapata dondoo mbalimbali kuhusu afya yako kila siku kwa Gharama ya Tsh 150 tu. Kujitoa tuma neno ONDOASMS kwenda 15723';
+                $en = 'Welcome again on Vodacom Afyacall Service. You will receive various tips about health daily at a cost of TZS 150/day.To unsubscribe send the word ONDOASMS to 15723';
+                ProcessLanguage::dispatch($msisdn, $sw, $en);
+
+            }
+        } else {
             //register new customer
             $customer = new Customer();
             $customer->msisdn = $msisdn;
@@ -49,22 +78,23 @@ class CustomerRepository
             $customer->registered_at = Opt::getServertime();
             $customer->status = 0;
             $customer->save();
+
+            $opt = new Opt();
+            $opt->customer_ID = $customer->id;
+            $opt->ConversationID = $data['service'];
+            $opt->OriginatorConversationID = $data['content'] ?? '';
+            $opt->product_ID = $product->id;
+            $opt->opt_value = 1;
+            $opt->date = Opt::getServertime();
+            $opt->save();
+
+            //Notify the user on success opt in
+            $sw = 'Karibu katika huduma ya Vodacom Afyacall.Utapata dondoo mbalimbali kuhusu afya yako kila siku kwa Gharama ya Tsh 150 tu. Kujitoa tuma neno ONDOASMS kwenda 15723';
+            $en = 'Welcome on Vodacom Afyacall Service. You will receive various tips about health daily at a cost of TZS 150/day.To unsubscribe send the word ONDOASMS to 15723';
+            ProcessLanguage::dispatch($msisdn, $sw, $en);
         }
 
-        //update the values
-        $opt = new Opt();
-        $opt->customer_ID = $customer->id;
-        $opt->ConversationID = $data['service'];
-        $opt->OriginatorConversationID = $data['content'] ?? '';
-        $opt->product_ID = $product->id;
-        $opt->opt_value = 1;
-        $opt->date = Opt::getServertime();
-        $opt->save();
 
-        if ($customer->status == 1) {
-            $swMessage = 'Tayari umejiunga na huduma hii kwa gharama ya Tsh 150/siku.Kujitoa tuma neno ONDOASMS kwenda 15723';
-            $enMessage = 'You are already subscribed to this service. To unsubscribe send the word ONDOASMS to 15723';
-        } else {
             $res = $this->chargivrtiartime($customer->id, $customer->msisdn, $product->id, $product->price);
 
             if ($res) {
@@ -80,12 +110,16 @@ class CustomerRepository
                 $swMessage = 'Umelipia Kikamilifu Tsh ' . $product->price . ' kwenye huduma ya Vodacom AFYACALL';
                 $enMessage = 'You have Successfully paid Tsh ' . $product->price . ' for the Vodacom AFYACALL';
 
+                ProcessLanguage::dispatchSync($msisdn, $swMessage, $enMessage);
+
             } else {
                 $swMessage = 'Hauna salio la kutosha kupata huduma hii. Ongeza salio kisha Tuma neno AFYA kwenda 15723 au piga 0900011111.';
                 $enMessage = 'You have insufficient balance. Please recharge and send keyword AFYA to shortcode 15723 or dial 0900011111';
+
+                ProcessLanguage::dispatchSync($msisdn, $swMessage, $enMessage);
             }
-        }
-        ProcessLanguage::dispatchSync($msisdn, $swMessage, $enMessage);
+        
+      
 
     }
 
@@ -137,7 +171,37 @@ class CustomerRepository
 
         $customer = Customer::where('msisdn', $msisdn)->first();
 
-        if (!$customer) {
+        if ($customer) {
+
+            if ($customer->ivr_status == 1 || $customer->ivr_status == 0 ){
+
+                $swMessage = 'Tayari umejiunga na huduma hii piga namba 0900011111 kusikiliza dondoo za afya kwa gharama ya Tsh 300/IVR/siku.';
+                $enMessage = 'You are already subscribed to this service dial 0900011111 to listen to health tips at a cost of Tsh 300 /IVR/day.';
+                ProcessLanguage::dispatchSync($msisdn, $swMessage, $enMessage);
+
+                return true;
+
+            } else {
+                $opt = new Opt();
+                $opt->customer_ID = $customer->id;
+                $opt->ConversationID = $data['service'];
+                $opt->OriginatorConversationID = $data['content'] ?? '';
+                $opt->product_ID = $product->id;
+                $opt->opt_value = 1;
+                $opt->date = Opt::getServertime();
+                $opt->save();
+
+                $customer->keyword = $data['service'];
+                $customer->ivr_status = 0;
+                $customer->save();
+
+                //Notify the user on success opt in
+                $sw = 'Karibu tena katika huduma ya  Afyacall. Utasilikiza dondoo mbalimbali kuhusu afya yako kila siku kwa kupiga 0900011111 kwa Gharama ya Tsh.300/IVR/siku.';
+                $en = 'Welcome again on Vodacom Afyacall Service. You will be able to listen various tips about your health daily dial 0900011111 at a cost of TZS 300/IVR /day.';
+                ProcessLanguage::dispatch($msisdn, $sw, $en);
+            }
+
+        } else {
             //register new customer
             $customer = new Customer();
             $customer->msisdn = $msisdn;
@@ -145,22 +209,23 @@ class CustomerRepository
             $customer->registered_at = Opt::getServertime();
             $customer->ivr_status = 0;
             $customer->save();
+
+            //update the values
+            $opt = new Opt();
+            $opt->customer_ID = $customer->id;
+            $opt->ConversationID = $data['service'];
+            $opt->OriginatorConversationID = $data['content'] ?? '';
+            $opt->product_ID = $product->id;
+            $opt->opt_value = 1;
+            $opt->date = Opt::getServertime();
+            $opt->save();
+
+            //Notify the user on success opt in
+            $sw = 'Karibu katika huduma ya  Afyacall. Utasilikiza dondoo mbalimbali kuhusu afya yako kila siku kwa kupiga 0900011111 kwa Gharama ya Tsh.300/IVR/siku.';
+            $en = 'Welcome on Vodacom Afyacall Service. You will be able to listen various tips about your health daily dial 0900011111 at a cost of TZS 300/IVR /day.';
+            ProcessLanguage::dispatch($msisdn, $sw, $en);
         }
 
-        //update the values
-        $opt = new Opt();
-        $opt->customer_ID = $customer->id;
-        $opt->ConversationID = $data['service'];
-        $opt->OriginatorConversationID = $data['content'] ?? '';
-        $opt->product_ID = $product->id;
-        $opt->opt_value = 1;
-        $opt->date = Opt::getServertime();
-        $opt->save();
-
-        if ($customer->ivr_status == 1) {
-            $swMessage = 'Tayari umejiunga na huduma hii piga namba 0900011111 kusikiliza dondoo za afya kwa gharama ya Tsh 300/IVR/siku.';
-            $enMessage = 'You are already subscribed to this service dial 0900011111 to listen to health tips at a cost of Tsh 300 /IVR/day.';
-        } else {
             $res = $this->chargivrtiartime($customer->id, $customer->msisdn, $product->id, $product->price);
 
             if ($res) {
@@ -173,13 +238,15 @@ class CustomerRepository
 
                 $swMessage = 'Umelipia Kikamilifu Tsh ' . $product->price . ' kwenye huduma ya Vodacom AFYACALL IVR piga 0900011111 kusikiliza ';
                 $enMessage = 'You have Successfully paid Tsh ' . $product->price . ' for the Vodacom AFYACALL IVR service dial 0900011111 to listen';
-
+               
             } else {
                 $swMessage = 'Hauna salio la kutosha kupata huduma hii. Ongeza salio kisha Tuma neno AFYAIVR kwenda 15723 au piga 0900011111 kwa gharama ya Tsh.300/IVR/siku.';
                 $enMessage = 'You have insufficient balance. Please recharge and send keyword AFYAIVR to shortcode 15723 or dial 0900011111 at a cost of Tsh.300/ IVR/day.';
+                
             }
-        }
-        ProcessLanguage::dispatchSync($msisdn, $swMessage, $enMessage);
+            ProcessLanguage::dispatchSync($msisdn, $swMessage, $enMessage);
+        
+       
     }
 
     public function unsubscribe_ivr($data)
@@ -233,21 +300,35 @@ class CustomerRepository
 
         if ($customer){
 
-            if($customer->doctor_subscription_status != -1){
+            if($customer->doctor_subscription_status == 1 || $customer->doctor_subscription_status == 0){
                 //send the notification to customer for succefull subscribed on doctor subs
                 $swMessage = 'Tayari umejiunga na huduma hii. Kujitoa tuma neno ONDOADOC kwenda 15723';
                 $enMessage = 'You are already subscribed to this service. To unsubscribe send the word ONDOADOC to 15723';
                 ProcessLanguage::dispatchSync($msisdn, $swMessage, $enMessage);
+
+                return true;
+
             } else {
-            //update its status to 0 as to be charged
+
+                //update the values
+                $opt = new Opt();
+                $opt->customer_ID = $customer->id;
+                $opt->ConversationID = $data['service'];
+                $opt->OriginatorConversationID = $data['content'] ?? '';
+                $opt->product_ID = $product->id;
+                $opt->opt_value = 1;
+                $opt->date = Opt::getServertime();
+                $opt->save();
+
+               //update its status to 0 as to be charged
                 $customer->doctor_subscription_status = 0;
                 $customer->keyword = $data['service'];
-		$customer->source = $data['service'];
+		        $customer->source = $data['service'];
                 $customer->save();
 
                 //send the notification to customer for succefull subscribed on doctor subs
-                $messageSwahili = 'Umejiunga na huduma ya Kuongea na madktari wa Afyacall.Utapokea dakika moja zitazokusanywa kila siku kwa TSH 200/Siku.Kujiondoa Tuma Neno ONDOADOC Kwenda 15723.';
-                $messageEnglish = 'You have subscribed Afyacall Direct Doctors call Service.You will receive accumulative 1 min daily for TSH 200 per Day.To unsubscribe send ONDOADOC TO 15723.';
+                $messageSwahili = 'Umejiunga tena na huduma ya Kuongea na madktari wa Afyacall.Utapokea dakika moja zitazokusanywa kila siku kwa TSH 200/Siku.Kujiondoa Tuma Neno ONDOADOC Kwenda 15723.';
+                $messageEnglish = 'You have subscribed again on Afyacall Direct Doctors call Service.You will receive accumulative 1 min daily for TSH 200 per Day.To unsubscribe send ONDOADOC TO 15723.';
                 ProcessLanguage::dispatchSync($msisdn, $messageSwahili, $messageEnglish);
             }
 
@@ -258,7 +339,6 @@ class CustomerRepository
             $customer->keyword = $data['service'];
             $customer->registered_at = Opt::getServertime();
             $customer->doctor_subscription_status = 0;
-
             //mapping
             $serviceSources = [
                 'afya1' => 'INSTAGRAM',
@@ -271,12 +351,12 @@ class CustomerRepository
                 'afya8' => 'AFYA8',
                 'afya9' => 'AFYA9',
                 'afya10' => 'AFYA10',
-		'afya11' => 'AFYA11',
-		'afya12' => 'AFYA12',
-		'afya13' => 'AFYA13',
-		'afya14' => 'AFYA14',
-		'afya15' => 'AFYA15',
-		'afya16' => 'AFYA16',
+                'afya11' => 'AFYA11',
+                'afya12' => 'AFYA12',
+                'afya13' => 'AFYA13',
+                'afya14' => 'AFYA14',
+                'afya15' => 'AFYA15',
+                'afya16' => 'AFYA16',
             ];
 
             // Convert the service to lowercase for consistent comparison
@@ -291,21 +371,21 @@ class CustomerRepository
             }
             $customer->save();
 
+            //update the values
+            $opt = new Opt();
+            $opt->customer_ID = $customer->id;
+            $opt->ConversationID = $data['service'];
+            $opt->OriginatorConversationID = $data['content'] ?? '';
+            $opt->product_ID = $product->id;
+            $opt->opt_value = 1;
+            $opt->date = Opt::getServertime();
+            $opt->save();
+
             //send the notification to customer for succefull subscribed on doctor subs
             $messageSwahili = 'Umejiunga na huduma ya Kuongea na madktari wa Afyacall.Utapokea dakika moja zitazokusanywa kila siku kwa TSH 200/Siku.Kujiondoa Tuma Neno ONDOADOC Kwenda 15723.';
             $messageEnglish = 'You have subscribed Afyacall Direct Doctors call Service.You will receive accumulative 1 min daily for TSH 200 per Day.To unsubscribe send ONDOADOC TO 15723.';
             ProcessLanguage::dispatchSync($msisdn, $messageSwahili, $messageEnglish);
         }
-
-        //update the values
-        $opt = new Opt();
-        $opt->customer_ID = $customer->id;
-        $opt->ConversationID = $data['service'];
-        $opt->OriginatorConversationID = $data['content'] ?? '';
-        $opt->product_ID = $product->id;
-        $opt->opt_value = 1;
-        $opt->date = Opt::getServertime();
-        $opt->save();
 
         $res = $this->chargivrtiartime($customer->id, $customer->msisdn, $product->id, $product->price);
 
@@ -399,6 +479,8 @@ class CustomerRepository
 
             // Get the current server time
             $chargetime = Opt::getServertime();
+            $uuid = Opt::generateUUIDv1();
+
 
             // Create the HTTP client
             $client = new \GuzzleHttp\Client;
@@ -408,7 +490,7 @@ class CustomerRepository
             $headers = [
                 'Authorization' => 'Basic ' . $credentials,
                 'Content-Type' => 'application/json',
-                'X-MessageId' => 'uuid:a5c49974-353e-11e5-a151-feff819cdc9f',
+                'X-MessageId' => 'uuid: '.$uuid,
                 'X-Source-Timestamp' => $chargetime,
             ];
 
@@ -442,8 +524,8 @@ class CustomerRepository
             return true;
         } catch (\Throwable $th) {
             // Log the error for debugging purposes
-            Log::error("dc there is network problem or the customer has insufficient balance");
-            Log::error('dc ' .$th->getMessage());
+            Log::error("Failed to charge this number due to insufficient balance ".$msisdn);
+            Log::error($th->getMessage());
 
             #save the transaction
             $transaction = new Transaction();
@@ -497,11 +579,9 @@ class CustomerRepository
             $results = $response->getBody()->getContents();
             $data = json_decode($results, true);
             Log::info($data);
-
+            $excustomer = Customer::where('msisdn', $phone)->get()->first();
             if ($data['output_ResponseCode'] == 0) {
-                $excustomer = Customer::where('msisdn', $phone)->get()->first();
                 if ($excustomer) {
-
                     $excustomer->ivr_status = -1;
                     $excustomer->status = -1;
                     $excustomer->enticement = 0;
@@ -533,6 +613,14 @@ class CustomerRepository
                     $en = 'You have successfully unsubscribed to all Vodacom Afyacall services.To rejoin again send keyword AFYASMS/AFYAIVR to 15723';
                     ProcessLanguage::dispatchSync($phone, $sw, $en);
                 }
+            } else {
+                $excustomer->ivr_enticement = 0;
+                $excustomer->enticement = 0;
+                $excustomer->save();
+
+                $sw = 'kunatizo la kiufundi jaribu tena kujitoa';
+                $en = 'There is problem with network, please try again';
+                ProcessLanguage::dispatchSync($phone, $sw, $en);
             }
 
             return true;

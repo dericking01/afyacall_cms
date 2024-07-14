@@ -61,4 +61,37 @@ class Opt extends Model
         $serverTime = $localTime->format('Y-m-d H:i:s.u');
         return $serverTime;
     }
+
+    public static function generateUUIDv1() 
+    {
+
+       // Get the current time in 100-nanosecond intervals since UUID epoch
+       $time = microtime(true) * 10000000 + 0x01B21DD213814000;
+       $timeHex = sprintf('%015x', $time);
+
+       // Generate a random clock sequence
+       $clockSeq = random_int(0, 0x3FFF);
+       $clockSeqHex = sprintf('%04x', $clockSeq);
+
+       // Generate a random 48-bit node (6 bytes)
+       $node = bin2hex(random_bytes(6));
+
+       // Add some more randomness to ensure uniqueness
+       $randomBits = bin2hex(random_bytes(2)); // 2 bytes (16 bits) of randomness
+       $node = substr_replace($node, $randomBits, -4, 4);
+
+       // Combine the components into the UUID format
+       $uuid = sprintf(
+           '%08s-%04s-%04x-%04x-%012s',
+           substr($timeHex, 0, 8),
+           substr($timeHex, 8, 4),
+           (0x1000 | (hexdec(substr($timeHex, 12, 4)) & 0x0FFF)),
+           (0x8000 | ($clockSeq & 0x3FFF)),
+           $node
+       );
+
+       return $uuid;
+   
+    }
+
 }
