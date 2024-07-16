@@ -52,6 +52,8 @@ class smsRevenue extends Command
         try {
             // Create a new PDO instance
             $pdo = new PDO($dsn, $user, $password);
+	    // Confirm successful connection
+	    echo "Successfully connected to the database.\n";
 
             // Prepare and execute the SQL query
             $sql = "SELECT SUM(amount_IN) AS total_revenue FROM transactions WHERE DATE(created_at)=CURDATE() AND status=1";
@@ -77,8 +79,8 @@ class smsRevenue extends Command
                 $msisdn = $recipient['msisdn'];
                 $name = $recipient['name'];
                 $message = [
-                    'sw' => "Hi Mr. $name, the revenue now is => $revenueAmount",
-                    'en' => "Hi Mr. $name, the revenue now is => $revenueAmount",
+                    'sw' => "Hi Mr. $name, the current revenue is => $revenueAmount",
+                    'en' => "Hi Mr. $name, the current revenue is => $revenueAmount",
                 ];
 
                 // Dispatch the message
