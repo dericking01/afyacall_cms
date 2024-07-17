@@ -61,7 +61,7 @@ class smsRevenue extends Command
             $row = $statement->fetch();
 
             // Fetch and round the revenue amount
-            $revenueAmount = round($row['total_revenue'], 2);
+            $revenueAmount = number_format(round($row['total_revenue'], 2), 2, '.', ',');
 
             // List of recipients with their names
             $recipients = [

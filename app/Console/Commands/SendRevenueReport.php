@@ -34,8 +34,8 @@ class SendRevenueReport extends Command
             // Confirm successful connection
             echo "Successfully connected to the database.\n";
 
-            // Get today's date
-            $today = Carbon::now()->toDateString();
+            // Get yesterday's date
+            $yesterday = Carbon::yesterday()->toDateString();
 
             // Prepare and execute the SQL query
             $sql = "
@@ -55,25 +55,25 @@ class SendRevenueReport extends Command
                         `transactions`
                     WHERE 
                         `transactions`.`status` = 1
-                        AND CAST(`transactions`.`created_at` AS DATE) = :today
+                        AND CAST(`transactions`.`created_at` AS DATE) = :yesterday
                 ) `subquery`
                 GROUP BY 
                     `subquery`.`DateCreated`;
             ";
 
             $statement = $pdo->prepare($sql);
-            $statement->bindParam(':today', $today);
+            $statement->bindParam(':yesterday', $yesterday);
             $statement->execute();
             $row = $statement->fetch(\PDO::FETCH_ASSOC);
 
             // Check if we have results
             if ($row) {
-                // Format the revenue amounts
-                $ivr = round($row['ivr'], 2);
-                $sms = round($row['sms'], 2);
-                $doctorSubs = round($row['doctor_subs'], 2);
-                $calls = round($row['calls'], 2);
-                $total = round($row['total'], 2);
+                // Format the revenue amounts with commas
+                $ivr = number_format(round($row['ivr'], 2), 2, '.', ',');
+                $sms = number_format(round($row['sms'], 2), 2, '.', ',');
+                $doctorSubs = number_format(round($row['doctor_subs'], 2), 2, '.', ',');
+                $calls = number_format(round($row['calls'], 2), 2, '.', ',');
+                $total = number_format(round($row['total'], 2), 2, '.', ',');
 
                 // List of recipients with their names
                 $recipients = [
@@ -90,8 +90,8 @@ class SendRevenueReport extends Command
                     $msisdn = $recipient['msisdn'];
                     $name = $recipient['name'];
                     $message = [
-                        'sw' => "Hi Mr. $name, the revenue for today ($today) is as follows: IVR => $ivr, SMS => $sms, Doctor Subs => $doctorSubs, Calls => $calls, TOTAL REVENUE => $total",
-                        'en' => "Hi Mr. $name, the revenue for today ($today) is as follows: IVR => $ivr, SMS => $sms, Doctor Subs => $doctorSubs, Calls => $calls, TOTAL REVENUE => $total",
+                        'sw' => "Hi Mr.$name, revenue ($yesterday): IVR => $ivr, SMS => $sms, Dr Subs => $doctorSubs, Calls => $calls, TOTAL => $total",
+                        'en' => "Hi Mr.$name, revenue ($yesterday): IVR => $ivr, SMS => $sms, Dr Subs => $doctorSubs, Calls => $calls, TOTAL => $total",
                     ];
 
                     // Dispatch the message
@@ -99,7 +99,7 @@ class SendRevenueReport extends Command
                     echo "Message sent to $name successfully.\n";
                 }
             } else {
-                echo "No revenue data found for today ($today).\n";
+                echo "No revenue data found for yesterday ($yesterday).\n";
             }
 
         } catch (\PDOException $e) {
@@ -112,3 +112,4 @@ class SendRevenueReport extends Command
     }
 }
 
+?>
