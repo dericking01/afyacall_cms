@@ -82,6 +82,7 @@ class SendRevenueReport extends Command
                     ['msisdn' => '255746088031', 'name' => 'Wingslaus'],
                     ['msisdn' => '255746193050', 'name' => 'Ireri'],
                     ['msisdn' => '255754710722', 'name' => 'Mwamba'],
+                    ['msisdn' => '255754710702', 'name' => 'Sam'],
                     ['msisdn' => '255745994671', 'name' => 'Rodrick']
                 ];
 
