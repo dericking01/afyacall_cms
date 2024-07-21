@@ -60,7 +60,7 @@ class Kernel extends ConsoleKernel
 	//send revenue sms notifications
 	 $schedule->command('sms:revenue')
             ->timezone('Africa/Dar_es_Salaam')
-            ->cron('0 */6 * * *');
+            ->cron('45 */5 * * *');
 
 	//send daily summary TOTAL revenue
 	$schedule->command('sms:revenue-report')
