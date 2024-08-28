@@ -24,17 +24,9 @@ class DeliverySMSCallbackController extends Controller
 
     public function dailydeliveryreport(Request $request)
     {
-	     FacadesLog::info($request);
-        try {
-            $dailydeliverystatus = Log::where('delivery_id', $request->id)->get()->first();
-            if ($dailydeliverystatus) {
-                $dailydeliverystatus->status = $request->status;
-                $dailydeliverystatus->delivery_at = Carbon::now();
-                $dailydeliverystatus->save();
-            }
-        } catch (\Throwable $e) {
-            FacadesLog::error($e->getMessage());
-        }
+
+    ProcessDeliverySMS::dispatch('dailysms', $request->id, $request->status)->onQueue('delivery');
+	     
     }
 
     public function notifysms(Request $request)

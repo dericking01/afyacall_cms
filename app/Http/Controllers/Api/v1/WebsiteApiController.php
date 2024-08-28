@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\WebsiteEnticement;
+use App\Models\Enticement;
 use App\Models\Blacklist;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -14,204 +15,130 @@ use App\Models\Product;
 
 class WebsiteApiController extends Controller
 {
-
     public function websiteEnticement(Request $request)
     {
-
-        $validator = Validator::make(
-            $request->all(),
-            [
-                'msisdn' => ['required'],
-                'amount' => ['required'],
-                'product' => ['required'],
-            ]
-        );
+        $validator = Validator::make($request->all(), [
+            'msisdn' => ['required'],
+            'amount' => ['required'],
+            'product' => ['required'],
+        ]);
 
         if ($validator->fails()) {
             return response()->json(['Validation errors' => $validator->errors()]);
         }
-        $product = Product::where('product_ID', $request->product)->get()->first();
-        if ($product->name == "SMS") {
-            $excustomer = Customer::where('msisdn', $request->msisdn)->get()->first();
-            if ($excustomer) {
 
-                if ($excustomer->enticement == 0) {
-                    $data = $this->pushenticement($request->msisdn, $product->product_ID);
+        $product = Product::where('product_ID', $request->product)->first();
 
-                    if ($data['output_ResponseCode'] == 0) {
+        if (!$product) {
+            return $this->responseJson('failed', 'Product not found', $request->product);
+        }
 
-                        $resp = array(
-                            "status" => "success",
-                            "message" => $data['output_ResponseDesc'],
-                            "msisdn" => $request->msisdn,
-                        );
-                        return response()->json($resp);
-                    } else {
+        switch ($product->name) {
+            case 'SMS':
+                return $this->handleSmsProduct($request, $product);
 
-                        $resp = array(
-                            "status" => "failed",
-                            "message" => $data['output_ResponseDesc'],
-                            "msisdn" => $request->msisdn,
-                        );
-                        return response()->json($resp);
-                    }
-                } else {
+            case 'IVR':
+                return $this->handleIvrProduct($request, $product);
 
-                    $resp = array(
-                        "status" => "failed",
-                        "message" => "Arleady subscribed to this service",
-                        "msisdn" => $request->msisdn,
-                    );
-                    return response()->json($resp);
-                }
-            } else {
-                //create new customer
-                $customer = new Customer();
-                $customer->msisdn = $request->msisdn;
-                $customer->registered_at = Opt::getServertime();
-                $customer->status = 0;
-                $customer->source = "Website";
-                $customer->save();
+            case 'Doctor Subscriptions':
+                return $this->handleDoctorProduct($request, $product);
 
-                //update the values
-                $opt = new Opt();
-                $opt->customer_ID = $customer->id;
-                $opt->product_ID = $product->id;
-                $opt->opt_value = 1;
-                $opt->date = Opt::getServertime();
-                $opt->save();
-
-                $data = $this->pushenticement($request->msisdn, $product->product_ID);
-
-                if ($data['output_ResponseCode'] == 0) {
-
-                    $resp = array(
-                        "status" => "success",
-                        "message" => $data['output_ResponseDesc'],
-                        "msisdn" => $request->msisdn,
-                    );
-                    return response()->json($resp);
-                } else {
-                    $resp = array(
-                        "status" => "failed",
-                        "message" => $data['output_ResponseDesc'],
-                        "msisdn" => $request->msisdn,
-                    );
-                    return response()->json($resp);
-                }
-
-            }
-
-        } elseif ($product->name == "IVR") {
-            $excustomer = Customer::where('msisdn', $request->msisdn)->get()->first();
-            if ($excustomer) {
-
-                if ($excustomer->ivr_enticement == 0) {
-                    $data = $this->pushenticement($request->msisdn, $product->product_ID);
-
-                    if ($data['output_ResponseCode'] == 0) {
-
-                        $resp = array(
-                            "status" => "success",
-                            "message" => $data['output_ResponseDesc'],
-                            "msisdn" => $request->msisdn,
-                        );
-                        return response()->json($resp);
-                    } else {
-
-                        $resp = array(
-                            "status" => "failed",
-                            "message" => $data['output_ResponseDesc'],
-                            "msisdn" => $request->msisdn,
-                        );
-                        return response()->json($resp);
-                    }
-                } else {
-
-                    $resp = array(
-                        "status" => "failed",
-                        "message" => "Arleady subscribed to this service",
-                        "msisdn" => $request->msisdn,
-                    );
-                    return response()->json($resp);
-                }
-            } else {
-                //create new customer
-                $customer = new Customer();
-                $customer->msisdn = $request->msisdn;
-                $customer->registered_at = Opt::getServertime();
-                $customer->ivr_status = 0;
-                $customer->source = "Website";
-                $customer->save();
-
-                //update the values
-                $opt = new Opt();
-                $opt->customer_ID = $customer->id;
-                $opt->product_ID = $product->id;
-                $opt->opt_value = 1;
-                $opt->date = Opt::getServertime();
-                $opt->save();
-
-                $data = $this->pushenticement($request->msisdn, $product->product_ID);
-
-                if ($data['output_ResponseCode'] == 0) {
-
-                    $resp = array(
-                        "status" => "success",
-                        "message" => $data['output_ResponseDesc'],
-                        "msisdn" => $request->msisdn,
-                    );
-                    return response()->json($resp);
-                } else {
-                    $resp = array(
-                        "status" => "failed",
-                        "message" => $data['output_ResponseDesc'],
-                        "msisdn" => $request->msisdn,
-                    );
-                    return response()->json($resp);
-                }
-
-            }
-        } else {
-            $resp = array(
-                "status" => "99",
-                "message" => "is on the blacklist or product is not defined",
-                "msisdn" => $request->msisdn,
-            );
-            return response()->json($resp);
+            default:
+                return $this->responseJson('99', 'Product is not defined or is on the blacklist', $request->msisdn);
         }
     }
 
-
-    public function pushenticement($phone, $productID)
+    private function handleSmsProduct(Request $request, $product)
     {
-        //push enticement 
-        $code = Opt::getCode();
-        try {
-            $client = new \GuzzleHttp\Client();
-            $response = $client->request('POST', 'https://197.250.9.191:23000/icg/Enticement/', [
-                'verify' => false,
-                'headers' => [
-                    'Content-Type' => ' application/json',
-                ],
-                'json' => [
-                    'input_Username' => '921465',
-                    'input_Password' => '5pmls4V!9]O]{IF',
-                    'input_WASPShortcode' => '921465',
-                    'input_ProductID' => $productID,
-                    'input_CustomerMSISDN' => $phone,
-                    'input_OriginatorConversationID' => $code,
-                    'input_EnticementChannel' => 'USSDPush'
-                ]
-            ]);
+        $customer = Customer::where('msisdn', $request->msisdn)->first();
 
-            $results = $response->getBody()->getContents();
-            $data = json_decode($results, true);
-
-            return $data;
-        } catch (\Throwable $th) {
-            Log::error("There is an error on enticement " . $phone);
-            return true;
+        if ($customer) {
+            if ($customer->enticement == 0) {
+                return $this->processEnticement($request->msisdn, $product->product_ID, $product->id);
+            }
+            return $this->responseJson('failed', 'Already subscribed to this service '.$product->name, $request->msisdn);
         }
+
+        $customer = $this->createNewCustomer($request->msisdn, 'Website', 'enticement');
+        $this->createOptRecord($customer->id, $product->id);
+
+        return $this->processEnticement($request->msisdn, $product->product_ID, $product->id);
+    }
+
+    private function handleIvrProduct(Request $request, $product)
+    {
+        $customer = Customer::where('msisdn', $request->msisdn)->first();
+
+        if ($customer) {
+            if ($customer->ivr_enticement == 0) {
+                return $this->processEnticement($request->msisdn, $product->product_ID, $product->id);
+            }
+            return $this->responseJson('failed', 'Already subscribed to this service '.$product->name, $request->msisdn);
+        }
+
+        $customer = $this->createNewCustomer($request->msisdn, 'Website', 'ivr_status');
+        $this->createOptRecord($customer->id, $product->id);
+
+        return $this->processEnticement($request->msisdn, $product->product_ID, $product->id);
+    }
+
+    private function handleDoctorProduct(Request $request, $product)
+    {
+      
+        $customer = Customer::where('msisdn', $request->msisdn)->first();
+
+        if ($customer) {
+            if ($customer->doctor_enticement == 0) {
+                return $this->processEnticement($request->msisdn, $product->product_ID, $product->id);
+            }
+            return $this->responseJson('failed', 'Already subscribed to this service '.$product->name, $request->msisdn);
+        }
+
+        $customer = $this->createNewCustomer($request->msisdn, 'Website', 'doctor_status');
+        $this->createOptRecord($customer->id, $product->id);
+
+        return $this->processEnticement($request->msisdn, $product->product_ID, $product->id);
+    }
+
+    private function createNewCustomer($msisdn, $source, $statusField)
+    {
+        $customer = new Customer();
+        $customer->msisdn = $msisdn;
+        $customer->registered_at = Opt::getServertime();
+        $customer->$statusField = 0;
+        $customer->source = $source;
+        $customer->save();
+
+        return $customer;
+    }
+
+    private function createOptRecord($customerId, $productId)
+    {
+        $opt = new Opt();
+        $opt->customer_ID = $customerId;
+        $opt->product_ID = $productId;
+        $opt->opt_value = 1;
+        $opt->date = Opt::getServertime();
+        $opt->save();
+    }
+
+    private function processEnticement($msisdn, $productId,$id)
+    {
+        $data = Enticement::pushEnticement($msisdn, $productId,$id);
+
+        if ($data['output_ResponseCode'] == 0) {
+            return $this->responseJson('success', $data['output_ResponseDesc'], $msisdn);
+        }
+
+        return $this->responseJson('failed', $data['output_ResponseDesc'], $msisdn);
+    }
+
+    private function responseJson($status, $message, $msisdn)
+    {
+        return response()->json([
+            'status' => $status,
+            'message' => $message,
+            'msisdn' => $msisdn,
+        ]);
     }
 }

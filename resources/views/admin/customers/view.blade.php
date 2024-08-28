@@ -95,14 +95,7 @@
                         <div class="card-body">
                             <input type="hidden" id="customer_number" name="customer_number"
                                 value="{{ $customers->msisdn }}">
-                            <div>
-                                <button id="checkbalance" class="btn btn-success" onclick="updateButton()">Check
-                                    Balance</button>
-                                <div id="showdata" style="float:right" style='display: none;'>
-                                    <h3 id="amountbalance"></h3>
-                                </div>
-
-                            </div>
+                           
 
 
                             <div class="center-block" id='loader'
@@ -166,7 +159,7 @@
             var customer_number = document.getElementById("customer_number").value;
             $.ajax({
                 type: 'GET',
-                url: "{{ route('admin.checkbalance') }}",
+                url: "#",
                 data: {
                     customer_number: customer_number
                 },

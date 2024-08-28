@@ -66,7 +66,7 @@ class ChargingHelper
                 'verify' => false,
                 'headers' => [
                     'Authorization' => 'Basic ' . $credentials,
-                    'Content-Type' => ' application/json',
+                    'Content-Type' => 'application/json',
                     'X-MessageId' => 'uuid: '.$uuid,
                     'X-Source-Timestamp'  => $chargetime,
                 ],
@@ -174,7 +174,7 @@ class ChargingHelper
                 'verify' => false,
                 'headers' => [
                     'Authorization' => 'Basic ' . $credentials,
-                    'Content-Type' => ' application/json',
+                    'Content-Type' => 'application/json',
                     'X-MessageId' => 'uuid: '.$uuid,
                     'X-Source-Timestamp'  => $chargetime,
                 ],

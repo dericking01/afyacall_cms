@@ -90,7 +90,7 @@ class CallLogsController extends Controller
                 'verify' => false,
                 'headers' => [
                     'Authorization' => 'Basic ' . $credentials,
-                    'Content-Type' => ' application/json',
+                    'Content-Type' => 'application/json',
                     'X-MessageId' => 'uuid: '.$uuid,
                     'X-Source-Timestamp'  => $chargetime,
                 ],
@@ -166,7 +166,7 @@ class CallLogsController extends Controller
                     $response = $client->request('POST', 'https://197.250.9.191:23000/icg/unsub/', [
                         'verify' => false,
                         'headers' => [
-                            'Content-Type' => ' application/json',
+                            'Content-Type' => 'application/json',
                         ],
                         'json' => [
                             'input_ProductID' => '921465_P01',

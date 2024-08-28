@@ -19,6 +19,8 @@ class DoctorApiController extends Controller
 
     public function chargeDoctorAirtime(Request $request)
     {
+
+        Log::info("=================charge airtime via new icg airtime endpoint==========");
         Log::info($request->all());
         //validate the incoming data
 
@@ -39,7 +41,7 @@ class DoctorApiController extends Controller
             //check if the customer has active /charged 
             if ($excustomer->doctor_status != 1) {
 
-                $res = $this->chargiartimedoctor($request->msisdn, $request->amount);
+                $res = $this->chargiartimedoctoricg($request->msisdn, $request->amount);
                 if ($res) {
                     //update customer with 
                     $excustomer->doctor_status = 0;
@@ -137,7 +139,7 @@ class DoctorApiController extends Controller
             //update the values
             $opt = new Opt();
             $opt->customer_ID = $customer->id;
-            $opt->product_ID = 3;
+            $opt->product_ID = 4;
             $opt->opt_value = 1;
             $opt->date = Opt::getServertime();
             $opt->save();
@@ -219,88 +221,6 @@ class DoctorApiController extends Controller
         }
     }
 
-    public function chargiartimedoctor($msisdn, $amount)
-    {
-        //update the payload 
-        $payload = [
-            'type' => 'charge',
-            'id'   => [
-                array(
-                    'value' => $msisdn,
-                    'schemeName' => 'msisdn'
-                )
-            ],
-            'details' => [
-                'adjustmentAmount' => $amount . '00'
-            ],
-            'name' => 'MW',
-            'desc' => 'Afyacall Doctor Charges',
-            'category' => [
-                array(
-                    'value' => 'MW',
-                    'listHierarchyId' => 'eventClass'
-                )
-            ]
-        ];
-
-
-        //time for charging
-        $chargetime = Opt::getTimestamp();
-        $uuid = Opt::generateUUIDv1();
-        $customer = Customer::where('msisdn', $msisdn)->get()->first();
-        //try charging
-        try {
-            $client = new \GuzzleHttp\Client;
-            $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');
-            $response = $client->post('https://197.250.9.149:6202/middlewarev2/serviceAccountAdjustment', [
-                'verify' => false,
-                'headers' => [
-                    'Authorization' => 'Basic ' . $credentials,
-                    'Content-Type' => ' application/json',
-                    'X-MessageId' => 'uuid: '.$uuid,
-                    'X-Source-Timestamp'  => $chargetime,
-                ],
-                'json' => $payload
-            ]);
-            $results = $response->getBody()->getContents();
-            //convert into json
-            $data = json_decode($results, true);
-            Log::info($data);
-
-            //check if customer found in database
-            if ($customer) {
-
-                //register transaction
-                $trans = new Transaction();
-                $trans->customer_ID = $customer->id;
-                $trans->amount_IN = $amount;
-                $trans->product_id = 3;
-                $trans->transaction_date = Opt::getServertime();
-                $trans->status = 1;
-                $trans->currency = "Airtime";
-                $trans->response = 'Process service request successfully.';
-                $trans->save();
-
-                return true;
-            }
-        } catch (\Throwable $th) {
-            //register transaction
-            $trans = new Transaction();
-            $trans->customer_ID = $customer->id;
-            $trans->amount_IN = $amount;
-            $trans->product_id = 3;
-            $trans->transaction_date = Opt::getServertime();
-            $trans->status = 0;
-            $trans->currency = "Airtime";
-            $trans->response = 'Insufficient Balance';
-            $trans->save();
-
-            Log::error('error on charging airtime on ivr or unsufficient balance ' . $msisdn);
-            Log::error($th->getMessage());
-            return false;
-        }
-    }
-
 
     public function chargiartimedoctoricg($msisdn, $amount)
     {
@@ -326,7 +246,7 @@ class DoctorApiController extends Controller
             $response = $client->request('POST', 'https://197.250.9.191:23000/icg/Charge/', [
                 'verify' => false,
                 'headers' => [
-                    'Content-Type' => ' application/json',
+                    'Content-Type' => 'application/json',
                 ],
                 'json' => [
                     'input_Username' => '921465',
@@ -381,7 +301,7 @@ class DoctorApiController extends Controller
             $response = $client->request('POST', 'https://197.250.9.191:23000/icg/query/balance/', [
                 'verify' => false,
                 'headers' => [
-                    'Content-Type' => ' application/json',
+                    'Content-Type' => 'application/json',
                 ],
                 'json' => [
                     'input_Username' => '921465',
@@ -568,6 +488,7 @@ class DoctorApiController extends Controller
     
     public function doctorsubscriptionstatus(Request $request)
     {
+        Log::info("checking doctor status");
         $validator = Validator::make($request->all(), [
             'msisdn' => 'required',
         ]);
@@ -589,20 +510,7 @@ class DoctorApiController extends Controller
                 'ends_at' => '0000-00-00 00:00:00',
             ];
 
-            if ($excustomer->doctor_subscription_status == 1) {
-                $subscription = Subscription::where('customer_ID', $excustomer->id)
-                    ->where('product_id', 4)
-                    ->first();
-
-                // if ($subscription) {
-                //     $resp['starts_at'] = $subscription->starts_at->toDateTimeString() ;
-                //     $resp['ends_at'] = $subscription->ends_at->toDateTimeString();
-                // } else {
-                //     $resp['starts_at'] = Carbon::now()->toDateTimeString();
-                //     $resp['ends_at'] = Carbon::now()->addDays(1)->toDateTimeString();
-                // }
-            }
-
+            Log::info($resp);
             return response()->json($resp);
         }
 
@@ -701,11 +609,13 @@ class DoctorApiController extends Controller
                 'verify' => false,
                 'headers' => [
                     'Authorization' => 'Basic ' . $credentials,
-                    'Content-Type' => ' application/json',
+                    'Content-Type' => 'application/json',
                     'X-MessageId' => 'uuid: '.$uuid,
                     'X-Source-Timestamp'  => $chargetime,
                 ],
-                'json' => $payload
+                'json' => $payload,
+                'timeout' => 30,
+                'connect_timeout' => 10,
             ]);
             $results = $response->getBody()->getContents();
             //convert into json

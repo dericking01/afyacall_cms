@@ -98,10 +98,9 @@ class Dailysms
                 // FacadesLog::info($next_sms_send);
                 if ($next_sms_send) {
                     //dispatch message
-                    FacadesLog::info('start message to ' . $msisdn);
                    DailyJobSms::dispatchSync($msisdn, $next_sms_send);
                 } else {
-                    FacadesLog::error('message for this user has finished ' . $msisdn);
+
                     DB::table('customers')
                         ->where('msisdn', $msisdn)
                         ->update(['content' => null]);

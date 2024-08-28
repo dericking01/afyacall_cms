@@ -3,12 +3,10 @@
 namespace App\Console\Commands;
 
 use App\Jobs\ProcessLanguage;
-use Exception;
 use Illuminate\Console\Command;
-use PDO;
-use PDOException;
+use Illuminate\Support\Facades\DB;
 
-class smsRevenue extends Command
+class SmsRevenue extends Command
 {
     /**
      * The name and signature of the console command.
@@ -22,7 +20,7 @@ class smsRevenue extends Command
      *
      * @var string
      */
-    protected $description = 'send daily revenue notifications';
+    protected $description = 'Send daily revenue notifications';
 
     /**
      * Create a new command instance.
@@ -41,27 +39,15 @@ class smsRevenue extends Command
      */
     public function handle()
     {
-        // Database connection details
-        $host = '192.168.1.11';
-        $db = 'afyacallproduction';
-        $user = 'prodafya';
-        $password = 'Afyacall@2021qazWSX';
-
-        $dsn = "mysql:host=$host;dbname=$db;charset=UTF8";
-
         try {
-            // Create a new PDO instance
-            $pdo = new PDO($dsn, $user, $password);
-	    // Confirm successful connection
-	    echo "Successfully connected to the database.\n";
+            // Fetch today's total revenue
+            $revenue = DB::table('transactions')
+                ->whereDate('created_at', now()->toDateString())
+                ->where('status', 1)
+                ->sum('amount_IN');
 
-            // Prepare and execute the SQL query
-            $sql = "SELECT SUM(amount_IN) AS total_revenue FROM transactions WHERE DATE(created_at)=CURDATE() AND status=1";
-            $statement = $pdo->query($sql);
-            $row = $statement->fetch();
-
-            // Fetch and round the revenue amount
-            $revenueAmount = number_format(round($row['total_revenue'], 2), 2, '.', ',');
+            // Format the revenue amount
+            $revenueAmount = number_format(round($revenue, 2), 2, '.', ',');
 
             // List of recipients with their names
             $recipients = [
@@ -84,19 +70,14 @@ class smsRevenue extends Command
                     'en' => "Hi Mr. $name, the current revenue is => $revenueAmount",
                 ];
 
-                // Dispatch the message
-                ProcessLanguage::dispatchSync($msisdn, $message['sw'], $message['en']);
-                echo "Message sent to $name successfully.\n";
+                // Dispatch the job asynchronously
+                ProcessLanguage::dispatch($msisdn, $message['sw'], $message['en']);
+                $this->info("Message sent to $name successfully.");
             }
 
-        } catch (PDOException $e) {
-            // Handle database connection error
-            echo "Database error: " . $e->getMessage();
-        } catch (Exception $e) {
-            // Handle any other errors
-            echo "Error: " . $e->getMessage();
+        } catch (\Exception $e) {
+            // Handle any errors
+            $this->error("Error: " . $e->getMessage());
         }
     }
-
-
 }

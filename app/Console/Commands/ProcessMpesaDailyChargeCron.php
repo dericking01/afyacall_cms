@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Console\Commands;
-
+use App\Jobs\ProcessCharingDaily;
 use App\Jobs\ProcessMpesaDaily;
 use App\Models\Customer;
 use Illuminate\Console\Command;
@@ -42,14 +42,15 @@ class ProcessMpesaDailyChargeCron extends Command
 
     public function handle()
     {
+        $this->chargeCustomersForService('DOCTOR SUBSCRIPTION', '921465_P03', '200', 'doctor_subscription_status', 0, 'doctor_enticement', 1);
         $this->chargeCustomersForService('SMS', '921465_P02', '150', 'status', 0, 'enticement', 1);
         $this->chargeCustomersForService('IVR', '921465_P01', '300', 'ivr_status', 0, 'ivr_enticement', 1);
+       
     }
     
     private function chargeCustomersForService($service, $mpesaCode, $amount, $statusColumn, $statusValue, $enticementColumn, $enticementValue)
     {
         Customer::where($statusColumn, $statusValue)
-            ->where($enticementColumn, $enticementValue)
             ->chunkById(1000, function ($customers) use ($service, $mpesaCode, $amount) {
                 $data = [];
     
@@ -74,8 +75,7 @@ class ProcessMpesaDailyChargeCron extends Command
             $amount = $customerData['amount'];
     
             ProcessMpesaDaily::dispatch($mpesaCode, $msisdn, $amount)->onQueue('transaction');
-    
-            Log::info('Mpesa charging for ' . $customerData['service'] . ': ' . $msisdn);
+
         }
     }
     

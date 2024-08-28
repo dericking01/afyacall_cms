@@ -38,14 +38,19 @@ class Kernel extends ConsoleKernel
             ->cron('15,45 0,1,2,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23 * * * ');
 
         //run charging airtime
-         $schedule->command('charging:daily')
-             ->timezone('Africa/Dar_es_Salaam')
-             ->cron('0 0,2,4,6,8,10,12,14,16,18,20,22 * * *');
-            
-        // charge mpesa every hour at 30 minutes
         $schedule->command('mpesa:daily')
             ->timezone('Africa/Dar_es_Salaam')
-            ->cron('30 * * * *');
+            ->cron('0 0,2,4,6,8,10,12,14,16,18,20,22 * * *');
+            
+        //current revenue            
+        $schedule->command('sms:revenue')
+        ->timezone('Africa/Dar_es_Salaam')
+        ->cron('45 */5 * * *');
+
+        //End of Day revenue-report            
+        $schedule->command('sms:revenue-report')
+        ->timezone('Africa/Dar_es_Salaam')
+        ->dailyAt('05:00');
 
         $schedule->command('remove:agedays')
             ->timezone('Africa/Dar_es_Salaam')
@@ -57,20 +62,7 @@ class Kernel extends ConsoleKernel
             ->timezone('Africa/Dar_es_Salaam')
             ->twiceDaily(7, 19);
 
-	//send revenue sms notifications
-	 $schedule->command('sms:revenue')
-            ->timezone('Africa/Dar_es_Salaam')
-            ->cron('45 */5 * * *');
 
-	//send daily summary TOTAL revenue
-	$schedule->command('sms:revenue-report')
-            ->timezone('Africa/Dar_es_Salaam')
-            ->dailyAt('05:00');
-
-	        //send ivr notification twice daily
-    //    $schedule->command('ivr:daily')
-      //      ->timezone('Africa/Dar_es_Salaam')
-        //    ->twiceDaily(7, 19);
     }
 
     /**
