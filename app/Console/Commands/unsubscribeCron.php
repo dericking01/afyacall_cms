@@ -50,7 +50,7 @@ class unsubscribeCron extends Command
                     if ($expirationDate <= $currentDate) {
                         $customer = Customer::find($subscription->customer['id']);
                         if ($customer) {
-                            Log::info($customer->msisdn . ' removed customer from subscription');
+                           
                             //if the product is IVR of Id =1
                             if ($subscription->product_id == 1) {
                                 $customer->ivr_status = 0;
@@ -63,6 +63,7 @@ class unsubscribeCron extends Command
                                 $customer->save();
                             }
                         }
+                        Log::info($customer->msisdn . ' removed customer from subscription');
                         $subscription->delete();
                     }
                 }

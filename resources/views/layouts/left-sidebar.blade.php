@@ -18,6 +18,14 @@
                             <span class="hide-menu">Customer</span>
                         </a>
                         <ul aria-expanded="false" class="collapse">
+                        <li>
+                                <a href="{{ route('admin.enticement.index') }}"
+                                    class="nav-link {{ request()->is('admin/enticement') || request()->is('admin/enticement/*') ? 'active' : '' }}">
+                                    <i class="fa fa-alpha-down nav-icon">
+                                    </i>
+                                    Enticements
+                                </a>
+                            </li>
                             <li>
                                 <a href="{{ route('admin.customers.index') }}"
                                     class="nav-link {{ request()->is('admin/customers') || request()->is('admin/customers/*') ? 'active' : '' }}">

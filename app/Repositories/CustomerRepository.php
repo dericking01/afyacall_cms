@@ -13,6 +13,7 @@ use App\Models\Product;
 use App\Models\Subscription;
 use App\Models\Transaction;
 use Carbon\Carbon;
+use App\Models\Enticement;
 use Illuminate\Support\Facades\Log;
 
 class CustomerRepository
@@ -94,7 +95,17 @@ class CustomerRepository
             ProcessLanguage::dispatch($msisdn, $sw, $en);
         }
 
+        //check if the customers is subscribe via icg, 
 
+        if ($customer->enticement == 0) {
+
+            $data = Enticement::pushEnticement($msisdn, $product->product_ID,$product->id);
+
+            if ($data['output_ResponseCode'] == -7) {
+
+            }
+
+        } else {
             $res = $this->chargivrtiartime($customer->id, $customer->msisdn, $product->id, $product->price);
 
             if ($res) {
@@ -118,7 +129,7 @@ class CustomerRepository
 
                 ProcessLanguage::dispatchSync($msisdn, $swMessage, $enMessage);
             }
-        
+	        	}
       
 
     }
@@ -152,7 +163,7 @@ class CustomerRepository
                 ];
                 ProcessLanguage::dispatchSync($msisdn, $message['sw'], $message['en']);
             } else {
-                $this->keyword_icg_unsubscribe($msisdn);
+                $this->keyword_icg_unsubscribe($msisdn, null);
             }
         } else {
             $message = [
@@ -208,6 +219,7 @@ class CustomerRepository
             $customer->keyword = $data['service'];
             $customer->registered_at = Opt::getServertime();
             $customer->ivr_status = 0;
+            $customer->ivr_enticement = 0;
             $customer->save();
 
             //update the values
@@ -226,6 +238,17 @@ class CustomerRepository
             ProcessLanguage::dispatch($msisdn, $sw, $en);
         }
 
+        //check if the customers is subscribed via icg, 
+
+        if ($customer->ivr_enticement == 0) {
+
+            $data = Enticement::pushEnticement($msisdn, $product->product_ID,$product->id);
+
+            if ($data['output_ResponseCode'] == -7) {
+
+            }
+
+        } else {
             $res = $this->chargivrtiartime($customer->id, $customer->msisdn, $product->id, $product->price);
 
             if ($res) {
@@ -245,7 +268,7 @@ class CustomerRepository
                 
             }
             ProcessLanguage::dispatchSync($msisdn, $swMessage, $enMessage);
-        
+        }
        
     }
 
@@ -278,7 +301,7 @@ class CustomerRepository
                 ];
                 ProcessLanguage::dispatchSync($msisdn, $message['sw'], $message['en']);
             } else {
-                $this->keyword_icg_unsubscribe($msisdn);
+                $this->keyword_icg_unsubscribe($msisdn, null);
             }
         } else {
             $message = [
@@ -386,6 +409,17 @@ class CustomerRepository
             $messageEnglish = 'You have subscribed Afyacall Direct Doctors call Service.You will receive accumulative 1 min daily for TSH 200 per Day.To unsubscribe send ONDOADOC TO 15723.';
             ProcessLanguage::dispatchSync($msisdn, $messageSwahili, $messageEnglish);
         }
+        //check if the customers is subscribed via icg, 
+
+        if ($customer->doctor_enticement == 0) {
+
+            $data = Enticement::pushEnticement($msisdn, $product->product_ID,$product->id);
+
+            if ($data['output_ResponseCode'] == -7) {
+
+            }
+
+        } else {
 
         $res = $this->chargivrtiartime($customer->id, $customer->msisdn, $product->id, $product->price);
 
@@ -407,7 +441,7 @@ class CustomerRepository
 
         }
         ProcessLanguage::dispatchSync($msisdn, $swMessage, $enMessage);
-
+	}
     }
 
     public function unsubscribe_doctor_subscription($data)
@@ -418,36 +452,41 @@ class CustomerRepository
         $product = Product::where('product_ID', '921465_P03')->first();
 
         if ($customer->doctor_subscription_status != -1) {
-            $customer->doctor_subscription_status = -1;
-            $customer->keyword = $data['service'];
-            $customer->save();
+            if ($customer->doctor_enticement == 0) {
+                    $customer->doctor_subscription_status = -1;
+                    $customer->keyword = $data['service'];
+                    $customer->save();
 
-            $opt = new Opt([
-                'customer_ID' => $customer->id,
-                'ConversationID' => $data['service'],
-                'OriginatorConversationID' => $data['content'] ?? '',
-                'opt_value' => -1,
-                'product_ID' => $product->id,
-                'date' => Opt::getServertime()
-            ]);
-            $opt->save();
+                    $opt = new Opt([
+                        'customer_ID' => $customer->id,
+                        'ConversationID' => $data['service'],
+                        'OriginatorConversationID' => $data['content'] ?? '',
+                        'opt_value' => -1,
+                        'product_ID' => $product->id,
+                        'date' => Opt::getServertime()
+                    ]);
+                    $opt->save();
 
-            Subscription::where('customer_ID', $customer->id)
-                ->where('product_id', $product->id)
-                ->delete();
+                    Subscription::where('customer_ID', $customer->id)
+                        ->where('product_id', $product->id)
+                        ->delete();
 
-            $message = [
-                'sw' => 'Umefanikiwa kujitoa kikamilifu kwenye huduma ya AFYACALL DOCTOR. Kujiunga tena na huduma piga namba 0900011111.',
-                'en' => 'You have successfully unsubscribed from AFYACALL Doctors Live Call service. To rejoin this service dial 0900011111.'
-            ];
+                $message = [
+                    'sw' => 'Umefanikiwa kujitoa kikamilifu kwenye huduma ya AFYACALL DOCTOR. Kujiunga tena na huduma piga namba 0900011111.',
+                    'en' => 'You have successfully unsubscribed from AFYACALL Doctors Live Call service. To rejoin this service dial 0900011111.'
+	    ];
+		     ProcessLanguage::dispatchSync($msisdn, $message['sw'], $message['en']);
+            } else {
+                $this->keyword_icg_unsubscribe($msisdn, null);
+            }
         } else {
             $message = [
                 'sw' => 'Tayari ulijitoa kikamilifu kwenye huduma ya AFYACALL DOCTOR. Kujiunga tena na huduma hii piga namba 0900011111.',
                 'en' => 'You are already unsubscribed to this service. To rejoin this service dial 0900011111.'
-            ];
+	];
+	     ProcessLanguage::dispatchSync($msisdn, $message['sw'], $message['en']);
         }
 
-        ProcessLanguage::dispatchSync($msisdn, $message['sw'], $message['en']);
     }
 
 
@@ -556,7 +595,7 @@ class CustomerRepository
     }
 
 
-    public function keyword_icg_unsubscribe($phone)
+    public function keyword_icg_unsubscribe($phone,$product_ID)
     {
         //push enticement
         $code = Opt::getCode();
@@ -565,7 +604,7 @@ class CustomerRepository
             $response = $client->request('POST', 'https://197.250.9.191:23000/icg/unsub/', [
                 'verify' => false,
                 'headers' => [
-                    'Content-Type' => ' application/json',
+                    'Content-Type' => 'application/json',
                 ],
                 'json' => [
                     'input_RequestType' => 'Bulk Opt-Out',
@@ -578,7 +617,9 @@ class CustomerRepository
             ]);
             $results = $response->getBody()->getContents();
             $data = json_decode($results, true);
+
             Log::info($data);
+
             $excustomer = Customer::where('msisdn', $phone)->get()->first();
             if ($data['output_ResponseCode'] == 0) {
                 if ($excustomer) {
@@ -586,6 +627,8 @@ class CustomerRepository
                     $excustomer->status = -1;
                     $excustomer->enticement = 0;
                     $excustomer->ivr_enticement = 0;
+                    $excustomer->doctor_subscription_status = -1;
+                    $excustomer->doctor_enticement = 0;
                     $excustomer->save();
 
                     //update the values
@@ -604,10 +647,14 @@ class CustomerRepository
                     $opt->date = Opt::getServertime();
                     $opt->save();
 
-                    $subscribeid = Subscription::where('customer_ID', $excustomer->id)->first();
-                    if ($subscribeid) {
-                        $subscribeid->delete();
-                    }
+                    $opt = new Opt();
+                    $opt->customer_ID = $excustomer->id;
+                    $opt->product_ID = 3;
+                    $opt->opt_value = -1;
+                    $opt->date = Opt::getServertime();
+                    $opt->save();
+
+                    Subscription::where('customer_ID', $excustomer->id)->delete();
 
                     $sw = 'Umefanikiwa kikamilifu kijitoa kwenye huduma zote za Vodacom Afyacall.kujiunga tena neno AFYASMS /AFYAIVR kwenda 15723.';
                     $en = 'You have successfully unsubscribed to all Vodacom Afyacall services.To rejoin again send keyword AFYASMS/AFYAIVR to 15723';
@@ -616,6 +663,7 @@ class CustomerRepository
             } else {
                 $excustomer->ivr_enticement = 0;
                 $excustomer->enticement = 0;
+                $excustomer->doctor_enticement = 0;
                 $excustomer->save();
 
                 $sw = 'kunatizo la kiufundi jaribu tena kujitoa';
@@ -679,7 +727,9 @@ class CustomerRepository
 
         $customer = Customer::where('msisdn', $msisdn)->first();
         if ($customer) {
-            if ($customer->enticement == 0) {
+            if ($customer->enticement == 1 || $customer->ivr_enticement == 1 || $customer->doctor_enticement == 1) {
+                $this->keyword_icg_unsubscribe($msisdn, null);
+            } else {
                 $customer->status = -1;
                 $customer->ivr_status = -1;
                 $customer->doctor_subscription_status = -1;
@@ -701,8 +751,6 @@ class CustomerRepository
                     'en' => 'You have successfully unsubscribed from all AFYACALL services. To rejoin this service send the word AFYA to 15723 or call 0900011111'
                 ];
                 ProcessLanguage::dispatchSync($msisdn, $message['sw'], $message['en']);
-            } else {
-                $this->keyword_icg_unsubscribe($msisdn);
             }
         } else {
             $message = [

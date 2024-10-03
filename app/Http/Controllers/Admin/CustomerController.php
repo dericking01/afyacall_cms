@@ -143,46 +143,7 @@ class CustomerController
         return redirect()->route('admin.customers.index')->with('success', 'Successful!');
     }
 
-    public function checkbalance(Request $request)
-    {
 
-        $payload = [
-            'serviceIdentifier'   =>
-            array(
-                'value' => $request->customer_number,
-                'schemeName' => 'msisdn'
-            ),
-            'id' => [
-                array(
-                    'value' => "airtime:*199*100#",
-                    'schemeName' => "balanceType"
-                )
-            ]
-        ];
-
-        //time for charging
-        $chargetime = Opt::getTimestamp();
-        $uuid = Opt::generateUUIDv1();
-        try {
-            $client = new \GuzzleHttp\Client;
-            $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');
-            $response = $client->post('https://197.250.9.149:6202/middlewarev2/serviceBalance', [
-                'verify' => false,
-                'headers' => [
-                    'Authorization' => 'Basic ' . $credentials,
-                    'Content-Type' => ' application/json',
-                    'X-MessageId' => 'uuid: '.$uuid,
-                    'X-Source-Timestamp'  => $chargetime,
-                ],
-                'json' => $payload
-            ]);
-            $balances = $response->getBody()->getContents();
-
-            return $balances;
-        } catch (\Throwable $th) {
-            return response()->json(["data error" => $th->getMessage()]);
-        }
-    }
 
 
     public function search(Request $request)

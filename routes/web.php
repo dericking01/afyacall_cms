@@ -75,7 +75,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'Admin', 'mi
     //subscribe customer
     Route::post('/blacklistcustomer','BlacklistController@blacklistcustomer')->name('blacklistcustomer');
     Route::post('/subscribecustomer','CustomerController@subscribecustomer')->name('subscribecustomer');
-    Route::get('/checkbalance','CustomerController@checkbalance')->name('checkbalance');
+
 
 
     //general for sms 

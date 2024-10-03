@@ -52,7 +52,7 @@ class ChargingExistingCustomer
             $response = $client->request('POST', 'https://197.250.9.191:23000/icg/query/balance/', [
                 'verify' => false,
                 'headers' => [
-                    'Content-Type' => ' application/json',
+                    'Content-Type' => 'application/json',
                 ],
                 'json' => [
                     'input_Username' => '921465',
@@ -121,6 +121,9 @@ class ChargingExistingCustomer
         $product = Product::where('product_ID', $product_ID)->get()->first();
 
         //try charging the customer
+        $starttime = microtime(true);
+        
+//        Log::info("=============check charge start time ". $starttime);
         try {
             $client = new \GuzzleHttp\Client;
             $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');
@@ -128,7 +131,7 @@ class ChargingExistingCustomer
                 'verify' => false,
                 'headers' => [
                     'Authorization' => 'Basic ' . $credentials,
-                    'Content-Type' => ' application/json',
+                    'Content-Type' => 'application/json',
                     'X-MessageId' => 'uuid: '.$uuid,
                     'X-Source-Timestamp'  => $chargetime,
                 ],
@@ -137,6 +140,10 @@ class ChargingExistingCustomer
             $results = $response->getBody()->getContents();
             //convert into json
             $data = json_decode($results, true);
+
+            $endtime = microtime(true);
+            $duration =  $endtime - $starttime;
+//            Log::info("=============check charge endtime ". $endtime ." duration ". $duration);
 
             //check if customer found in database
             if ($customer) {
@@ -206,6 +213,9 @@ class ChargingExistingCustomer
         } else {
 	    	return true;
         }
+
+        //call the icg charging method,
+        
         //update the payload 
         $payload = [
             'type' => 'charge',
@@ -242,7 +252,7 @@ class ChargingExistingCustomer
                 'verify' => false,
                 'headers' => [
                     'Authorization' => 'Basic ' . $credentials,
-                    'Content-Type' => ' application/json',
+                    'Content-Type' => 'application/json',
                     'X-MessageId' => 'uuid: '.$uuid,
                     'X-Source-Timestamp'  => $chargetime,
                 ],
@@ -327,7 +337,9 @@ class ChargingExistingCustomer
         //time for charging
         $chargetime = Opt::getTimestamp();
         $uuid = Opt::generateUUIDv1();
-
+        $starttime = microtime(true);
+        
+//        Log::info("=============check balance start time ". $starttime);
         try {
             $client = new \GuzzleHttp\Client;
             $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');
@@ -335,7 +347,7 @@ class ChargingExistingCustomer
                 'verify' => false,
                 'headers' => [
                     'Authorization' => 'Basic ' . $credentials,
-                    'Content-Type' => ' application/json',
+                    'Content-Type' => 'application/json',
                     'X-MessageId' => 'uuid: '.$uuid,
                     'X-Source-Timestamp'  => $chargetime,
                 ],
@@ -345,6 +357,9 @@ class ChargingExistingCustomer
             
 
             $data = json_decode($balances, true);
+            $endtime = microtime(true);
+            $duration =  $endtime - $starttime;
+//            Log::info("=============check balance start time ". $endtime ." duration ". $duration);
 
             return $data[0]['details']['balanceAmount'][0]['amount'];
         } catch (\Throwable $th) {

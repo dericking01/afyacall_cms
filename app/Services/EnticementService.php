@@ -37,7 +37,7 @@ class EnticementService
             $client = new \GuzzleHttp\Client();
             $response = $client->request('POST', 'http://197.250.9.128:23000/icg/Enticement/', [
                 'headers' => [
-                    'Content-Type' => ' application/json',
+                    'Content-Type' => 'application/json',
                 ],
                 'json' => [
                     'input_Username' => '102047',

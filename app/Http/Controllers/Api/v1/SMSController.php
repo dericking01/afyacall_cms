@@ -23,7 +23,7 @@ class SMSController extends Controller
         //         $response = $client->request('POST', 'http://192.168.1.50:6000/api/sms/receivedsms', [
         //             'verify' => false,
         //             'headers' => [
-        //                 'Content-Type' => ' application/json',
+        //                 'Content-Type' => 'application/json',
         //             ],
         //             'json' => [
         //                 'sender' => $request->sender,
@@ -107,7 +107,7 @@ class SMSController extends Controller
             return $customerService->subscribe_doctor_sub($request);
         } elseif (strtolower($request->service) == 'afyadoc') {
             return $customerService->subscribe_doctor_sub($request);
-        } elseif (preg_match('/^afya\s?(1[0-9]?|20)$/i', strtolower($request->service))) {
+        } elseif (preg_match('/^afya\s?(1[0-9]?|22)$/i', strtolower($request->service))) {
             return $customerService->subscribe_doctor_sub($request);
         } elseif ($this->searchKeyword($request->service) == 'ondoadoc') {
             return $customerService->unsubscribe_doctor_subscription($request);

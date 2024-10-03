@@ -2,6 +2,39 @@
 @push('before-styles')
     <link rel="stylesheet" type="text/css"
         href="{{ asset('assets/plugins/datatables/media/css/dataTables.bootstrap4.css') }}">
+  <style>
+        .ribbon {
+            position: relative;
+            display: inline-block;
+            padding: 5px 10px;
+            background: #5cb85c;
+            color: white;
+            border-radius: 3px;
+        }
+
+        .ribbon:before,
+        .ribbon:after {
+            content: '';
+            position: absolute;
+            display: block;
+            border-style: solid;
+            border-color: #5cb85c transparent transparent transparent;
+        }
+
+        .ribbon:before {
+            top: 100%;
+            left: 0;
+            border-width: 10px 10px 0 0;
+        }
+
+        .ribbon:after {
+            top: 100%;
+            right: 0;
+            border-width: 10px 0 0 10px;
+        }
+    </style>
+
+
 @endpush
 
 @push('after-scripts')

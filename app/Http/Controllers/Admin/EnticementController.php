@@ -18,23 +18,10 @@ use Illuminate\Support\Facades\Validator;
 class EnticementController extends Controller
 {
 
-    protected $enticementService;
-
-    public function __construct(EnticementService $enticementService)
-    {
-        $this->enticementService = $enticementService;
-    }
 
     public function index()
     {
-        try {
-            $enticements = $this->enticementService->getAll();
-        } catch (Exception $e) {
-            $enticements = [
-                'status' => 500,
-            ];
-        }
-
+        $enticements = Enticement::with('product')->orderBy('created_at', 'desc')->paginate(1000);
         return view('admin.enticements.index', compact('enticements'))->with('no', 1);
     }
 
@@ -127,7 +114,7 @@ class EnticementController extends Controller
                         $client = new \GuzzleHttp\Client();
                         $response = $client->request('POST', 'http://197.250.9.128:23000/icg/Enticement/', [
                             'headers' => [
-                                'Content-Type' => ' application/json',
+                                'Content-Type' => 'application/json',
                             ],
                             'json' => [
                                 'input_Username' => '102047',

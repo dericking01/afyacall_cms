@@ -84,7 +84,7 @@ return [
     */
 
     'waits' => [
-        'redis:default' => 360,
+        'redis:default' => 60,
     ],
 
     /*
@@ -99,11 +99,11 @@ return [
     */
 
     'trim' => [
-        'recent' => 60,
-        'pending' => 60,
-        'completed' => 30,
+        'recent' => 10,
+        'pending' => 10,
+        'completed' => 5,
         'recent_failed' => 10,
-        'failed' => 10,
+        'failed' => 60,
         'monitored' => 10080,
     ],
 
@@ -120,8 +120,8 @@ return [
 
     'metrics' => [
         'trim_snapshots' => [
-            'job' => 24,
-            'queue' => 24,
+            'job' => 12,
+            'queue' => 12,
         ],
     ],
 

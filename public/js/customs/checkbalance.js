@@ -71,7 +71,7 @@
     var customer_number = document.getElementById("customer_number").value;
     $.ajax({
       type: 'GET',
-      url:"{{ route('admin.checkbalance')}}",
+      url:"#",
       data:{customer_number:customer_number},
       beforeSend: function(){
           $("#loader").show();

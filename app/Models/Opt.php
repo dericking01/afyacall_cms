@@ -26,7 +26,35 @@ class Opt extends Model
 
     public static function getCode()
     {
+        $characters = 'ewlsnmdkztpzqprtba';
+        $batchSize = 100;  // Number of codes to generate in one batch
+        $code = '';
+        $foundUnique = false;
+    
+        while (!$foundUnique) {
+            $potentialCodes = [];
+    
+            for ($i = 0; $i < $batchSize; $i++) {
+                $pin = mt_rand(1000000000000, 9999999999999) . mt_rand(1000000000000, 9999999999999) . $characters[rand(0, strlen($characters) - 1)];
+                $string = str_shuffle($pin);
+                $potentialCodes[] = $string;
+            }
+    
+            // Check uniqueness in bulk
+            $existingCodes = Opt::whereIn('ConversationID', $potentialCodes)->pluck('ConversationID')->toArray();
+            $uniqueCodes = array_diff($potentialCodes, $existingCodes);
+    
+            if (!empty($uniqueCodes)) {
+                $code = reset($uniqueCodes);  // Get the first unique code
+                $foundUnique = true;
+            }
+        }
+    
+        return $code;
+    }
 
+    public static function getCodeOld()
+    {
         $number = 1;
         $characters = 'ewlsnmdkztpzqprtba';
         $pins = array();
