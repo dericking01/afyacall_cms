@@ -4,7 +4,7 @@ FROM php:8.0-fpm
 # Set working directory
 WORKDIR /var/www
 
-# Install dependencies
+# Install dependencies and PHP extensions
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpng-dev \
@@ -14,10 +14,11 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     git \
-    curl
-
-# Install PHP extensions
-RUN docker-php-ext-install pdo_mysql zip gd pcntl
+    curl && \
+    docker-php-ext-configure gd --with-freetype --with-jpeg && \
+    docker-php-ext-install pdo_mysql zip gd pcntl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -25,8 +26,8 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Copy application files
 COPY . .
 
-# Install dependencies
-RUN composer install
+# Install PHP dependencies
+RUN composer install --no-interaction --prefer-dist
 
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www
