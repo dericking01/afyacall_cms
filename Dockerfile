@@ -20,17 +20,17 @@ RUN apt-get update && apt-get install -y \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
 # Copy application files
 COPY . .
 
-# Install PHP dependencies
-RUN composer install --no-interaction --prefer-dist
-
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www
+
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Install PHP dependencies
+RUN composer install --no-interaction --prefer-dist
 
 # Expose the port Laravel runs on
 EXPOSE 9000
