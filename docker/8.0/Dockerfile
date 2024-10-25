@@ -33,13 +33,10 @@ RUN apt-get update \
     && apt-get install -y nodejs \
     && npm install -g npm \
     && npm install -g bun \
-    && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | tee /usr/share/keyrings/yarnkey.gpg >/dev/null \
-    && echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list \
+    && npm install -g yarn \
     && apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-    && apt-get install -y yarn \
-    && apt-get install -y mysql-client \
     && apt-get -y autoremove \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -51,11 +48,21 @@ RUN setcap "cap_net_bind_service=+ep" /usr/bin/php8.0
 RUN groupadd --force -g $WWWGROUP sail
 RUN useradd -ms /bin/bash --no-user-group -g $WWWGROUP -u 1337 sail
 
-COPY start-container /usr/local/bin/start-container
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY php.ini /etc/php/8.0/cli/conf.d/99-sail.ini
+COPY ./docker/8.0/start-container /usr/local/bin/start-container
+COPY ./docker/8.0/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY ./docker/8.0/php.ini /etc/php/8.0/cli/conf.d/99-sail.ini
 RUN chmod +x /usr/local/bin/start-container
 
+# Copy application code to /var/www/html
+COPY . /var/www/html
+
+# Install PHP dependencies via Composer and Node.js dependencies
+RUN composer install --no-dev --optimize-autoloader \
+    && npm install
+
 EXPOSE 8000
+
+RUN chown -R sail:sail /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 ENTRYPOINT ["start-container"]
