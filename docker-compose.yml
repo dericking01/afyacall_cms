@@ -18,6 +18,13 @@ services:
             XDEBUG_MODE: '${SAIL_XDEBUG_MODE:-off}'
             XDEBUG_CONFIG: '${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}'
             IGNITION_LOCAL_SITES_PATH: '${PWD}'
+            # Database Properties
+            DB_CONNECTION: "${DB_CONNECTION:-mysql}"
+            DB_HOST: "${DB_HOST:-host.docker.internal}"
+            DB_PORT: "${DB_PORT:-3306}"
+            DB_DATABASE: "${DB_DATABASE:-afya_call}"
+            DB_USERNAME: "${DB_USERNAME:-root}"
+            DB_PASSWORD: "${DB_PASSWORD:-}"
         networks:
             - afyacall_net
         depends_on:
