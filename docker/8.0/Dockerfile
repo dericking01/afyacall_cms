@@ -58,11 +58,13 @@ COPY . /var/www/html
 
 # Install PHP dependencies via Composer and Node.js dependencies
 RUN composer install --no-dev --optimize-autoloader \
-    && npm install
+    && npm install \
+    && npm run prod
 
 EXPOSE 8000
 
 RUN chown -R sail:sail /var/www/html/storage /var/www/html/bootstrap/cache \
-    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache \
+    && rm -rf /var/www/html/node_modules
 
 ENTRYPOINT ["start-container"]
