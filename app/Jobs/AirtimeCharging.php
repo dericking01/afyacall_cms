@@ -2,17 +2,19 @@
 
 namespace App\Jobs;
 
-use App\Http\Helpers\ChargingHelper;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
+use App\Http\Helpers\ChargingHelper;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
 
 class AirtimeCharging implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     private $amount = null;
     private $cellNo = null;
@@ -24,7 +26,7 @@ class AirtimeCharging implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($cellNo, $amount,$service,$category)
+    public function __construct($cellNo, $amount, $service, $category)
     {
         $this->amount = $amount;
         $this->cellNo = $cellNo;
@@ -40,6 +42,6 @@ class AirtimeCharging implements ShouldQueue
     public function handle()
     {
         $paymentHelper = new ChargingHelper();
-        $paymentHelper->airtimecharging($this->cellNo, $this->amount,$this->service, $this->category);
+        $paymentHelper->airtimecharging($this->cellNo, $this->amount, $this->service, $this->category);
     }
 }
