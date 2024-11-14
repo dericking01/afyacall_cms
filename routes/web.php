@@ -3,158 +3,173 @@
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\TwoFactorAuthController;
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
+use App\Http\Controllers\Admin\HomeController;
+use App\Http\Controllers\Admin\SubscriptionController;
+use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Admin\TransactionController;
+use App\Http\Controllers\Admin\InvoiceController;
+use App\Http\Controllers\Admin\ContentController;
+use App\Http\Controllers\Admin\ContentTypeController;
+use App\Http\Controllers\Admin\EnticementController;
+use App\Http\Controllers\Admin\BlacklistController;
+use App\Http\Controllers\Admin\TicketController;
+use App\Http\Controllers\Admin\BackupController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\CustomerReports;
+use App\Http\Controllers\Admin\BillingController;
+use App\Http\Controllers\Admin\ContactController;
+use App\Http\Controllers\Admin\OutBoundCampaign;
+use App\Http\Controllers\Admin\PromotionController;
+
 
 Route::redirect('/', '/login');
 Route::redirect('/home', '/two-factor-auth');
 Auth::routes(['register' => false]);
+
 Route::get('two-factor-auth', [TwoFactorAuthController::class, 'index'])->name('2fa.index');
 Route::post('two-factor-auth', [TwoFactorAuthController::class, 'store'])->name('2fa.store');
 Route::get('two-factor-auth/resent', [TwoFactorAuthController::class, 'resend'])->name('2fa.resend');
 
-Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'Admin', 'middleware' => ['auth']], function () {
-    Route::get('/dashboard', 'HomeController@index')->name('home');
-    //subscription controllers
-    Route::resource('subscriptions', 'SubscriptionController');
-    //afyacall products controller
-    Route::resource('products', 'ProductController');
-    //afyacall customers
-    Route::resource('customers', 'CustomerController');
-      Route::post('customers/search', 'CustomerController@search')->name('customer-search');
-    //afyacall Transaction
-    Route::resource('transactions', 'TransactionController');
-    Route::get('doctortranscations', 'TransactionController@doctortranscations')->name('transactions.doctors');
-    Route::resource('invoice','InvoiceController');
-    //afyacall Content Management
-    Route::resource('contents', 'ContentController');
-    Route::post('content/import', 'ContentController@import')->name('content-import');
-    Route::resource('contentstype', 'ContentTypeController');
-    Route::get('contenttype/list','ContentTypeController@getList')->name('contenttype_list');
+Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], function () {
+    Route::get('/dashboard', [HomeController::class, 'index'])->name('home');
 
-    //Afyacall Enticement for ICG Products
-    Route::resource('enticement', 'EnticementController');
-    Route::post('contacts/import', 'EnticementController@import')->name('contant-import');
-    Route::get('contacts/enticeallcontacts', 'EnticementController@enticeallcontacts')->name('contant-enticeallcontacts');
-
-    //Afyacall Blacklist number (DND)
-    Route::resource('blacklist','BlacklistController');
-    Route::post('blacklist/import', 'BlacklistController@import')->name('blacklist-import');
-
-    Route::post('blacklist/search', 'BlacklistController@search')->name('blacklist-search');
-    //afyacall Tickets Controller
-    Route::resource('ticket','TicketController');
-    Route::post('/ticketclose','TicketController@close')->name('ticketclose');
-    Route::get('ticket/open/{id}','TicketController@open')->name('ticket.open');
-    Route::post('ticket/updatestatus','TicketController@updatestatus')->name('updatestatus');
-
-    //afyacall Backup Controller
-    Route::resource('backup','BackupController');
-    Route::get('/backup/download/{file_name}', 'BackupController@download')->name('backup.download');
-
-    //afyacall users access
-    Route::resource('users', 'UserController');
-    Route::get('change-password', 'UserController@changepassword')->name('changepassword');
-    Route::get('AccountSetting', 'UserController@setting')->name('setting');
-    Route::post('change-password', 'UserController@updatepassword')->name('change.password');
-    Route::post('change-user-password', 'UserController@adminchangepassword')->name('resetnewpassword');
-    Route::resource('roles', 'RoleController');
-
-    //graphs api
-    Route::get('graphs/smschartdata', 'HomeController@getSmsChartData')->name('graphs_smschartsdata');
-    Route::get('graphs/subscriptiondata', 'HomeController@getSubscriptionData')->name('graphs_subscriptiondata');
-
-    //subscribe customer
-    Route::post('/blacklistcustomer','BlacklistController@blacklistcustomer')->name('blacklistcustomer');
-    Route::post('/subscribecustomer','CustomerController@subscribecustomer')->name('subscribecustomer');
-
-
-
-    //general for sms 
-    Route::get('/report/sms/','ReportController@sms')->name('report.sms');
-    Route::post('/report/daterange/sms/','ReportController@daterange')->name('daterange.sms');
-    //general for ivr
-    Route::get('/report/ivr/','ReportController@ivr')->name('report.ivr');
-    Route::post('/report/daterange/ivr/','ReportController@daterangeforivr')->name('daterange.ivr');
+    // Subscription controllers
+    Route::resource('subscriptions', SubscriptionController::class);
     
- 
-    //Number search
-    Route::get('/report/NumberSearch','ReportController@numbersearch')->name('report_numbersearch');
-    Route::get('/report/NumberSearch/results','ReportController@findnumber')->name('report_numbersearch_results');
+    // Afyacall products controller
+    Route::resource('products', ProductController::class);
+    
+    // Afyacall customers
+    Route::resource('customers', CustomerController::class);
+    Route::post('customers/search', [CustomerController::class, 'search'])->name('customer-search');
+    
+    // Afyacall transactions
+    Route::resource('transactions', TransactionController::class);
+    Route::get('doctortranscations', [TransactionController::class, 'doctortranscations'])->name('transactions.doctors');
+    
+    // Afyacall invoice
+    Route::resource('invoice', InvoiceController::class);
+    
+    // Afyacall content management
+    Route::resource('contents', ContentController::class);
+    Route::post('content/import', [ContentController::class, 'import'])->name('content-import');
+    Route::resource('contentstype', ContentTypeController::class);
+    Route::get('contenttype/list', [ContentTypeController::class, 'getList'])->name('contenttype_list');
 
-    //customer reports
-     Route::get('/reports/customer','CustomerReports@index')->name('customer.report');
-     Route::post('/reports/customer/show','CustomerReports@customerList')->name('customer_list');
-    Route::get('/reports/Monthly-revenue-views','ReportController@monthlyrevenueReport')->name('monthlyrevenueview');
-     //blacklist reports
-     Route::get('/reports/blacklist','CustomerReports@blacklist')->name('blacklist');
-     Route::post('/reports/blacklist/search','CustomerReports@blacklistSearch')->name('blacklistSearch');
-     
-     //ticketing reports
-     Route::get('/reports/ticket','CustomerReports@ticketreport')->name('ticketreport');
-     Route::post('/reports/ticket/search','CustomerReports@ticketingSearch')->name('ticketingSearch');
+    // Afyacall enticement for ICG products
+    Route::resource('enticement', EnticementController::class);
+    Route::post('contacts/import', [EnticementController::class, 'import'])->name('contant-import');
+    Route::get('contacts/enticeallcontacts', [EnticementController::class, 'enticeallcontacts'])->name('contant-enticeallcontacts');
 
-     //content reports
-     Route::get('/reports/contents-views','ReportController@contentview')->name('contentview');
+    // Afyacall blacklist number (DND)
+    Route::resource('blacklist', BlacklistController::class);
+    Route::post('blacklist/import', [BlacklistController::class, 'import'])->name('blacklist-import');
+    Route::post('blacklist/search', [BlacklistController::class, 'search'])->name('blacklist-search');
 
-     //mpesa analytics
-     Route::get('/reports/mpesa-analytics','TransactionController@mpesa_analytics')->name('mpesa_analytics');
-     Route::get('/reports/get_mpesa-analytics','TransactionController@get_mpesa_analytics')->name('get_mpesa_analytics');
-     
+    // Afyacall tickets controller
+    Route::resource('ticket', TicketController::class);
+    Route::post('/ticketclose', [TicketController::class, 'close'])->name('ticketclose');
+    Route::get('ticket/open/{id}', [TicketController::class, 'open'])->name('ticket.open');
+    Route::post('ticket/updatestatus', [TicketController::class, 'updatestatus'])->name('updatestatus');
 
-     //revenue reports
-     Route::get('/reports/revenue-views','ReportController@revenueview')->name('revenueview');
-     Route::post('/reports/revenue/search','ReportController@revenueSearch')->name('revenueSearch');
-     
+    // Afyacall backup controller
+    Route::resource('backup', BackupController::class);
+    Route::get('/backup/download/{file_name}', [BackupController::class, 'download'])->name('backup.download');
 
-     //message reports
-     Route::get('/reports/message-sents-views','ReportController@messagereportview')->name('messagereportview');
-     Route::post('/reports/message/search','ReportController@messagereports')->name('messagereports');
-     
-     
-     //billing invoice
-     Route::get('/billing/details','BillingController@index')->name('billing');
-     Route::post('/billing/updates','BillingController@update')->name('billing.update');
+    // Afyacall users access
+    Route::resource('users', UserController::class);
+    Route::get('change-password', [UserController::class, 'changepassword'])->name('changepassword');
+    Route::get('AccountSetting', [UserController::class, 'setting'])->name('setting');
+    Route::post('change-password', [UserController::class, 'updatepassword'])->name('change.password');
+    Route::post('change-user-password', [UserController::class, 'adminchangepassword'])->name('resetnewpassword');
+    Route::resource('roles', RoleController::class);
 
-     //contacts upload
-     Route::get('/contact/upload','ContactController@create')->name('contact.upload');
-     Route::post('contact/upload-file','ContactController@fileUpload')->name('fileUpload');
+    // Graphs API
+    Route::get('graphs/smschartdata', [HomeController::class, 'getSmsChartData'])->name('graphs_smschartsdata');
+    Route::get('graphs/subscriptiondata', [HomeController::class, 'getSubscriptionData'])->name('graphs_subscriptiondata');
 
-     //compaing 
-     Route::get('/contact/campaign','ContactController@index')->name('contact.campaign');
-     Route::get('/contact/compaingservice','ContactController@compaingservice')->name('contact.compaingservice');
-     Route::post('/contact/pushcompaignservice','ContactController@pushcompaignservice')->name('pushcompaignservice');
-     Route::get('/contact/showcontacts/{id}','ContactController@showcontact')->name('contact.showcontacts');
-     Route::get('/contact/campaigndetails/{id}','ContactController@campaigndetails')->name('contact.campaigndetails');
+    // Subscribe customer
+    Route::post('/blacklistcustomer', [BlacklistController::class, 'blacklistcustomer'])->name('blacklistcustomer');
+    Route::post('/subscribecustomer', [CustomerController::class, 'subscribecustomer'])->name('subscribecustomer');
 
-     //groups
-     Route::get('/contact/groups','ContactController@groups')->name('contact.groups');
-     Route::post('/contact/group/store','ContactController@groups_store')->name('contact.group.store');
-     Route::get('/contact/groups/import/{id}','ContactController@groupImport')->name('contact.groups.import');
-     Route::post('/contact/group/store/contacts','ContactController@importContactGroup')->name('contact.group.store.contacts');
- 
-     //delete contact in a group
-     Route::delete('/contact/group/contacts/destroy{id}', 'ContactController@destroyContact')->name('contact.group.contacts.destroy');
+    // General for SMS
+    Route::get('/report/sms/', [ReportController::class, 'sms'])->name('report.sms');
+    Route::post('/report/daterange/sms/', [ReportController::class, 'daterange'])->name('daterange.sms');
 
-     //delete group with all contacts
-     Route::delete('/contact/group/destroy{id}', 'ContactController@destroyGroup')->name('contact.group.destroy');
-          //outbound Campagin
-     Route::post('/contact/outboundcampaing/store','OutBoundCampaign@store')->name('contact.outboundcampaing.store');
-     Route::get('/contact/outboundcampaing/create','OutBoundCampaign@create')->name('contact.outboundcampaing.create');
-     Route::get('/contact/outboundcampaing','OutBoundCampaign@index')->name('contact.outboundcampaing');
-      Route::get('/contact/outboundcampaing/show/{id}','OutBoundCampaign@show')->name('contact.outboundcampaign.show');
+    // General for IVR
+    Route::get('/report/ivr/', [ReportController::class, 'ivr'])->name('report.ivr');
+    Route::post('/report/daterange/ivr/', [ReportController::class, 'daterangeforivr'])->name('daterange.ivr');
 
+    // Number search
+    Route::get('/report/NumberSearch', [ReportController::class, 'numbersearch'])->name('report_numbersearch');
+    Route::get('/report/NumberSearch/results', [ReportController::class, 'findnumber'])->name('report_numbersearch_results');
 
-      //promotions
-      Route::resource('promotions', 'PromotionController');
-      Route::post('promotions/import', 'PromotionController@import')->name('promotion-import');
+    // Customer reports
+    Route::get('/reports/customer', [CustomerReports::class, 'index'])->name('customer.report');
+    Route::post('/reports/customer/show', [CustomerReports::class, 'customerList'])->name('customer_list');
+    Route::get('/reports/Monthly-revenue-views', [ReportController::class, 'monthlyrevenueReport'])->name('monthlyrevenueview');
+
+    // Blacklist reports
+    Route::get('/reports/blacklist', [CustomerReports::class, 'blacklist'])->name('blacklist');
+    Route::post('/reports/blacklist/search', [CustomerReports::class, 'blacklistSearch'])->name('blacklistSearch');
+
+    // Ticketing reports
+    Route::get('/reports/ticket', [CustomerReports::class, 'ticketreport'])->name('ticketreport');
+    Route::post('/reports/ticket/search', [CustomerReports::class, 'ticketingSearch'])->name('ticketingSearch');
+
+    // Content reports
+    Route::get('/reports/contents-views', [ReportController::class, 'contentview'])->name('contentview');
+
+    // Mpesa analytics
+    Route::get('/reports/mpesa-analytics', [TransactionController::class, 'mpesa_analytics'])->name('mpesa_analytics');
+    Route::get('/reports/get_mpesa-analytics', [TransactionController::class, 'get_mpesa_analytics'])->name('get_mpesa_analytics');
+
+    // Revenue reports
+    Route::get('/reports/revenue-views', [ReportController::class, 'revenueview'])->name('revenueview');
+    Route::post('/reports/revenue/search', [ReportController::class, 'revenueSearch'])->name('revenueSearch');
+
+    // Message reports
+    Route::get('/reports/message-sents-views', [ReportController::class, 'messagereportview'])->name('messagereportview');
+    Route::post('/reports/message/search', [ReportController::class, 'messagereports'])->name('messagereports');
+
+    // Billing invoice
+    Route::get('/billing/details', [BillingController::class, 'index'])->name('billing');
+    Route::post('/billing/updates', [BillingController::class, 'update'])->name('billing.update');
+
+    // Contacts upload
+    Route::get('/contact/upload', [ContactController::class, 'create'])->name('contact.upload');
+    Route::post('contact/upload-file', [ContactController::class, 'fileUpload'])->name('fileUpload');
+
+    // Campaign
+    Route::get('/contact/campaign', [ContactController::class, 'index'])->name('contact.campaign');
+    Route::get('/contact/compaingservice', [ContactController::class, 'compaingservice'])->name('contact.compaingservice');
+    Route::post('/contact/pushcompaignservice', [ContactController::class, 'pushcompaignservice'])->name('pushcompaignservice');
+    Route::get('/contact/showcontacts/{id}', [ContactController::class, 'showcontact'])->name('contact.showcontacts');
+    Route::get('/contact/campaigndetails/{id}', [ContactController::class, 'campaigndetails'])->name('contact.campaigndetails');
+
+    // Groups
+    Route::get('/contact/groups', [ContactController::class, 'groups'])->name('contact.groups');
+    Route::get('/contact/groupsdata/{id}', [ContactController::class, 'groupsdata'])->name('contact.groupsdata');
+    Route::get('/contact/enticegroups/{id}', [ContactController::class, 'enticegroups'])->name('contact.enticegroups');
+    Route::post('/contact/enticegroupsprocess', [ContactController::class, 'enticegroupsprocess'])->name('contact.enticegroupsprocess');
+    Route::get('/contact/groupsdetails/{id}', [ContactController::class, 'groupsdetails'])->name('contact.groupsdetails');
+    Route::post('/contact/groupsupdates', [ContactController::class, 'groupsupdates'])->name('contact.groupsupdates');
+
+    // Campaigns list
+    // Outbound Campaign Routes
+Route::post('/contact/outboundcampaing/store', [OutBoundCampaign::class, 'store'])->name('contact.outboundcampaing.store');
+Route::get('/contact/outboundcampaing/create', [OutBoundCampaign::class, 'create'])->name('contact.outboundcampaing.create');
+Route::get('/contact/outboundcampaing', [OutBoundCampaign::class, 'index'])->name('contact.outboundcampaing');
+Route::get('/contact/outboundcampaing/show/{id}', [OutBoundCampaign::class, 'show'])->name('contact.outboundcampaign.show');
+
+    Route::get('/contact/reportscampaign/{id}', [ContactController::class, 'reportscampaign'])->name('contact.reportscampaign');
+    Route::get('/contact/reportsgroups/{id}', [ContactController::class, 'reportsgroups'])->name('contact.reportsgroups');
+
+   // Promotions
+Route::resource('promotions', PromotionController::class);
+Route::post('promotions/import', [PromotionController::class, 'import'])->name('promotion-import');
 
 });

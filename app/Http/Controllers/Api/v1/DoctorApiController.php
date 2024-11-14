@@ -574,6 +574,7 @@ class DoctorApiController extends Controller
 
     public function chargiartimedoctorsubsription($msisdn, $amount)
     {
+        return false;
         //update the payload 
         $payload = [
             'type' => 'charge',
