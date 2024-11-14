@@ -24,10 +24,10 @@ class Opt extends Model
         
     }
 
-    public static function getCode()
+    public static function getCode_batch()
     {
         $characters = 'ewlsnmdkztpzqprtba';
-        $batchSize = 100;  // Number of codes to generate in one batch
+        $batchSize = 10000;  // Number of codes to generate in one batch
         $code = '';
         $foundUnique = false;
     
@@ -52,6 +52,17 @@ class Opt extends Model
     
         return $code;
     }
+
+    public static function getCode()
+    {
+        $characters = 'ewlsnmdkztpzqprtba';
+        $numericPart = mt_rand(1000000000000, 9999999999999) . mt_rand(1000000000000, 9999999999999);
+        $characterPart = $characters[rand(0, strlen($characters) - 1)];
+        
+        $code = str_shuffle($numericPart . $characterPart);
+        return $code;
+    }
+
 
     public static function getCodeOld()
     {

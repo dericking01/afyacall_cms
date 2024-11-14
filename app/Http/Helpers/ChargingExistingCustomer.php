@@ -83,7 +83,7 @@ class ChargingExistingCustomer
     private function chargeviaairtime($product_ID, $cellNo, $amount)
     {
         //check the customer balance first
-	    $balance = intval(abs($this->getBalance($cellNo)));
+        $balance = intval(abs($this->getBalance($cellNo)));
         if ($balance >= 15000) {
             $amount = 15000;
         } elseif ($balance > 3000 && $balance < 15000) {
@@ -91,7 +91,7 @@ class ChargingExistingCustomer
         } else {
             return true;
         }
-       
+    
         //update the payload 
         $payload = [
             'type' => 'charge',
@@ -123,8 +123,9 @@ class ChargingExistingCustomer
         //try charging the customer
         $starttime = microtime(true);
         
-//        Log::info("=============check charge start time ". $starttime);
-        try {
+        // Log::info("=============check charge start time ". $starttime);
+        try 
+        {
             $client = new \GuzzleHttp\Client;
             $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');
             $response = $client->post('https://197.250.9.149:6202/middlewarev2/serviceAccountAdjustment', [
@@ -143,7 +144,7 @@ class ChargingExistingCustomer
 
             $endtime = microtime(true);
             $duration =  $endtime - $starttime;
-//            Log::info("=============check charge endtime ". $endtime ." duration ". $duration);
+            // Log::info("=============check charge endtime ". $endtime ." duration ". $duration);
 
             //check if customer found in database
             if ($customer) {
@@ -171,7 +172,7 @@ class ChargingExistingCustomer
                     $subscribeid->status = 1;
                     $subscribeid->save();
                 } else {
-                     //register the subscription
+                    //register the subscription
                     $subscribe = new Subscription();
                     $subscribe->customer_ID = $customer->id;
                     $subscribe->product_id = $product->id;
@@ -184,8 +185,8 @@ class ChargingExistingCustomer
                 return true;
             }
         } catch (\Throwable $th) {
-		Log::error('failed in charging airtime sms' . $th->getMessage());
-		Log::error($th);
+        Log::error('failed in charging airtime sms' . $th->getMessage());
+        Log::error($th);
             //register failed transaction
             $trans = new Transaction();
             $trans->customer_ID = $customer->id;

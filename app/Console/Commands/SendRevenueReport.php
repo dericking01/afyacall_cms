@@ -68,7 +68,7 @@ class SendRevenueReport extends Command
                 ];
 
                 // Dispatch the job synchronously (or asynchronously based on your setup)
-                ProcessLanguage::dispatch($msisdn, $message['sw'], $message['en']);
+                ProcessLanguage::dispatchSync($msisdn, $message['sw'], $message['en']);
                 $this->info("Message sent to $name successfully.");
             }
         } else {

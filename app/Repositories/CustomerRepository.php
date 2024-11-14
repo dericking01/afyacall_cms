@@ -78,6 +78,29 @@ class CustomerRepository
             $customer->keyword = $data['service'];
             $customer->registered_at = Opt::getServertime();
             $customer->status = 0;
+            $serviceSources = [
+                'afya21' => 'afya21',
+                'afya22' => 'AFYA22',
+                'afya23' => 'AFYA23',
+                'afya24' => 'AFYA24',
+                'afya25' => 'AFYA25',
+                'afya26' => 'AFYA26',
+                'afya27' => 'AFYA27',
+                'afya28' => 'AFYA28',
+                'afya29' => 'AFYA29',
+                'afya30' => 'AFYA30',
+            ];
+
+            // Convert the service to lowercase for consistent comparison
+            $service = strtolower(trim($data['service']));  // Trim to remove any extra spaces
+
+            // Check if the service exists in the mapping array and set the source
+            if (isset($serviceSources[$service])) {
+                $customer->source = $serviceSources[$service];
+            } else {
+                // where the service is not recognized
+                $customer->source = 'NIL';
+            }
             $customer->save();
 
             $opt = new Opt();
@@ -220,6 +243,29 @@ class CustomerRepository
             $customer->registered_at = Opt::getServertime();
             $customer->ivr_status = 0;
             $customer->ivr_enticement = 0;
+            $serviceSources = [
+                'afya31' => 'afya31',
+                'afya32' => 'AFYA32',
+                'afya33' => 'AFYA33',
+                'afya34' => 'AFYA34',
+                'afya35' => 'AFYA35',
+                'afya36' => 'AFYA36',
+                'afya37' => 'AFYA37',
+                'afya38' => 'AFYA38',
+                'afya39' => 'AFYA39',
+                'afya40' => 'AFYA40',
+            ];
+
+            // Convert the service to lowercase for consistent comparison
+            $service = strtolower(trim($data['service']));  // Trim to remove any extra spaces
+
+            // Check if the service exists in the mapping array and set the source
+            if (isset($serviceSources[$service])) {
+                $customer->source = $serviceSources[$service];
+            } else {
+                // where the service is not recognized
+                $customer->source = 'NIL';
+            }
             $customer->save();
 
             //update the values

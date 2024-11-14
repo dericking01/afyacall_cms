@@ -41,7 +41,8 @@ class ProcessMpesaDailyChargeCron extends Command
 
 
     public function handle()
-    {
+    {  
+
         $this->chargeCustomersForService('DOCTOR SUBSCRIPTION', '921465_P03', '200', 'doctor_subscription_status', 0, 'doctor_enticement', 1);
         $this->chargeCustomersForService('SMS', '921465_P02', '150', 'status', 0, 'enticement', 1);
         $this->chargeCustomersForService('IVR', '921465_P01', '300', 'ivr_status', 0, 'ivr_enticement', 1);
@@ -51,6 +52,7 @@ class ProcessMpesaDailyChargeCron extends Command
     private function chargeCustomersForService($service, $mpesaCode, $amount, $statusColumn, $statusValue, $enticementColumn, $enticementValue)
     {
         Customer::where($statusColumn, $statusValue)
+            ->where($enticementColumn, $enticementValue)
             ->chunkById(1000, function ($customers) use ($service, $mpesaCode, $amount) {
                 $data = [];
     
