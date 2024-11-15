@@ -2,28 +2,27 @@
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Auth\TwoFactorAuthController;
 use App\Http\Controllers\Admin\HomeController;
-use App\Http\Controllers\Admin\SubscriptionController;
-use App\Http\Controllers\Admin\ProductController;
-use App\Http\Controllers\Admin\CustomerController;
-use App\Http\Controllers\Admin\TransactionController;
-use App\Http\Controllers\Admin\InvoiceController;
-use App\Http\Controllers\Admin\ContentController;
-use App\Http\Controllers\Admin\ContentTypeController;
-use App\Http\Controllers\Admin\EnticementController;
-use App\Http\Controllers\Admin\BlacklistController;
-use App\Http\Controllers\Admin\TicketController;
-use App\Http\Controllers\Admin\BackupController;
-use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\RoleController;
-use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\CustomerReports;
+use App\Http\Controllers\Admin\BackupController;
+use App\Http\Controllers\Admin\OutBoundCampaign;
+use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\TicketController;
 use App\Http\Controllers\Admin\BillingController;
 use App\Http\Controllers\Admin\ContactController;
-use App\Http\Controllers\Admin\OutBoundCampaign;
+use App\Http\Controllers\Admin\ContentController;
+use App\Http\Controllers\Admin\InvoiceController;
+use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Admin\BlacklistController;
 use App\Http\Controllers\Admin\PromotionController;
-
+use App\Http\Controllers\Admin\EnticementController;
+use App\Http\Controllers\Admin\ContentTypeController;
+use App\Http\Controllers\Admin\TransactionController;
+use App\Http\Controllers\Admin\SubscriptionController;
+use App\Http\Controllers\Auth\TwoFactorAuthController;
 
 Route::redirect('/', '/login');
 Route::redirect('/home', '/two-factor-auth');
@@ -38,21 +37,21 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
 
     // Subscription controllers
     Route::resource('subscriptions', SubscriptionController::class);
-    
+
     // Afyacall products controller
     Route::resource('products', ProductController::class);
-    
+
     // Afyacall customers
     Route::resource('customers', CustomerController::class);
     Route::post('customers/search', [CustomerController::class, 'search'])->name('customer-search');
-    
+
     // Afyacall transactions
     Route::resource('transactions', TransactionController::class);
     Route::get('doctortranscations', [TransactionController::class, 'doctortranscations'])->name('transactions.doctors');
-    
+
     // Afyacall invoice
     Route::resource('invoice', InvoiceController::class);
-    
+
     // Afyacall content management
     Route::resource('contents', ContentController::class);
     Route::post('content/import', [ContentController::class, 'import'])->name('content-import');
@@ -160,16 +159,15 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
 
     // Campaigns list
     // Outbound Campaign Routes
-Route::post('/contact/outboundcampaing/store', [OutBoundCampaign::class, 'store'])->name('contact.outboundcampaing.store');
-Route::get('/contact/outboundcampaing/create', [OutBoundCampaign::class, 'create'])->name('contact.outboundcampaing.create');
-Route::get('/contact/outboundcampaing', [OutBoundCampaign::class, 'index'])->name('contact.outboundcampaing');
-Route::get('/contact/outboundcampaing/show/{id}', [OutBoundCampaign::class, 'show'])->name('contact.outboundcampaign.show');
+    Route::post('/contact/outboundcampaing/store', [OutBoundCampaign::class, 'store'])->name('contact.outboundcampaing.store');
+    Route::get('/contact/outboundcampaing/create', [OutBoundCampaign::class, 'create'])->name('contact.outboundcampaing.create');
+    Route::get('/contact/outboundcampaing', [OutBoundCampaign::class, 'index'])->name('contact.outboundcampaing');
+    Route::get('/contact/outboundcampaing/show/{id}', [OutBoundCampaign::class, 'show'])->name('contact.outboundcampaign.show');
 
     Route::get('/contact/reportscampaign/{id}', [ContactController::class, 'reportscampaign'])->name('contact.reportscampaign');
     Route::get('/contact/reportsgroups/{id}', [ContactController::class, 'reportsgroups'])->name('contact.reportsgroups');
 
-   // Promotions
-Route::resource('promotions', PromotionController::class);
-Route::post('promotions/import', [PromotionController::class, 'import'])->name('promotion-import');
-
+    // Promotions
+    Route::resource('promotions', PromotionController::class);
+    Route::post('promotions/import', [PromotionController::class, 'import'])->name('promotion-import');
 });

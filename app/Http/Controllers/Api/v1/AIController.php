@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers\Api\v1;
 
-use App\Http\Controllers\Controller;
+use App\Models\Opt;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use App\Models\Opt;
+use App\Http\Controllers\Controller;
 
 class AIController extends Controller
 {
     public function fromkannel(Request $request)
     {
-
         Log::info($request->all());
         // Define authorized senders
         $authorizedSenders = [
@@ -40,82 +39,83 @@ class AIController extends Controller
             $code = Opt::getCode();
             if ($token) {
                 try {
-                        $client = new \GuzzleHttp\Client();
-                        $response = $client->request('POST', 'https://192.168.1.212/api/v1/chat', [
-                            'verify' => false,
-                            'headers' => [
-                                'Content-Type' => 'application/json',
-                                'Authorization' => 'Bearer ' . $token,
-                            ],
-                            'json' => [
-                                'sender' => $request->sender,
-                                'conversationId' => $code,
-                                'message' => $request->text
-                            ]
-                        ]);
-                        $results = $response->getBody()->getContents();
-                        $data = json_decode($results, true);
+                    $client = new \GuzzleHttp\Client();
+                    $response = $client->request('POST', 'https://192.168.1.212/api/v1/chat', [
+                        'verify' => false,
+                        'headers' => [
+                            'Content-Type' => 'application/json',
+                            'Authorization' => 'Bearer ' . $token,
+                        ],
+                        'json' => [
+                            'sender' => $request->sender,
+                            'conversationId' => $code,
+                            'message' => $request->text
+                        ]
+                    ]);
+                    $results = $response->getBody()->getContents();
+                    $data = json_decode($results, true);
 
-                        Log::info($data);
+                    Log::info($data);
 
-                        //check if its successfull
+                    //check if its successfull
 
-                        $this->sendSmsResponse($request->sender, $data['response']);
+                    $this->sendSmsResponse($request->sender, $data['response']);
 
-
-                        return true;
-                    } catch (\Throwable $th) {
-                        Log::error("there is an error on redirect to AI");
-                        Log::error($th->getMessage());
-                    }
+                    return true;
+                } catch (\Throwable $th) {
+                    Log::error('there is an error on redirect to AI');
+                    Log::error($th->getMessage());
                 }
             }
         }
+    }
 
-        public function getAuthToken() 
-        {
-            $clientId = 'afyacall';
-            $clientSecret = 'secret';
-            $authString = base64_encode($clientId . ':' . $clientSecret);
-            try {
-                $client = new \GuzzleHttp\Client();
-                $response = $client->request('POST', 'https://192.168.1.212/oauth2/token', [
-                    'verify' => false,
-                    'headers' => [
-                        'Content-Type' => 'application/x-www-form-urlencoded',
-                        'Authorization' => 'Basic ' . $authString,
-                    ],
-                    'form_params' => [
-                        'grant_type' => 'client_credentials'
-                    ]
-                ]);
-        
-                $data = json_decode($response->getBody(), true);
-                return $data['access_token'] ?? null;
+    public function getAuthToken()
+    {
+        $clientId = 'afyacall';
+        $clientSecret = 'secret';
+        $authString = base64_encode($clientId . ':' . $clientSecret);
 
-            } catch (RequestException $e) {
-                Log::error($e->getMessage());
-                return null;
-            }
+        try {
+            $client = new \GuzzleHttp\Client();
+            $response = $client->request('POST', 'https://192.168.1.212/oauth2/token', [
+                'verify' => false,
+                'headers' => [
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                    'Authorization' => 'Basic ' . $authString,
+                ],
+                'form_params' => [
+                    'grant_type' => 'client_credentials'
+                ]
+            ]);
+
+            $data = json_decode($response->getBody(), true);
+
+            return $data['access_token'] ?? null;
+        } catch (RequestException $e) {
+            Log::error($e->getMessage());
+
+            return null;
         }
+    }
 
-        public function sendSmsResponse($msisdn, $message)
-        {
-            try {
-                    $client = new \GuzzleHttp\Client();
-                    $client->request('GET', 'http://192.168.1.10:6013/cgi-bin/sendsms', [
-                        'query' => [
-                            'username' => 'afya',
-                            'password' => 'Afya4017',
-                            'from' => '15723',
-                            'to' => $msisdn,
-                            'text' => $message,
-                        ]
-                    ]);
+    public function sendSmsResponse($msisdn, $message)
+    {
+        try {
+            $client = new \GuzzleHttp\Client();
+            $client->request('GET', 'http://192.168.1.10:6013/cgi-bin/sendsms', [
+                'query' => [
+                    'username' => 'afya',
+                    'password' => 'Afya4017',
+                    'from' => '15723',
+                    'to' => $msisdn,
+                    'text' => $message,
+                ]
+            ]);
+        } catch (\Throwable $e) {
+            Log::error($e->getMessage());
 
-            } catch (\Throwable $e) {
-                Log::error($e->getMessage());
-                return null;
-            }
+            return null;
         }
+    }
 }

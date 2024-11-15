@@ -7,7 +7,6 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-
 class SmsRevenue extends Command
 {
     /**
@@ -58,7 +57,7 @@ class SmsRevenue extends Command
             // End query timing
             $queryEndTime = microtime(true);
             $queryTimeTaken = $queryEndTime - $queryStartTime;
-            $this->info("Query execution time: " . round($queryTimeTaken, 4) . " seconds");
+            $this->info('Query execution time: ' . round($queryTimeTaken, 4) . ' seconds');
 
             // Format the revenue amount
             $revenueAmount = number_format(round($revenue, 2), 2, '.', ',');
@@ -83,16 +82,15 @@ class SmsRevenue extends Command
                     'sw' => "Hi Mr. $name, the current revenue is => $revenueAmount",
                     'en' => "Hi Mr. $name, the current revenue is => $revenueAmount",
                 ];
-                
+
                 // Dispatch the job synchronously
                 ProcessLanguage::dispatchSync($msisdn, $message['sw'], $message['en']);
                 $this->info("Message sent to $name successfully.");
             }
             // Log::info('The revenue is ' . $revenueAmount);
-
         } catch (\Exception $e) {
             // Handle any errors
-            $this->error("Error: " . $e->getMessage());
+            $this->error('Error: ' . $e->getMessage());
         }
 
         return 0;

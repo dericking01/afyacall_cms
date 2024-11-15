@@ -2,10 +2,10 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Log;
+use App\Models\Opt;
 use GuzzleHttp\Client;
-use App\Models\Opt; // Import the Opt model
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log; // Import the Opt model
 
 class CheckBalanceCommand extends Command
 {
@@ -30,7 +30,7 @@ class CheckBalanceCommand extends Command
         try {
             // Create a new Guzzle HTTP client
             $client = new Client();
-            
+
             // Make the POST request to the API
             $response = $client->request('POST', 'https://197.250.9.191:23000/icg/query/balance/', [
                 'verify' => false,

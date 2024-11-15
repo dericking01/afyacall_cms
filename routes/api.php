@@ -1,17 +1,18 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\v1\AIController;
+use App\Http\Controllers\Api\v1\IPGController;
+use App\Http\Controllers\Api\v1\IVRController;
+use App\Http\Controllers\Api\v1\SMSController;
+use App\Http\Controllers\Api\v1\RatingController;
 use App\Http\Controllers\Api\v1\ApiAuthController;
 use App\Http\Controllers\Api\v1\CallBackController;
 use App\Http\Controllers\Api\v1\CallLogsController;
-use App\Http\Controllers\Api\v1\DeliverySMSCallbackController;
-use App\Http\Controllers\Api\v1\IPGController;
-use App\Http\Controllers\Api\v1\IVRController;
-use App\Http\Controllers\Api\v1\RatingController;
-use App\Http\Controllers\Api\v1\SMSController;
-use App\Http\Controllers\Api\v1\AIController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\v1\DoctorApiController;
 use App\Http\Controllers\Api\v1\WebsiteApiController;
+use App\Http\Controllers\Api\v1\DeliverySMSCallbackController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -48,7 +49,6 @@ Route::get('ivr/sendsms', [IVRController::class, 'sendsms']);
 Route::post('ivr/acceptRequestFromPBX', [IVRController::class, 'acceptRequestFromPBX']);
 Route::middleware('api')->post('afyacall/campaign/obd', [DeliverySMSCallbackController::class, 'deliveryobd']);
 
-
 //customer experience and rating
 Route::middleware('api')->post('afyacall/customerrating', [RatingController::class, 'rating']);
 
@@ -68,5 +68,5 @@ Route::get('promotions/status', [IVRController::class, 'promotionstatus']);
 //afyacall api for website
 Route::middleware('auth:api')->group(function () {
     // our routes to be protected will go in here
-    Route::post('/sms/afyacall/enticement',  [WebsiteApiController::class, 'websiteEnticement']);
+    Route::post('/sms/afyacall/enticement', [WebsiteApiController::class, 'websiteEnticement']);
 });

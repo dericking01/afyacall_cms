@@ -2,11 +2,12 @@
 
 namespace App\Console\Commands;
 
+use Carbon\Carbon;
 use App\Models\Customer;
 use App\Models\Subscription;
-use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
+
 class unsubscribeCron extends Command
 {
     /**
@@ -40,7 +41,6 @@ class unsubscribeCron extends Command
      */
     public function handle()
     {
-
         Subscription::with('customer')
             ->chunkById(100, function ($subscriptions) {
                 foreach ($subscriptions as $subscription) {
@@ -50,7 +50,6 @@ class unsubscribeCron extends Command
                     if ($expirationDate <= $currentDate) {
                         $customer = Customer::find($subscription->customer['id']);
                         if ($customer) {
-                           
                             //if the product is IVR of Id =1
                             if ($subscription->product_id == 1) {
                                 $customer->ivr_status = 0;
@@ -67,10 +66,8 @@ class unsubscribeCron extends Command
                         } else {
                             $subscription->delete();
                         }
-                     
                     }
                 }
             });
-    }	    
+    }
 }
-

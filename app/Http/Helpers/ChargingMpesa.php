@@ -2,33 +2,31 @@
 
 namespace App\Http\Helpers;
 
-
-use App\Models\Customer;
 use App\Models\Opt;
 use App\Models\Product;
-use App\Models\Subscription;
+use App\Models\Customer;
 use App\Models\Transaction;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
 class ChargingMpesa
 {
-    function __construct()
+    public function __construct()
     {
     }
 
-    public function charging($product_ID,$cellNo, $amount)
+    public function charging($product_ID, $cellNo, $amount)
     {
         try {
-            return $this->chargeviampesa($product_ID,$cellNo, $amount);
+            return $this->chargeviampesa($product_ID, $cellNo, $amount);
         } catch (\Throwable $th) {
             Log::info($th->getMessage());
         }
     }
 
-    public function checkbalance($productID, $msisdn){
-
+    public function checkbalance($productID, $msisdn)
+    {
         $code = Opt::getCode();
+
         try {
             $client = new \GuzzleHttp\Client();
             $response = $client->request('POST', 'https://197.250.9.191:23000/icg/query/balance/', [
@@ -49,8 +47,7 @@ class ChargingMpesa
             $results = $response->getBody()->getContents();
             $data = json_decode($results, true);
 
-
-            if ($data['output_ResponseCode'] == '0'){
+            if ($data['output_ResponseCode'] == '0') {
                 return $data['output_AirtimeBalance'];
             } else {
                 //Log::info('response is =>',$data);
@@ -58,23 +55,20 @@ class ChargingMpesa
         } catch (\Throwable $th) {
             Log::info($th->getMessage());
         }
-
     }
 
     private function getBalance($msisdn)
     {
-
         $payload = [
-            'serviceIdentifier'   =>
-            array(
+            'serviceIdentifier' => [
                 'value' => $msisdn,
                 'schemeName' => 'msisdn'
-            ),
+            ],
             'id' => [
-                array(
-                    'value' => "airtime:*199*100#",
-                    'schemeName' => "balanceType"
-                )
+                [
+                    'value' => 'airtime:*199*100#',
+                    'schemeName' => 'balanceType'
+                ]
             ]
         ];
         // Log::info('payload ' . $payload);
@@ -83,23 +77,21 @@ class ChargingMpesa
         $uuid = Opt::generateUUIDv1();
 
         try {
-            $client = new \GuzzleHttp\Client;
+            $client = new \GuzzleHttp\Client();
             $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');
             $response = $client->post('https://197.250.9.149:6202/middlewarev2/serviceBalance', [
                 'verify' => false,
                 'headers' => [
                     'Authorization' => 'Basic ' . $credentials,
                     'Content-Type' => 'application/json',
-                    'X-MessageId' => 'uuid: '.$uuid,
-                    'X-Source-Timestamp'  => $chargetime,
+                    'X-MessageId' => 'uuid: ' . $uuid,
+                    'X-Source-Timestamp' => $chargetime,
                 ],
                 'json' => $payload
             ]);
             $balances = $response->getBody()->getContents();
-            
 
             $data = json_decode($balances, true);
-
 
             return $data[0]['details']['balanceAmount'][0]['amount'];
         } catch (\Throwable $th) {
@@ -109,7 +101,6 @@ class ChargingMpesa
 
     private function chargeviampesa($product_ID, $cellNo, $amount)
     {
-
         $balance = intval(abs($this->checkbalance($product_ID, $cellNo)));
 
         // Define balance ranges for each product
@@ -118,7 +109,7 @@ class ChargingMpesa
             '921465_P01' => ['min' => 50, 'max' => 300],
             '921465_P03' => ['min' => 50, 'max' => 200],
         ];
-        
+
         // Check if product_ID exists in the balance ranges and update the amount
         if (isset($balanceRanges[$product_ID])) {
             $range = $balanceRanges[$product_ID];
@@ -137,7 +128,7 @@ class ChargingMpesa
         $customer = Customer::where('msisdn', $cellNo)->first();
         $product = Product::where('product_ID', $product_ID)->first();
 
-        Log::info("amount to be charged ".$amount . " msisdn  ".$cellNo ."  Reference Code " .$code);
+        Log::info('amount to be charged ' . $amount . ' msisdn  ' . $cellNo . '  Reference Code ' . $code);
 
         try {
             $client = new \GuzzleHttp\Client();
@@ -167,7 +158,7 @@ class ChargingMpesa
             $trans->transaction_date = Opt::getServertime();
             $trans->status = 0;
             $trans->product_id = $product->id;
-            $trans->currency = "Airtime";
+            $trans->currency = 'Airtime';
             $trans->response = $data['output_ResponseDesc'];
             $trans->conventions_ID = $data['output_ConversationID'];
             $trans->response_code = $data['output_ResponseCode'];
@@ -178,6 +169,4 @@ class ChargingMpesa
             Log::info($th->getMessage());
         }
     }
-
 }
-
