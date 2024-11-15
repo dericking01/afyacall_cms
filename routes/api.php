@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\v1\AIController;
 use App\Http\Controllers\Api\v1\IPGController;
 use App\Http\Controllers\Api\v1\IVRController;
 use App\Http\Controllers\Api\v1\SMSController;
@@ -33,6 +34,7 @@ Route::middleware('api')->get('afyacall/doctorstatus', [IPGController::class, 's
 Route::middleware('api')->post('afyacall/livecalldoctorstastics', [CallLogsController::class, 'livecalldoctorstastics']);
 
 Route::post('sms/receivedsms', [SMSController::class, 'receivedsmsfromkannel']);
+Route::post('ai/receivedsms', [AIController::class, 'fromkannel']);
 Route::get('sms/deliveryreport', [DeliverySMSCallbackController::class, 'deliveryreport']);
 Route::get('sms/dailydeliveryreport', [DeliverySMSCallbackController::class, 'dailydeliveryreport']);
 Route::get('sms/notifysms', [DeliverySMSCallbackController::class, 'notifysms']);
@@ -60,6 +62,8 @@ Route::get('doctor/subscription/status', [DoctorApiController::class, 'doctorsub
 
 //afyacall promotions
 Route::get('promotions/status', [IVRController::class, 'promotionstatus']);
+
+//afyacall AI
 
 //afyacall api for website
 Route::middleware('auth:api')->group(function () {

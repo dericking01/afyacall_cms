@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Jobs\ProcessLanguage;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class SmsRevenue extends Command
 {
@@ -40,11 +41,23 @@ class SmsRevenue extends Command
     public function handle()
     {
         try {
-            // Fetch today's total revenue
+            // Define the start and end of the current day for range filtering
+            $startDate = now()->startOfDay()->toDateTimeString();
+            $endDate = now()->endOfDay()->toDateTimeString();
+
+            // Start query timing
+            $queryStartTime = microtime(true);
+
+            // Fetch today's total revenue using a range for better performance
             $revenue = DB::table('transactions')
-                ->whereDate('created_at', now()->toDateString())
+                ->whereBetween('created_at', [$startDate, $endDate])
                 ->where('status', 1)
                 ->sum('amount_IN');
+
+            // End query timing
+            $queryEndTime = microtime(true);
+            $queryTimeTaken = $queryEndTime - $queryStartTime;
+            $this->info('Query execution time: ' . round($queryTimeTaken, 4) . ' seconds');
 
             // Format the revenue amount
             $revenueAmount = number_format(round($revenue, 2), 2, '.', ',');
@@ -70,13 +83,16 @@ class SmsRevenue extends Command
                     'en' => "Hi Mr. $name, the current revenue is => $revenueAmount",
                 ];
 
-                // Dispatch the job asynchronously
-                ProcessLanguage::dispatch($msisdn, $message['sw'], $message['en']);
+                // Dispatch the job synchronously
+                ProcessLanguage::dispatchSync($msisdn, $message['sw'], $message['en']);
                 $this->info("Message sent to $name successfully.");
             }
+            // Log::info('The revenue is ' . $revenueAmount);
         } catch (\Exception $e) {
             // Handle any errors
             $this->error('Error: ' . $e->getMessage());
         }
+
+        return 0;
     }
 }

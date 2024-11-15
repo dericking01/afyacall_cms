@@ -124,7 +124,7 @@ class ChargingExistingCustomer
         //try charging the customer
         $starttime = microtime(true);
 
-        //        Log::info("=============check charge start time ". $starttime);
+        // Log::info("=============check charge start time ". $starttime);
         try {
             $client = new \GuzzleHttp\Client();
             $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');
@@ -144,7 +144,7 @@ class ChargingExistingCustomer
 
             $endtime = microtime(true);
             $duration = $endtime - $starttime;
-            //            Log::info("=============check charge endtime ". $endtime ." duration ". $duration);
+            // Log::info("=============check charge endtime ". $endtime ." duration ". $duration);
 
             //check if customer found in database
             if ($customer) {

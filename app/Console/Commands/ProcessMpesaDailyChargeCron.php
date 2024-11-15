@@ -47,6 +47,7 @@ class ProcessMpesaDailyChargeCron extends Command
     private function chargeCustomersForService($service, $mpesaCode, $amount, $statusColumn, $statusValue, $enticementColumn, $enticementValue)
     {
         Customer::where($statusColumn, $statusValue)
+            ->where($enticementColumn, $enticementValue)
             ->chunkById(1000, function ($customers) use ($service, $mpesaCode, $amount) {
                 $data = [];
 

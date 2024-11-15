@@ -50,7 +50,7 @@ class ChargingMpesa
             if ($data['output_ResponseCode'] == '0') {
                 return $data['output_AirtimeBalance'];
             } else {
-                //Log::info($data);
+                //Log::info('response is =>',$data);
             }
         } catch (\Throwable $th) {
             Log::info($th->getMessage());
@@ -151,7 +151,6 @@ class ChargingMpesa
             ]);
             $results = $response->getBody()->getContents();
             $data = json_decode($results, true);
-
             // Register transaction
             $trans = new Transaction();
             $trans->customer_ID = $customer->id;

@@ -61,9 +61,11 @@ class unsubscribeCron extends Command
                                 $customer->status = 0;
                                 $customer->save();
                             }
+                            Log::info($customer->msisdn . ' removed customer from subscription');
+                            $subscription->delete();
+                        } else {
+                            $subscription->delete();
                         }
-                        Log::info($customer->msisdn . ' removed customer from subscription');
-                        $subscription->delete();
                     }
                 }
             });
