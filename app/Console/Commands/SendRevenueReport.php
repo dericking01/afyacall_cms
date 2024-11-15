@@ -2,10 +2,10 @@
 
 namespace App\Console\Commands;
 
+use Carbon\Carbon;
+use App\Jobs\ProcessLanguage;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
-use App\Jobs\ProcessLanguage;
-use Carbon\Carbon;
 
 class SendRevenueReport extends Command
 {
@@ -24,14 +24,14 @@ class SendRevenueReport extends Command
 
         // Query the database using Laravel's query builder
         $row = DB::table('transactions')
-            ->selectRaw("
+            ->selectRaw('
                 CAST(created_at AS DATE) AS DateCreated,
                 SUM(CASE WHEN product_id = 1 THEN amount_IN END) AS ivr,
                 SUM(CASE WHEN product_id = 2 THEN amount_IN END) AS sms,
                 SUM(CASE WHEN product_id = 4 THEN amount_IN END) AS doctor_subs,
                 SUM(CASE WHEN product_id IN (3, 5, 6) THEN amount_IN ELSE 0 END) AS calls,
                 SUM(amount_IN) AS total
-            ")
+            ')
             ->where('status', 1)
             ->whereDate('created_at', $yesterday)
             ->groupBy(DB::raw('CAST(created_at AS DATE)'))
@@ -76,5 +76,3 @@ class SendRevenueReport extends Command
         }
     }
 }
-
-?>

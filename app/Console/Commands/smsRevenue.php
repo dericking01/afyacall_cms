@@ -74,10 +74,9 @@ class SmsRevenue extends Command
                 ProcessLanguage::dispatch($msisdn, $message['sw'], $message['en']);
                 $this->info("Message sent to $name successfully.");
             }
-
         } catch (\Exception $e) {
             // Handle any errors
-            $this->error("Error: " . $e->getMessage());
+            $this->error('Error: ' . $e->getMessage());
         }
     }
 }

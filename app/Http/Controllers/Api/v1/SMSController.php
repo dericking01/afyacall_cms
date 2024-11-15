@@ -2,16 +2,14 @@
 
 namespace App\Http\Controllers\Api\v1;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\SmartBango;
-use Illuminate\Support\Facades\Log as FacadesLog;
+use Illuminate\Http\Request;
 use App\Services\CustomerService;
-
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Log as FacadesLog;
 
 class SMSController extends Controller
 {
-
     public function receivedsmsfromkannel(Request $request, CustomerService $customerService)
     {
         //check the incoming requests and log into database
@@ -44,7 +42,7 @@ class SMSController extends Controller
         //validate data
 
         //update to the smartbango tables
-        if (in_array(strtolower($request->service), ['afyabango', 'afyasmart', 'afyasmartd','afyasmartdoc'])) {
+        if (in_array(strtolower($request->service), ['afyabango', 'afyasmart', 'afyasmartd', 'afyasmartdoc'])) {
             $smartBangoData = [
                 'msisdn' => ltrim($request->sender, '+'),
                 'keyword' => $request->service,
@@ -67,7 +65,7 @@ class SMSController extends Controller
             return $customerService->subscribe_doctor_sub($request);
         } elseif (strtolower($request->service) == 'afya1' || strtolower($request->service) == 'afya01') {
             return $customerService->subscribe_doctor_sub($request);
-	} elseif (strtolower($request->service) == 'afya2' || strtolower($request->service) == 'afya02') {
+        } elseif (strtolower($request->service) == 'afya2' || strtolower($request->service) == 'afya02') {
             return $customerService->subscribe_doctor_sub($request);
         } elseif (strtolower($request->service) == 'afya3' || strtolower($request->service) == 'afya03') {
             return $customerService->subscribe_doctor_sub($request);
@@ -118,10 +116,9 @@ class SMSController extends Controller
         }
     }
 
-    public function searchKeyword($searchTerm){
-
-        $afyacallkeywords = ['ondoadoc', 'ondoaivr', 'ondoasms','afyaivr','afyasms','afyadoc'];
-
+    public function searchKeyword($searchTerm)
+    {
+        $afyacallkeywords = ['ondoadoc', 'ondoaivr', 'ondoasms', 'afyaivr', 'afyasms', 'afyadoc'];
 
         $threshold = 0.8;
         $maxDistance = 5;
@@ -147,10 +144,9 @@ class SMSController extends Controller
         }
 
         if ($closestafyacallkeyword !== '') {
-           return $closestafyacallkeyword;
+            return $closestafyacallkeyword;
         } else {
-           return $searchTerm;
+            return $searchTerm;
         }
-
     }
 }

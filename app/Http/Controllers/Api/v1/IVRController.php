@@ -2,19 +2,18 @@
 
 namespace App\Http\Controllers\Api\v1;
 
-use App\Http\Controllers\Controller;
-use App\Jobs\ProcessLanguage;
-use App\Models\Blacklist;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use App\Models\Customer;
+use Carbon\Carbon;
 use App\Models\Opt;
 use App\Models\Product;
-use App\Models\Subscription;
-use App\Models\Transaction;
+use App\Models\Customer;
 use App\Models\Promotion;
-use Carbon\Carbon;
+use App\Models\Transaction;
+use App\Models\Subscription;
+use Illuminate\Http\Request;
+use App\Jobs\ProcessLanguage;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Validator;
 
 class IVRController extends Controller
 {
@@ -61,11 +60,12 @@ class IVRController extends Controller
                                 ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
 
                                 $resp = [
-                                    "status" => "1",
-                                    "message" => "success",
-                                    "msisdn" => $request->Caller_Number,
-                                    "amount" => $request->amount,
+                                    'status' => '1',
+                                    'message' => 'success',
+                                    'msisdn' => $request->Caller_Number,
+                                    'amount' => $request->amount,
                                 ];
+
                                 return response()->json($resp);
                             } elseif ($request->amount == 2000) {
                                 //send notification to customer for successfully charges
@@ -79,10 +79,10 @@ class IVRController extends Controller
                                 ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
 
                                 $resp = [
-                                    "status" => "1",
-                                    "message" => "success",
-                                    "msisdn" => $request->Caller_Number,
-                                    "amount" => $request->amount,
+                                    'status' => '1',
+                                    'message' => 'success',
+                                    'msisdn' => $request->Caller_Number,
+                                    'amount' => $request->amount,
                                 ];
 
                                 return response()->json($resp);
@@ -98,11 +98,12 @@ class IVRController extends Controller
                                 ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
 
                                 $resp = [
-                                    "status" => "1",
-                                    "message" => "success",
-                                    "msisdn" => $request->Caller_Number,
-                                    "amount" => $request->amount,
+                                    'status' => '1',
+                                    'message' => 'success',
+                                    'msisdn' => $request->Caller_Number,
+                                    'amount' => $request->amount,
                                 ];
+
                                 return response()->json($resp);
                             }
                         } else {
@@ -110,10 +111,11 @@ class IVRController extends Controller
                             $en = 'You have insufficient balance.Please recharge and dial 0900011111.';
                             ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
                             $resp = [
-                                "status" => "0",
-                                "message" => "Failed",
-                                "msisdn" => $request->Caller_Number,
+                                'status' => '0',
+                                'message' => 'Failed',
+                                'msisdn' => $request->Caller_Number,
                             ];
+
                             return response()->json($resp);
                         }
                     }
@@ -126,10 +128,11 @@ class IVRController extends Controller
                             ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
 
                             $resp = [
-                                "status" => "1",
-                                "message" => "success",
-                                "msisdn" => $request->Caller_Number,
+                                'status' => '1',
+                                'message' => 'success',
+                                'msisdn' => $request->Caller_Number,
                             ];
+
                             return response()->json($resp);
                         } else {
                             $sw = 'Hauna salio la kutosha kupata huduma hii.Ongeza salio kisha piga namba 0900011111 kwa gharama ya Tsh ' . $request->amount . '/ ugonjwa';
@@ -137,10 +140,11 @@ class IVRController extends Controller
                             ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
 
                             $resp = [
-                                "status" => "0",
-                                "message" => "Failed",
-                                "msisdn" => $request->Caller_Number,
+                                'status' => '0',
+                                'message' => 'Failed',
+                                'msisdn' => $request->Caller_Number,
                             ];
+
                             return response()->json($resp);
                         }
                     } else {
@@ -152,29 +156,33 @@ class IVRController extends Controller
                                 $excustomer->ivr_enticement = 1;
                                 $excustomer->save();
                                 $resp = [
-                                    "status" => "76",
-                                    "message" => $data['output_ResponseDesc'],
-                                    "msisdn" => $request->Caller_Number,
+                                    'status' => '76',
+                                    'message' => $data['output_ResponseDesc'],
+                                    'msisdn' => $request->Caller_Number,
                                 ];
+
                                 return response()->json($resp);
                             }
                             if ($data['output_ResponseCode'] == 0) {
                                 $resp = [
-                                    "status" => "77",
-                                    "message" => $data['output_ResponseDesc'],
-                                    "msisdn" => $request->Caller_Number,
+                                    'status' => '77',
+                                    'message' => $data['output_ResponseDesc'],
+                                    'msisdn' => $request->Caller_Number,
                                 ];
+
                                 return response()->json($resp);
                             } else {
                                 $resp = [
-                                    "status" => "76",
-                                    "message" => $data['output_ResponseDesc'],
-                                    "msisdn" => $request->Caller_Number,
+                                    'status' => '76',
+                                    'message' => $data['output_ResponseDesc'],
+                                    'msisdn' => $request->Caller_Number,
                                 ];
+
                                 return response()->json($resp);
                             }
                         } else {
                             $resmpesa = $this->chargempesa($request->Caller_Number, $request->productID, $request->amount);
+
                             return $resmpesa;
                         }
                     }
@@ -184,10 +192,11 @@ class IVRController extends Controller
                     $excustomer->save();
 
                     $resp = [
-                        "status" => "1",
-                        "message" => "success",
-                        "msisdn" => $request->Caller_Number,
+                        'status' => '1',
+                        'message' => 'success',
+                        'msisdn' => $request->Caller_Number,
                     ];
+
                     return response()->json($resp);
                 }
             } else {
@@ -233,11 +242,12 @@ class IVRController extends Controller
                             ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
 
                             $resp = [
-                                "status" => "1",
-                                "message" => "success",
-                                "msisdn" => $request->Caller_Number,
-                                "amount" => $request->amount,
+                                'status' => '1',
+                                'message' => 'success',
+                                'msisdn' => $request->Caller_Number,
+                                'amount' => $request->amount,
                             ];
+
                             return response()->json($resp);
                         } elseif ($request->amount == 2000) {
                             //send notification to customer for successfully charges
@@ -251,10 +261,10 @@ class IVRController extends Controller
                             ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
 
                             $resp = [
-                                "status" => "1",
-                                "message" => "success",
-                                "msisdn" => $request->Caller_Number,
-                                "amount" => $request->amount,
+                                'status' => '1',
+                                'message' => 'success',
+                                'msisdn' => $request->Caller_Number,
+                                'amount' => $request->amount,
                             ];
 
                             return response()->json($resp);
@@ -270,11 +280,12 @@ class IVRController extends Controller
                             ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
 
                             $resp = [
-                                "status" => "1",
-                                "message" => "success",
-                                "msisdn" => $request->Caller_Number,
-                                "amount" => $request->amount,
+                                'status' => '1',
+                                'message' => 'success',
+                                'msisdn' => $request->Caller_Number,
+                                'amount' => $request->amount,
                             ];
+
                             return response()->json($resp);
                         }
                     } else {
@@ -282,10 +293,11 @@ class IVRController extends Controller
                         $en = 'You have insufficient balance.Please recharge and dial 0900011111.';
                         ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
                         $resp = [
-                            "status" => "0",
-                            "message" => "Failed",
-                            "msisdn" => $request->Caller_Number,
+                            'status' => '0',
+                            'message' => 'Failed',
+                            'msisdn' => $request->Caller_Number,
                         ];
+
                         return response()->json($resp);
                     }
                 }
@@ -298,10 +310,11 @@ class IVRController extends Controller
                         ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
 
                         $resp = [
-                            "status" => "1",
-                            "message" => "success",
-                            "msisdn" => $request->Caller_Number,
+                            'status' => '1',
+                            'message' => 'success',
+                            'msisdn' => $request->Caller_Number,
                         ];
+
                         return response()->json($resp);
                     } else {
                         $sw = 'Hauna salio la kutosha kupata huduma hii.Ongeza salio kisha Tuma neno AFYAIVR kwenda 15723 au piga 0900011111 kwa gharama ya Tsh.300/IVR/siku.';
@@ -309,10 +322,11 @@ class IVRController extends Controller
                         ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
 
                         $resp = [
-                            "status" => "0",
-                            "message" => "Failed",
-                            "msisdn" => $request->Caller_Number,
+                            'status' => '0',
+                            'message' => 'Failed',
+                            'msisdn' => $request->Caller_Number,
                         ];
+
                         return response()->json($resp);
                     }
                 } else {
@@ -328,27 +342,30 @@ class IVRController extends Controller
                             $costomr->save();
                         }
                         $resp = [
-                            "status" => "77",
-                            "message" => $data['output_ResponseDesc'],
-                            "msisdn" => $request->Caller_Number,
+                            'status' => '77',
+                            'message' => $data['output_ResponseDesc'],
+                            'msisdn' => $request->Caller_Number,
                         ];
+
                         return response()->json($resp);
                     } else {
                         $resp = [
-                            "status" => "76",
-                            "message" => $data['output_ResponseDesc'],
-                            "msisdn" => $request->Caller_Number,
+                            'status' => '76',
+                            'message' => $data['output_ResponseDesc'],
+                            'msisdn' => $request->Caller_Number,
                         ];
+
                         return response()->json($resp);
                     }
                 }
             }
         } else {
             $resp = [
-                "status" => "99",
-                "message" => "is on the blacklist or product is not defined",
-                "msisdn" => $request->Caller_Number,
+                'status' => '99',
+                'message' => 'is on the blacklist or product is not defined',
+                'msisdn' => $request->Caller_Number,
             ];
+
             return response()->json($resp);
         }
     }
@@ -383,6 +400,7 @@ class IVRController extends Controller
         $customer = Customer::where('msisdn', $cellNo)
             ->get()
             ->first();
+
         //try charging
         try {
             $client = new \GuzzleHttp\Client();
@@ -418,7 +436,7 @@ class IVRController extends Controller
                 $trans->product_id = $product_id;
                 $trans->transaction_date = Opt::getServertime();
                 $trans->status = 1;
-                $trans->currency = "Airtime";
+                $trans->currency = 'Airtime';
                 $trans->response = 'Process service request successfully.';
                 $trans->save();
 
@@ -442,6 +460,7 @@ class IVRController extends Controller
                     $subscribe->ends_at = Carbon::now()->addDays(1);
                     $subscribe->save();
                 }
+
                 return true;
             }
         } catch (\Throwable $th) {
@@ -452,15 +471,17 @@ class IVRController extends Controller
             $trans->product_id = $product_id;
             $trans->transaction_date = Opt::getServertime();
             $trans->status = 0;
-            $trans->currency = "Airtime";
+            $trans->currency = 'Airtime';
             $trans->response = 'Insufficient Balance';
             $trans->save();
 
             Log::error('error on charging airtime on ivr or unsufficient balance ' . $cellNo);
             Log::error($th->getMessage());
+
             return false;
         }
     }
+
     public function chargempesa($phone, $product_ID, $amount)
     {
         $code = Opt::getCode();
@@ -470,6 +491,7 @@ class IVRController extends Controller
         $product = Product::where('product_ID', $product_ID)
             ->get()
             ->first();
+
         try {
             $client = new \GuzzleHttp\Client();
             $response = $client->request('POST', 'https://197.250.9.191:23000/icg/Charge/', [
@@ -499,7 +521,7 @@ class IVRController extends Controller
             $trans->transaction_date = Opt::getServertime();
             $trans->status = 0;
             $trans->product_id = $product->id;
-            $trans->currency = "Mpesa";
+            $trans->currency = 'Mpesa';
             $trans->response = $data['output_ResponseDesc'];
             $trans->conventions_ID = $data['output_ConversationID'];
             $trans->response_code = $data['output_ResponseCode'];
@@ -510,9 +532,9 @@ class IVRController extends Controller
                 $customer->save();
             }
             $resp = [
-                "status" => $data['output_ResponseCode'],
-                "message" => $data['output_ResponseDesc'],
-                "msisdn" => $phone,
+                'status' => $data['output_ResponseCode'],
+                'message' => $data['output_ResponseDesc'],
+                'msisdn' => $phone,
             ];
 
             return response()->json($resp);
@@ -520,10 +542,11 @@ class IVRController extends Controller
             Log::info($th->getMessage());
 
             $resp = [
-                "status" => "0",
-                "message" => $th->getMessage(),
-                "msisdn" => $phone,
+                'status' => '0',
+                'message' => $th->getMessage(),
+                'msisdn' => $phone,
             ];
+
             return response()->json($resp);
         }
     }
@@ -532,6 +555,7 @@ class IVRController extends Controller
     {
         //push enticement
         $code = Opt::getCode();
+
         try {
             $client = new \GuzzleHttp\Client();
             $response = $client->request('POST', 'https://197.250.9.191:23000/icg/Enticement/', [
@@ -555,7 +579,8 @@ class IVRController extends Controller
 
             return $data;
         } catch (\Throwable $th) {
-            Log::error("There is an error on ivr enticement " . $phone);
+            Log::error('There is an error on ivr enticement ' . $phone);
+
             return true;
         }
     }
@@ -581,47 +606,51 @@ class IVRController extends Controller
                     ->first();
                 if ($subscrb) {
                     $resp = [
-                        "ivr_status" => "1",
-                        "ivr_enticement" => $excustomer->ivr_enticement,
-                        "message" => "success",
-                        "msisdn" => $request->Caller_Number,
-                        "starts_at" => $subscrb->starts_at,
-                        "ends_at" => $subscrb->ends_at,
+                        'ivr_status' => '1',
+                        'ivr_enticement' => $excustomer->ivr_enticement,
+                        'message' => 'success',
+                        'msisdn' => $request->Caller_Number,
+                        'starts_at' => $subscrb->starts_at,
+                        'ends_at' => $subscrb->ends_at,
                     ];
+
                     return response()->json($resp);
                 } else {
                     $resp = [
-                        "ivr_status" => "1",
-                        "ivr_enticement" => $excustomer->ivr_enticement,
-                        "message" => "success",
-                        "msisdn" => $request->Caller_Number,
-                        "starts_at" => Carbon::now()->toDateTimeString(),
-                        "ends_at" => Carbon::now()
+                        'ivr_status' => '1',
+                        'ivr_enticement' => $excustomer->ivr_enticement,
+                        'message' => 'success',
+                        'msisdn' => $request->Caller_Number,
+                        'starts_at' => Carbon::now()->toDateTimeString(),
+                        'ends_at' => Carbon::now()
                             ->addDays(1)
                             ->toDateTimeString(),
                     ];
+
                     return response()->json($resp);
                 }
             } else {
                 $resp = [
-                    "ivr_status" => "0",
-                    "ivr_enticement" => $excustomer->ivr_enticement,
-                    "message" => "Failed",
-                    "msisdn" => $request->Caller_Number,
-                    "starts_at" => "0000-00-00 00:00:00",
-                    "ends_at" => "0000-00-00 00:00:00",
+                    'ivr_status' => '0',
+                    'ivr_enticement' => $excustomer->ivr_enticement,
+                    'message' => 'Failed',
+                    'msisdn' => $request->Caller_Number,
+                    'starts_at' => '0000-00-00 00:00:00',
+                    'ends_at' => '0000-00-00 00:00:00',
                 ];
+
                 return response()->json($resp);
             }
         } else {
             $resp = [
-                "status" => '0',
-                "ivr_enticement" => '0',
-                "message" => 'customer not found',
-                "Caller_Number" => $request->Caller_Number,
-                "starts_at" => "0000-00-00 00:00:00",
-                "ends_at" => "0000-00-00 00:00:00",
+                'status' => '0',
+                'ivr_enticement' => '0',
+                'message' => 'customer not found',
+                'Caller_Number' => $request->Caller_Number,
+                'starts_at' => '0000-00-00 00:00:00',
+                'ends_at' => '0000-00-00 00:00:00',
             ];
+
             return response()->json($resp);
         }
     }
@@ -629,22 +658,24 @@ class IVRController extends Controller
     public function chargiartimedoctor($msisdn, $product, $amount)
     {
         if ($amount == 1000) {
-            $product_ID = "921465_P04";
+            $product_ID = '921465_P04';
         } elseif ($amount == 2000) {
-            $product_ID = "921465_P05";
+            $product_ID = '921465_P05';
         } else {
-            $product_ID = "921465_P06";
+            $product_ID = '921465_P06';
         }
 
         $balance = intval(abs($this->checkbalance($product_ID, $msisdn)));
         if ($balance < $amount) {
             Log::info($msisdn . ' Insufficient Balance ' . $balance);
+
             return false;
         }
         Log::info('Product ID for this charge' . $product_ID);
         $code = Opt::getCode();
         $customer = Customer::where('msisdn', $msisdn)->get()->first();
         $product = Product::where('product_ID', $product_ID)->get()->first();
+
         try {
             $client = new \GuzzleHttp\Client();
             $response = $client->request('POST', 'https://197.250.9.191:23000/icg/charge/without/sub', [
@@ -682,7 +713,7 @@ class IVRController extends Controller
                     $trans->transaction_date = Opt::getServertime();
                     $trans->status = 1;
                     $trans->product_id = $product->id;
-                    $trans->currency = "Mpesa";
+                    $trans->currency = 'Mpesa';
                     $trans->response = $data['output_ResponseDesc'];
                     $trans->conventions_ID = $data['output_ConversationID'];
                     $trans->response_code = $data['output_ResponseCode'];
@@ -701,6 +732,7 @@ class IVRController extends Controller
     public function checkbalance($productID, $msisdn)
     {
         $code = Opt::getCode();
+
         try {
             $client = new \GuzzleHttp\Client();
             $response = $client->request('POST', 'https://197.250.9.191:23000/icg/query/balance/', [
@@ -725,6 +757,7 @@ class IVRController extends Controller
                 return $data['output_AirtimeBalance'];
             } else {
                 Log::info($data);
+
                 return 0;
             }
         } catch (\Throwable $th) {
@@ -743,23 +776,23 @@ class IVRController extends Controller
 
             $opt = new Opt();
             $opt->customer_ID = $excustomer->id;
-            $opt->ConversationID = "From PBX";
+            $opt->ConversationID = 'From PBX';
             $opt->product_ID = 1;
             $opt->opt_value = 1;
             $opt->date = Opt::getServertime();
             $opt->save();
         } else {
-            # code...
+            // code...
             $customer = new Customer();
             $customer->msisdn = $request->Caller_Number;
             $customer->registered_at = Opt::getServertime();
             $customer->ivr_status = 0;
-            $customer->source = "PBX";
+            $customer->source = 'PBX';
             $customer->save();
 
             $opt = new Opt();
             $opt->customer_ID = $customer->id;
-            $opt->ConversationID = "From PBX";
+            $opt->ConversationID = 'From PBX';
             $opt->product_ID = 1;
             $opt->opt_value = 1;
             $opt->date = Opt::getServertime();
@@ -773,6 +806,7 @@ class IVRController extends Controller
     {
         Log::info($request);
         $code = Opt::getCode();
+
         try {
             $client = new \GuzzleHttp\Client();
             $client->request('GET', 'http://192.168.1.10:6013/cgi-bin/sendsms', [
@@ -786,6 +820,7 @@ class IVRController extends Controller
                     'text' => $request->message,
                 ],
             ]);
+
             return true;
         } catch (\Throwable $th) {
             Log::error($th->getMessage());
@@ -812,17 +847,18 @@ class IVRController extends Controller
             $promotion->save();
 
             $resp = [
-                "status" => 1,
-                "msisdn" => $request->msisdn,
+                'status' => 1,
+                'msisdn' => $request->msisdn,
             ];
+
             return response()->json($resp);
         } else {
             $resp = [
-                "status" => 0,
-                "msisdn" => $request->msisdn,
+                'status' => 0,
+                'msisdn' => $request->msisdn,
             ];
+
             return response()->json($resp);
         }
-
     }
 }
