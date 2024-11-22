@@ -6,7 +6,7 @@ services:
       dockerfile: ./docker/8.0/Dockerfile
       args:
         WWWGROUP: '${WWWGROUP}'
-    image: 197.250.15.155:5000/afyacall_app:1.0.2
+    image: 197.250.15.155:5000/afyacall_app:1.0.3
     volumes:
       - '${LOG_PATH:-./logs}:/var/www/html/storage/logs'
     extra_hosts:
@@ -27,6 +27,11 @@ services:
       DB_DATABASE: "${DB_DATABASE:-afyacall}"
       DB_USERNAME: "${DB_USERNAME:-root}"
       DB_PASSWORD: "${DB_PASSWORD:-}"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
     networks:
       - afyacall_net
     depends_on:

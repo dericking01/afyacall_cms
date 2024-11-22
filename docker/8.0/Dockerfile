@@ -59,9 +59,7 @@ COPY . /var/www/html
 # Install PHP dependencies via Composer and Node.js dependencies
 RUN composer install --no-dev --optimize-autoloader \
     && npm install \
-    && npm run prod \
-    && php artisan passport:install \
-    && php artisan passport:keys
+    && npm run prod
 
 EXPOSE 8000
 
