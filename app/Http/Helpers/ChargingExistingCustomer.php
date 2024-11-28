@@ -1,23 +1,21 @@
 <?php
 
-
 namespace App\Http\Helpers;
 
-use App\Jobs\ProcessLanguage;
-use App\Models\Transaction;
-use App\Models\Customer;
+use Exception;
+use Carbon\Carbon;
 use App\Models\Opt;
 use App\Models\Product;
+use App\Models\Customer;
+use App\Models\Transaction;
 use App\Models\Subscription;
-use Carbon\Carbon;
-use Exception;
 use Illuminate\Support\Facades\Log;
 
 class ChargingExistingCustomer
 {
     private $product_ID = null;
 
-    function __construct($product_ID)
+    public function __construct($product_ID)
     {
         $this->product_ID = $product_ID;
     }
@@ -36,17 +34,20 @@ class ChargingExistingCustomer
                 return $this->chargeviaairtime_doctorsubscription($this->product_ID, $cellNo, $amount);
             } else {
                 Log::info('No Product is selected');
+
                 return true;
             }
         } catch (Exception $e) {
             Log::error('failed to pass the product' . $e->getMessage());
         }
+
         return true;
     }
 
-    public function checkbalance($productID, $msisdn){
-        
+    public function checkbalance($productID, $msisdn)
+    {
         $code = Opt::getCode();
+
         try {
             $client = new \GuzzleHttp\Client();
             $response = $client->request('POST', 'https://197.250.9.191:23000/icg/query/balance/', [
@@ -67,23 +68,23 @@ class ChargingExistingCustomer
             $results = $response->getBody()->getContents();
             $data = json_decode($results, true);
             Log::info($data);
-            if ($data['output_ResponseCode'] == '0'){
+            if ($data['output_ResponseCode'] == '0') {
                 return $data['output_AirtimeBalance'];
             } else {
                 Log::info($data);
+
                 return 0;
             }
         } catch (\Throwable $th) {
             Log::info($th->getMessage());
         }
-
     }
 
     //charge via airtime
     private function chargeviaairtime($product_ID, $cellNo, $amount)
     {
         //check the customer balance first
-	    $balance = intval(abs($this->getBalance($cellNo)));
+        $balance = intval(abs($this->getBalance($cellNo)));
         if ($balance >= 15000) {
             $amount = 15000;
         } elseif ($balance > 3000 && $balance < 15000) {
@@ -91,26 +92,26 @@ class ChargingExistingCustomer
         } else {
             return true;
         }
-       
-        //update the payload 
+
+        //update the payload
         $payload = [
             'type' => 'charge',
-            'id'   => [
-                array(
+            'id' => [
+                [
                     'value' => $cellNo,
                     'schemeName' => 'msisdn'
-                )
+                ]
             ],
             'details' => [
-                'adjustmentAmount' =>  strval($amount)
+                'adjustmentAmount' => strval($amount)
             ],
             'name' => 'MW',
             'desc' => 'Afya Call',
             'category' => [
-                array(
+                [
                     'value' => 'MW',
                     'listHierarchyId' => 'eventClass'
-                )
+                ]
             ]
         ];
 
@@ -122,18 +123,18 @@ class ChargingExistingCustomer
 
         //try charging the customer
         $starttime = microtime(true);
-        
-//        Log::info("=============check charge start time ". $starttime);
+
+        // Log::info("=============check charge start time ". $starttime);
         try {
-            $client = new \GuzzleHttp\Client;
+            $client = new \GuzzleHttp\Client();
             $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');
             $response = $client->post('https://197.250.9.149:6202/middlewarev2/serviceAccountAdjustment', [
                 'verify' => false,
                 'headers' => [
                     'Authorization' => 'Basic ' . $credentials,
                     'Content-Type' => 'application/json',
-                    'X-MessageId' => 'uuid: '.$uuid,
-                    'X-Source-Timestamp'  => $chargetime,
+                    'X-MessageId' => 'uuid: ' . $uuid,
+                    'X-Source-Timestamp' => $chargetime,
                 ],
                 'json' => $payload
             ]);
@@ -142,8 +143,8 @@ class ChargingExistingCustomer
             $data = json_decode($results, true);
 
             $endtime = microtime(true);
-            $duration =  $endtime - $starttime;
-//            Log::info("=============check charge endtime ". $endtime ." duration ". $duration);
+            $duration = $endtime - $starttime;
+            // Log::info("=============check charge endtime ". $endtime ." duration ". $duration);
 
             //check if customer found in database
             if ($customer) {
@@ -158,7 +159,7 @@ class ChargingExistingCustomer
                 $trans->product_id = $product->id;
                 $trans->transaction_date = Opt::getServertime();
                 $trans->status = 1;
-                $trans->currency = "Airtime";
+                $trans->currency = 'Airtime';
                 $trans->response = 'Process service request successfully.';
                 $trans->save();
 
@@ -171,7 +172,7 @@ class ChargingExistingCustomer
                     $subscribeid->status = 1;
                     $subscribeid->save();
                 } else {
-                     //register the subscription
+                    //register the subscription
                     $subscribe = new Subscription();
                     $subscribe->customer_ID = $customer->id;
                     $subscribe->product_id = $product->id;
@@ -184,8 +185,8 @@ class ChargingExistingCustomer
                 return true;
             }
         } catch (\Throwable $th) {
-		Log::error('failed in charging airtime sms' . $th->getMessage());
-		Log::error($th);
+            Log::error('failed in charging airtime sms' . $th->getMessage());
+            Log::error($th);
             //register failed transaction
             $trans = new Transaction();
             $trans->customer_ID = $customer->id;
@@ -193,7 +194,7 @@ class ChargingExistingCustomer
             $trans->product_id = $product->id;
             $trans->transaction_date = Opt::getServertime();
             $trans->status = 0;
-            $trans->currency = "Airtime";
+            $trans->currency = 'Airtime';
             $trans->response = 'Insufficient Balance';
             $trans->save();
 
@@ -204,26 +205,26 @@ class ChargingExistingCustomer
     //charge via airtime ivr
     private function chargeviaairtimeivr($product_ID, $cellNo, $amount)
     {
-	    //check the customer balance first
-	    $balance = intval(abs($this->getBalance($cellNo)));
+        //check the customer balance first
+        $balance = intval(abs($this->getBalance($cellNo)));
         if ($balance >= 30000) {
             $amount = 30000;
         } elseif ($balance > 5000 && $balance < 30000) {
             $amount = $balance;
         } else {
-	    	return true;
+            return true;
         }
 
         //call the icg charging method,
-        
-        //update the payload 
+
+        //update the payload
         $payload = [
             'type' => 'charge',
-            'id'   => [
-                array(
+            'id' => [
+                [
                     'value' => $cellNo,
                     'schemeName' => 'msisdn'
-                )
+                ]
             ],
             'details' => [
                 'adjustmentAmount' => strval($amount)
@@ -231,10 +232,10 @@ class ChargingExistingCustomer
             'name' => 'MW',
             'desc' => 'Afya Call',
             'category' => [
-                array(
+                [
                     'value' => 'MW',
                     'listHierarchyId' => 'eventClass'
-                )
+                ]
             ]
         ];
 
@@ -246,23 +247,21 @@ class ChargingExistingCustomer
 
         //try charging the customer
         try {
-            $client = new \GuzzleHttp\Client;
+            $client = new \GuzzleHttp\Client();
             $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');
             $response = $client->post('https://197.250.9.149:6202/middlewarev2/serviceAccountAdjustment', [
                 'verify' => false,
                 'headers' => [
                     'Authorization' => 'Basic ' . $credentials,
                     'Content-Type' => 'application/json',
-                    'X-MessageId' => 'uuid: '.$uuid,
-                    'X-Source-Timestamp'  => $chargetime,
+                    'X-MessageId' => 'uuid: ' . $uuid,
+                    'X-Source-Timestamp' => $chargetime,
                 ],
                 'json' => $payload
             ]);
             $results = $response->getBody()->getContents();
             //convert into json
             $data = json_decode($results, true);
-
-            
 
             //check if customer found in database
             if ($customer) {
@@ -277,7 +276,7 @@ class ChargingExistingCustomer
                 $trans->product_id = $product->id;
                 $trans->transaction_date = Opt::getServertime();
                 $trans->status = 1;
-                $trans->currency = "Airtime";
+                $trans->currency = 'Airtime';
                 $trans->response = 'Process service request successfully.';
                 $trans->save();
 
@@ -289,7 +288,7 @@ class ChargingExistingCustomer
                     $subscribeid->status = 1;
                     $subscribeid->save();
                 } else {
-                     //register the subscription
+                    //register the subscription
                     $subscribe = new Subscription();
                     $subscribe->customer_ID = $customer->id;
                     $subscribe->product_id = $product->id;
@@ -309,28 +308,25 @@ class ChargingExistingCustomer
             $trans->product_id = $product->id;
             $trans->transaction_date = Opt::getServertime();
             $trans->status = 0;
-            $trans->currency = "Airtime";
+            $trans->currency = 'Airtime';
             $trans->response = 'Insufficient Balance';
             $trans->save();
         }
     }
 
-
-        //function to check the balance
+    //function to check the balance
     private function getBalance($msisdn)
     {
-
         $payload = [
-            'serviceIdentifier'   =>
-            array(
+            'serviceIdentifier' => [
                 'value' => $msisdn,
                 'schemeName' => 'msisdn'
-            ),
+            ],
             'id' => [
-                array(
-                    'value' => "airtime:*199*100#",
-                    'schemeName' => "balanceType"
-                )
+                [
+                    'value' => 'airtime:*199*100#',
+                    'schemeName' => 'balanceType'
+                ]
             ]
         ];
         // Log::info('payload ' . $payload);
@@ -338,28 +334,27 @@ class ChargingExistingCustomer
         $chargetime = Opt::getTimestamp();
         $uuid = Opt::generateUUIDv1();
         $starttime = microtime(true);
-        
-//        Log::info("=============check balance start time ". $starttime);
+
+        //        Log::info("=============check balance start time ". $starttime);
         try {
-            $client = new \GuzzleHttp\Client;
+            $client = new \GuzzleHttp\Client();
             $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');
             $response = $client->post('https://197.250.9.149:6202/middlewarev2/serviceBalance', [
                 'verify' => false,
                 'headers' => [
                     'Authorization' => 'Basic ' . $credentials,
                     'Content-Type' => 'application/json',
-                    'X-MessageId' => 'uuid: '.$uuid,
-                    'X-Source-Timestamp'  => $chargetime,
+                    'X-MessageId' => 'uuid: ' . $uuid,
+                    'X-Source-Timestamp' => $chargetime,
                 ],
                 'json' => $payload
             ]);
             $balances = $response->getBody()->getContents();
-            
 
             $data = json_decode($balances, true);
             $endtime = microtime(true);
-            $duration =  $endtime - $starttime;
-//            Log::info("=============check balance start time ". $endtime ." duration ". $duration);
+            $duration = $endtime - $starttime;
+            //            Log::info("=============check balance start time ". $endtime ." duration ". $duration);
 
             return $data[0]['details']['balanceAmount'][0]['amount'];
         } catch (\Throwable $th) {
@@ -369,9 +364,8 @@ class ChargingExistingCustomer
 
     private function chargeviaairtime_doctorsubscription($product_ID, $cellNo, $amount)
     {
-
         //check balance
-	    $balance = intval(abs($this->getBalance($cellNo)));
+        $balance = intval(abs($this->getBalance($cellNo)));
         if ($balance >= 20000) {
             $amount = 20000;
             $seconds = 60;
@@ -385,14 +379,14 @@ class ChargingExistingCustomer
             $amount = 5000;
             $seconds = 15;
         } else {
-		   return true;
+            return true;
         }
 
-        try {           
+        try {
             // Prepare the payload for the charging request
             $payload = [
                 'type' => 'charge',
-                'id'   => [
+                'id' => [
                     [
                         'value' => $cellNo,
                         'schemeName' => 'msisdn'
@@ -414,28 +408,28 @@ class ChargingExistingCustomer
             // Get the current time for charging
             $chargetime = Opt::getTimestamp();
             $uuid = Opt::generateUUIDv1();
-            
+
             // Get the customer and product information from the database
             $customer = Customer::where('msisdn', $cellNo)->first();
             $product = Product::where('product_ID', $product_ID)->get()->first();
 
             if ($customer && $product) {
                 // Try charging the customer
-                $client = new \GuzzleHttp\Client;
+                $client = new \GuzzleHttp\Client();
                 $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');
-                
+
                 // Send a POST request to the charging endpoint
                 $response = $client->post('https://197.250.9.149:6202/middlewarev2/serviceAccountAdjustment', [
                     'verify' => false,
                     'headers' => [
                         'Authorization' => 'Basic ' . $credentials,
                         'Content-Type' => 'application/json',
-                        'X-MessageId' => 'uuid: '.$uuid,
-                        'X-Source-Timestamp'  => $chargetime,
+                        'X-MessageId' => 'uuid: ' . $uuid,
+                        'X-Source-Timestamp' => $chargetime,
                     ],
                     'json' => $payload
                 ]);
-                
+
                 // Get the response content
                 $data = json_decode($response->getBody()->getContents(), true);
 
@@ -444,7 +438,6 @@ class ChargingExistingCustomer
                 $customer->other_status += $seconds;
                 $customer->save();
 
-
                 //register successfully transaction
                 $trans = new Transaction();
                 $trans->customer_ID = $customer->id;
@@ -452,10 +445,9 @@ class ChargingExistingCustomer
                 $trans->product_id = $product->id;
                 $trans->transaction_date = Opt::getServertime();
                 $trans->status = 1;
-                $trans->currency = "Airtime";
+                $trans->currency = 'Airtime';
                 $trans->response = 'Process service request successfully.';
                 $trans->save();
-
 
                 $subscribeid = Subscription::where('customer_ID', $customer->id)->where('product_id', $product->id)->first();
                 if ($subscribeid) {
@@ -464,7 +456,7 @@ class ChargingExistingCustomer
                     $subscribeid->status = 1;
                     $subscribeid->save();
                 } else {
-                     //register the subscription
+                    //register the subscription
                     $subscribe = new Subscription();
                     $subscribe->customer_ID = $customer->id;
                     $subscribe->product_id = $product->id;
@@ -486,7 +478,4 @@ class ChargingExistingCustomer
 
         return false;
     }
-
-
 }
-
