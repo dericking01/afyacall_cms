@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\v1\ApiAuthController;
 use App\Http\Controllers\Api\v1\CallBackController;
 use App\Http\Controllers\Api\v1\CallLogsController;
 use App\Http\Controllers\Api\v1\DoctorApiController;
+use App\Http\Controllers\Api\v1\MetricsApiController;
 use App\Http\Controllers\Api\v1\WebsiteApiController;
 use App\Http\Controllers\Api\v1\DeliverySMSCallbackController;
 
@@ -70,3 +71,7 @@ Route::middleware('auth:api')->group(function () {
     // our routes to be protected will go in here
     Route::post('/sms/afyacall/enticement', [WebsiteApiController::class, 'websiteEnticement']);
 });
+
+Route::get('/metrics', [MetricsApiController::class, 'index'])
+    ->name('metrics')
+    ->withoutMiddleware(['web', 'auth']);

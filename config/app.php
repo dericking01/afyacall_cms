@@ -1,7 +1,6 @@
 <?php
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Application Name
@@ -135,7 +134,6 @@ return [
     */
 
     'providers' => [
-
         /*
          * Laravel Framework Service Providers...
          */
@@ -166,6 +164,10 @@ return [
          * Package Service Providers...
          */
 
+        Arquivei\LaravelPrometheusExporter\PrometheusServiceProvider::class,
+        Arquivei\LaravelPrometheusExporter\GuzzleServiceProvider::class,
+        Arquivei\LaravelPrometheusExporter\DatabaseServiceProvider::class,
+
         /*
          * Application Service Providers...
          */
@@ -180,7 +182,6 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\HorizonServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
-
     ],
 
     /*
@@ -195,7 +196,6 @@ return [
     */
 
     'aliases' => [
-
         'App' => Illuminate\Support\Facades\App::class,
         'Arr' => Illuminate\Support\Arr::class,
         'Artisan' => Illuminate\Support\Facades\Artisan::class,
@@ -234,7 +234,5 @@ return [
         'View' => Illuminate\Support\Facades\View::class,
 
         'Excel' => Maatwebsite\Excel\Facades\Excel::class,
-
     ],
-
 ];

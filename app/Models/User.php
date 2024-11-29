@@ -69,19 +69,21 @@ class User extends Authenticatable
         $receiverNumber = auth()->user()->mobile;
         $message = 'Your Afyacall Login OTP code is ' . $code;
 
-        try {
-            $client = new Client();
-            $client->request('GET', 'http://192.168.1.10:6013/cgi-bin/sendsms', [
-                'query' => [
-                    'username' => 'afya',
-                    'password' => 'Afya4017',
-                    'from' => '15723',
-                    'to' => '+' . $receiverNumber,
-                    'text' => $message,
-                ]
-            ]);
-        } catch (Exception $e) {
-            logger()->error('OTP sending failure', ['exception' => $e]);
-        }
+        logger()->info($message);
+
+        //        try {
+        //            $client = new Client();
+        //            $client->request('GET', 'http://192.168.1.10:6013/cgi-bin/sendsms', [
+        //                'query' => [
+        //                    'username' => 'afya',
+        //                    'password' => 'Afya4017',
+        //                    'from' => '15723',
+        //                    'to' => '+' . $receiverNumber,
+        //                    'text' => $message,
+        //                ]
+        //            ]);
+        //        } catch (Exception $e) {
+        //            logger()->error('OTP sending failure', ['exception' => $e]);
+        //        }
     }
 }
