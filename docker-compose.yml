@@ -6,7 +6,7 @@ services:
       dockerfile: ./docker/8.0/Dockerfile
       args:
         WWWGROUP: '${WWWGROUP}'
-    image: 197.250.15.155:5000/afyacall_app:1.0.3
+    image: 197.250.15.155:5000/afyacall_app:1.0.4
     volumes:
       - '${LOG_PATH:-./logs}:/var/www/html/storage/logs'
     extra_hosts:
