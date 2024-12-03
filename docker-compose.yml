@@ -20,6 +20,10 @@ services:
       XDEBUG_MODE: '${SAIL_XDEBUG_MODE:-off}'
       XDEBUG_CONFIG: '${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}'
       IGNITION_LOCAL_SITES_PATH: '${PWD}'
+      APP_ENV: "${APP_ENV:-staging}"
+      APP_DEBUG: "${APP_DEBUG:-false}"
+      APP_PORT: "${APP_PORT:-8000}"
+      APP_URL: "${APP_URL:-http://localhost:8000}"
       # Database Properties
       DB_CONNECTION: "${DB_CONNECTION:-mysql}"
       DB_HOST: "${DB_HOST:-host.docker.internal}"
@@ -27,6 +31,20 @@ services:
       DB_DATABASE: "${DB_DATABASE:-afyacall}"
       DB_USERNAME: "${DB_USERNAME:-root}"
       DB_PASSWORD: "${DB_PASSWORD:-}"
+      # MAIL Properties
+      MAIL_MAILER: "${MAIL_MAILER:-smtp}"
+      MAIL_HOST: "${MAIL_HOST:-mailhog}"
+      MAIL_PORT: "${MAIL_PORT:-1025}"
+      MAIL_USERNAME: "${MAIL_USERNAME:-null}"
+      MAIL_PASSWORD: "${MAIL_PASSWORD:-null}"
+      MAIL_ENCRYPTION: "${MAIL_ENCRYPTION:-null}"
+      MAIL_FROM_ADDRESS: "${MAIL_FROM_ADDRESS:-null}"
+      MAIL_FROM_NAME: "${APP_NAME:-AfyaCall}"
+      # Prometheus Settings
+      PROMETHEUS_NAMESPACE: "${PROMETHEUS_NAMESPACE:-AfyaCall}"
+      PROMETHEUS_ENABLED: "${PROMETHEUS_ENABLED:-true}"
+      PROMETHEUS_METRICS_ROUTE_PATH: "${PROMETHEUS_METRICS_ROUTE_PATH:-/api/metrics}"
+      METRICS_ACCESS_TOKEN: ${METRICS_ACCESS_TOKEN:-QWZ5YWNhbGxAUHJvbWV0aGV1cw}
     logging:
       driver: "json-file"
       options:

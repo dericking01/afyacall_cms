@@ -11,7 +11,7 @@ class MetricsService
 
     public function __construct(CollectorRegistry $registry)
     {
-        $this->registry = $registry;
+        $this->registry = $registry->getDefault();
     }
 
     /**
