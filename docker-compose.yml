@@ -9,6 +9,7 @@ services:
     working_dir: /var/www/html
     image: twiga.afyacall.co.tz:5000/afyacall_app:1.0.7
     volumes:
+      - vendor_data:/var/www/html/vendor
       - ./:/var/www/html
     environment:
       APP_NAME: AfyaCall
@@ -32,12 +33,17 @@ services:
 
   # Nginx service with SSL
   nginx:
-    image: twiga.afyacall.co.tz:5000/nginx:1.25-alpine
+    platform: linux/amd64
+    image: twiga.afyacall.co.tz:5000/afycall_core_nginx
+    build:
+      context: .
+      dockerfile: ./docker/nginx/Dockerfile
     container_name: core_nginx
     ports:
-      - "5443:80"   # SSL port
+      - "5443:443"   # SSL port
     volumes:
       - ./:/var/www/html
+      - vendor_data:/var/www/html/vendor
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
       - ./docker/certs/twiga.afyacall.co.tz.crt:/etc/nginx/ssl/twiga.afyacall.co.tz.crt
       - ./docker/certs/twiga.afyacall.co.tz.key:/etc/nginx/ssl/twiga.afyacall.co.tz.key
@@ -50,3 +56,6 @@ services:
 networks:
   afyacall_core_network:
     driver: bridge
+
+volumes:
+  vendor_data:
