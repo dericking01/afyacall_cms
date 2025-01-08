@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     zip \
     curl \
+    supervisor \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
@@ -39,12 +40,23 @@ COPY . .
 # Install dependencies
 RUN composer install --no-dev --optimize-autoloader
 
+# Add Horizon Assets
+RUN php artisan horizon:publish
+
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
+# Create supervisor log directory
+RUN mkdir -p /var/log/supervisor
+
+# Copy supervisor config and startup script
+COPY ./docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY ./docker/start-container /usr/local/bin/start-container
+RUN chmod +x /usr/local/bin/start-container
+
 # Expose port
 EXPOSE 9000
 
-# Start PHP-FPM server
-CMD ["php-fpm"]
+# Start supervisor
+CMD ["/usr/local/bin/start-container"]
