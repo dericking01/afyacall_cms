@@ -28,6 +28,9 @@ services:
       QUEUE_CONNECTION: sync
       SESSION_DRIVER: file
       SESSION_LIFETIME: 30
+      REDIS_HOST: localhost
+      REDIS_PASSWORD: null
+      REDIS_PORT: 6379
     networks:
       - afyacall_core_network
 
