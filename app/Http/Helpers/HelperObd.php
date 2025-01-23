@@ -34,7 +34,7 @@ class HelperObd
         $campaign = Outboundcall::where('id', $campaing_id)->get()->first();
         try {
             $client = new \GuzzleHttp\Client();
-	    $client->request('GET', 'http://192.168.1.41/callfile/callfile.php', [
+	    $client->request('GET', 'http://192.168.1.49/callfile/callfile.php', [
 		     'verify' => false,
                 'query' => [
                     'msisdn' => $msisdn,

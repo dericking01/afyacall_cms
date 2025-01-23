@@ -36,12 +36,14 @@ class CallBackController extends Controller
             FlipEnticement::dispatchSync($request->output_ConversationID, $request->output_ResponseCode, $request->output_Receipt, $request->output_ResponseDesc, abs($request->output_ChargedAmount),$request->output_PaymentChannel );
 
         }
+        // post data to update the transaction status
+        TransactionMpesaUpdates::dispatchSync($request->output_ConversationID, $request->output_ResponseCode, $request->output_Receipt, $request->output_ResponseDesc, abs($request->output_ChargedAmount),$request->output_PaymentChannel );
         
         //icg can be airtime or Mpesa
         if ($request->output_PaymentChannel == "M-Pesa" || $request->output_PaymentChannel == "Airtime") {
             //post data to update the transaction status
 
-            TransactionMpesaUpdates::dispatchSync($request->output_ConversationID, $request->output_ResponseCode, $request->output_Receipt, $request->output_ResponseDesc, abs($request->output_ChargedAmount),$request->output_PaymentChannel );
+            // TransactionMpesaUpdates::dispatchSync($request->output_ConversationID, $request->output_ResponseCode, $request->output_Receipt, $request->output_ResponseDesc, abs($request->output_ChargedAmount),$request->output_PaymentChannel );
             
             if ($request->output_ResponseCode == "0") {
 

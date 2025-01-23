@@ -119,8 +119,22 @@ class IVRController extends Controller
                     }
                     //charge the customer airtime
                     if ($request->via == '1') {
-                        $res = $this->chargiartime($request->Caller_Number, $product->id, $request->amount);
-                        if ($res) {
+                        if ($excustomer->ivr_enticement != 1) {
+                            //push enticement to customer
+                            $data = $this->pushivrenticement($request->Caller_Number);
+                            if ($data['output_ResponseCode'] == '0') {
+                                //if has enticement status
+                                $excustomer->ivr_enticement = 1;
+                                $excustomer->save();
+                                
+                            }
+                        }
+
+                        sleep(10); // Pause execution for 20 seconds
+                        $res = $this->chargempesa($request->Caller_Number, $product->id, $request->amount);
+                        // Ensure $res is an array
+                        $resData = $res->getData(true); // Convert JSON response to array
+                        if ($resData && $resData['status'] == '0') {
                             $sw = 'Umelipia Kikamilifu Tsh ' . $request->amount . ' kwenye huduma ya Vodacom AFYACALL IVR';
                             $en = 'You have Successfully paid Tsh ' . $request->amount . ' for the Vodacom AFYACALL IVR service';
                             ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
@@ -144,38 +158,42 @@ class IVRController extends Controller
                             return response()->json($resp);
                         }
                     } else {
-                        if ($excustomer->ivr_enticement == 0) {
+                        if ($excustomer->ivr_enticement != 1) {
                             //push enticement to customer
                             $data = $this->pushivrenticement($request->Caller_Number);
-                            if ($data['output_ResponseCode'] == '-7') {
+                            if ($data['output_ResponseCode'] == '0') {
                                 //if has enticement status
                                 $excustomer->ivr_enticement = 1;
                                 $excustomer->save();
-                                $resp = [
-                                    "status" => "76",
-                                    "message" => $data['output_ResponseDesc'],
-                                    "msisdn" => $request->Caller_Number,
-                                ];
-                                return response()->json($resp);
                             }
-                            if ($data['output_ResponseCode'] == 0) {
+
+                            sleep(10); // Pause execution for 20 seconds
+                            $res = $this->chargempesa($request->Caller_Number, $product->id, $request->amount);
+                            // Ensure $res is an array
+                            $resData = $res->getData(true); // Convert JSON response to array
+                            if ($resData && $resData['status'] == '0') {
+                                $sw = 'Umelipia Kikamilifu Tsh ' . $request->amount . ' kwenye huduma ya Vodacom AFYACALL IVR';
+                                $en = 'You have Successfully paid Tsh ' . $request->amount . ' for the Vodacom AFYACALL IVR service';
+                                ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
+
                                 $resp = [
-                                    "status" => "77",
-                                    "message" => $data['output_ResponseDesc'],
+                                    "status" => "1",
+                                    "message" => "success",
                                     "msisdn" => $request->Caller_Number,
                                 ];
                                 return response()->json($resp);
                             } else {
+                                $sw = 'Hauna salio la kutosha kupata huduma hii.Ongeza salio kisha piga namba 0900011111 kwa gharama ya Tsh ' . $request->amount . '/ ugonjwa';
+                                $en = 'You have insufficient balance.Please recharge and dial number  0900011111 at a cost of Tzs ' . $request->amount . ' per Tip';
+                                ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
+
                                 $resp = [
-                                    "status" => "76",
-                                    "message" => $data['output_ResponseDesc'],
+                                    "status" => "0",
+                                    "message" => "Failed",
                                     "msisdn" => $request->Caller_Number,
                                 ];
                                 return response()->json($resp);
                             }
-                        } else {
-                            $resmpesa = $this->chargempesa($request->Caller_Number, $request->productID, $request->amount);
-                            return $resmpesa;
                         }
                     }
                 } else {
@@ -291,8 +309,18 @@ class IVRController extends Controller
                 }
 
                 if ($request->via == '1') {
-                    $res = $this->chargiartime($request->Caller_Number, $product->id, $request->amount);
-                    if ($res) {
+                    $data = $this->pushivrenticement($request->Caller_Number);
+                    if ($data['output_ResponseCode'] == '0') {
+                        //if has enticement status
+                        $customer->ivr_enticement = 1;
+                        $customer->save();
+                    }
+
+                    sleep(10); // Pause execution for 20 seconds
+                    $res = $this->chargempesa($request->Caller_Number, $product->id, $request->amount);
+                    // Ensure $res is an array
+                    $resData = $res->getData(true); // Convert JSON response to array
+                    if ($resData && $resData['status'] == '0') {
                         $sw = 'Umelipia Kikamilifu Tsh ' . $request->amount . ' kwenye huduma ya Vodacom AFYACALL IVR';
                         $en = 'You have Successfully paid Tsh ' . $request->amount . ' for the Vodacom AFYACALL IVR service';
                         ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
@@ -304,8 +332,8 @@ class IVRController extends Controller
                         ];
                         return response()->json($resp);
                     } else {
-                        $sw = 'Hauna salio la kutosha kupata huduma hii.Ongeza salio kisha Tuma neno AFYAIVR kwenda 15723 au piga 0900011111 kwa gharama ya Tsh.300/IVR/siku.';
-                        $en = 'You have insufficient balance.Please recharge and send keyword AFYAIVR to shortcode 15723 or dial 0900011111 at a cost of Tsh.300/ IVR/day.';
+                        $sw = 'Hauna salio la kutosha kupata huduma hii.Ongeza salio kisha piga namba 0900011111 kwa gharama ya Tsh ' . $request->amount . '/ ugonjwa';
+                        $en = 'You have insufficient balance.Please recharge and dial number  0900011111 at a cost of Tzs ' . $request->amount . ' per Tip';
                         ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
 
                         $resp = [
@@ -318,25 +346,35 @@ class IVRController extends Controller
                 } else {
                     // Mpesa part and enticements
                     $data = $this->pushivrenticement($request->Caller_Number);
+                    if ($data['output_ResponseCode'] == '0') {
+                        //if has enticement status
+                        $customer->ivr_enticement = 1;
+                        $customer->save();
+                    }
 
-                    if ($data['output_ResponseCode'] == 0) {
-                        $costomr = Customer::where('msisdn', $request->Caller_Number)
-                            ->get()
-                            ->first();
-                        if ($costomr) {
-                            $costomr->ivr_enticement = 1;
-                            $costomr->save();
-                        }
+                    sleep(10); // Pause execution for 10 seconds
+                    $res = $this->chargempesa($request->Caller_Number, $product->id, $request->amount);
+                    // Ensure $res is an array
+                    $resData = $res->getData(true); // Convert JSON response to array
+                    if ($resData && $resData['status'] == '0') {
+                        $sw = 'Umelipia Kikamilifu Tsh ' . $request->amount . ' kwenye huduma ya Vodacom AFYACALL IVR';
+                        $en = 'You have Successfully paid Tsh ' . $request->amount . ' for the Vodacom AFYACALL IVR service';
+                        ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
+
                         $resp = [
-                            "status" => "77",
-                            "message" => $data['output_ResponseDesc'],
+                            "status" => "1",
+                            "message" => "success",
                             "msisdn" => $request->Caller_Number,
                         ];
                         return response()->json($resp);
                     } else {
+                        $sw = 'Hauna salio la kutosha kupata huduma hii.Ongeza salio kisha piga namba 0900011111 kwa gharama ya Tsh ' . $request->amount . '/ ugonjwa';
+                        $en = 'You have insufficient balance.Please recharge and dial number  0900011111 at a cost of Tzs ' . $request->amount . ' per Tip';
+                        ProcessLanguage::dispatchSync($request->Caller_Number, $sw, $en);
+
                         $resp = [
-                            "status" => "76",
-                            "message" => $data['output_ResponseDesc'],
+                            "status" => "0",
+                            "message" => "Failed",
                             "msisdn" => $request->Caller_Number,
                         ];
                         return response()->json($resp);
@@ -521,7 +559,7 @@ class IVRController extends Controller
             Log::info($th->getMessage());
 
             $resp = [
-                "status" => "0",
+                "status" => "-1",
                 "message" => $th->getMessage(),
                 "msisdn" => $phone,
             ];

@@ -19,7 +19,7 @@ class CreateTransactionsTable extends Migration
             $table->date('transaction_date')->nullable();
             $table->double('amount_IN')->default(0);
             $table->string('token')->nullable();
-            $table->string('currency')->default('TZS');
+            $table->string('currency')->default('TZS')->nullable();
             $table->string('transaction_type')->nullable();
             $table->string('response')->nullable();
             $table->string('status')->nullable();

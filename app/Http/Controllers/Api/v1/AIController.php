@@ -33,7 +33,8 @@ class AIController extends Controller
             '+255752519208', '+255757490210', '+255757490210', '+255765000112',
             '+255767281851', '+255767281851', '+255755185361', '+255744173668',
             '+255763285448', '+255743844528', '+255761559696', '+255761350499',
-            '+255769888868', '+255745346783', '+255749955988'
+            '+255769888868', '+255745346783', '+255749955988', '+255757745322',
+            '+255767455554', '+255754710283', '+255764636000', '+255756734448'
         ];
         if (in_array(strtolower($request->sender), $authorizedSenders)) {
             $token = $this->getAuthToken();
@@ -70,52 +71,52 @@ class AIController extends Controller
                     }
                 }
             }
-        }
+    }
 
-        public function getAuthToken() 
-        {
-            $clientId = 'afyacall';
-            $clientSecret = 'secret';
-            $authString = base64_encode($clientId . ':' . $clientSecret);
-            try {
+    public function getAuthToken() 
+    {
+        $clientId = 'afyacall';
+        $clientSecret = 'secret';
+        $authString = base64_encode($clientId . ':' . $clientSecret);
+        try {
+            $client = new \GuzzleHttp\Client();
+            $response = $client->request('POST', 'https://192.168.1.212/oauth2/token', [
+                'verify' => false,
+                'headers' => [
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                    'Authorization' => 'Basic ' . $authString,
+                ],
+                'form_params' => [
+                    'grant_type' => 'client_credentials'
+                ]
+            ]);
+    
+            $data = json_decode($response->getBody(), true);
+            return $data['access_token'] ?? null;
+
+        } catch (RequestException $e) {
+            Log::error($e->getMessage());
+            return null;
+        }
+    }
+
+    public function sendSmsResponse($msisdn, $message)
+    {
+        try {
                 $client = new \GuzzleHttp\Client();
-                $response = $client->request('POST', 'https://192.168.1.212/oauth2/token', [
-                    'verify' => false,
-                    'headers' => [
-                        'Content-Type' => 'application/x-www-form-urlencoded',
-                        'Authorization' => 'Basic ' . $authString,
-                    ],
-                    'form_params' => [
-                        'grant_type' => 'client_credentials'
+                $client->request('GET', 'http://192.168.1.10:6013/cgi-bin/sendsms', [
+                    'query' => [
+                        'username' => 'afya',
+                        'password' => 'Afya4017',
+                        'from' => '15723',
+                        'to' => $msisdn,
+                        'text' => $message,
                     ]
                 ]);
-        
-                $data = json_decode($response->getBody(), true);
-                return $data['access_token'] ?? null;
 
-            } catch (RequestException $e) {
-                Log::error($e->getMessage());
-                return null;
-            }
+        } catch (\Throwable $e) {
+            Log::error($e->getMessage());
+            return null;
         }
-
-        public function sendSmsResponse($msisdn, $message)
-        {
-            try {
-                    $client = new \GuzzleHttp\Client();
-                    $client->request('GET', 'http://192.168.1.10:6013/cgi-bin/sendsms', [
-                        'query' => [
-                            'username' => 'afya',
-                            'password' => 'Afya4017',
-                            'from' => '15723',
-                            'to' => $msisdn,
-                            'text' => $message,
-                        ]
-                    ]);
-
-            } catch (\Throwable $e) {
-                Log::error($e->getMessage());
-                return null;
-            }
-        }
+    }
 }

@@ -23,6 +23,8 @@ use App\Http\Controllers\Admin\BillingController;
 use App\Http\Controllers\Admin\ContactController;
 use App\Http\Controllers\Admin\OutBoundCampaign;
 use App\Http\Controllers\Admin\PromotionController;
+use Illuminate\Support\Facades\Redis;
+
 
 
 Route::redirect('/', '/login');
@@ -157,19 +159,43 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     Route::post('/contact/enticegroupsprocess', [ContactController::class, 'enticegroupsprocess'])->name('contact.enticegroupsprocess');
     Route::get('/contact/groupsdetails/{id}', [ContactController::class, 'groupsdetails'])->name('contact.groupsdetails');
     Route::post('/contact/groupsupdates', [ContactController::class, 'groupsupdates'])->name('contact.groupsupdates');
+    Route::post('/contact/group/store',[ContactController::class, 'groups_store'])->name('contact.group.store');
+    Route::get('/contact/groups/import/{id}',[ContactController::class,'groupImport'])->name('contact.groups.import');
+    Route::post('/contact/group/store/contacts',[ContactController::class, 'importContactGroup'])->name('contact.group.store.contacts');
+
+
+
+    //delete contact in a group
+    Route::delete('/contact/group/contacts/destroy{id}', [ContactController::class,'destroyContact'])->name('contact.group.contacts.destroy');
+
+    //delete group with all contacts
+    Route::delete('/contact/group/destroy{id}', [ContactController::class,'destroyGroup'])->name('contact.group.destroy');
+
 
     // Campaigns list
     // Outbound Campaign Routes
-Route::post('/contact/outboundcampaing/store', [OutBoundCampaign::class, 'store'])->name('contact.outboundcampaing.store');
-Route::get('/contact/outboundcampaing/create', [OutBoundCampaign::class, 'create'])->name('contact.outboundcampaing.create');
-Route::get('/contact/outboundcampaing', [OutBoundCampaign::class, 'index'])->name('contact.outboundcampaing');
-Route::get('/contact/outboundcampaing/show/{id}', [OutBoundCampaign::class, 'show'])->name('contact.outboundcampaign.show');
+    Route::post('/contact/outboundcampaing/store', [OutBoundCampaign::class, 'store'])->name('contact.outboundcampaing.store');
+    Route::get('/contact/outboundcampaing/create', [OutBoundCampaign::class, 'create'])->name('contact.outboundcampaing.create');
+    Route::get('/contact/outboundcampaing', [OutBoundCampaign::class, 'index'])->name('contact.outboundcampaing');
+    Route::get('/contact/outboundcampaing/show/{id}', [OutBoundCampaign::class, 'show'])->name('contact.outboundcampaign.show');
 
     Route::get('/contact/reportscampaign/{id}', [ContactController::class, 'reportscampaign'])->name('contact.reportscampaign');
     Route::get('/contact/reportsgroups/{id}', [ContactController::class, 'reportsgroups'])->name('contact.reportsgroups');
 
    // Promotions
-Route::resource('promotions', PromotionController::class);
-Route::post('promotions/import', [PromotionController::class, 'import'])->name('promotion-import');
+    Route::resource('promotions', PromotionController::class);
+    Route::post('promotions/import', [PromotionController::class, 'import'])->name('promotion-import');
 
+    
+
+});
+
+Route::get('/error', function () {
+    abort(500);
+});
+
+
+Route::get('/test-redis', function () {
+    Redis::set('test_key', 'test_value');
+    return Redis::get('test_key');
 });

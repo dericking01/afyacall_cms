@@ -40,7 +40,8 @@ class Kernel extends ConsoleKernel
         //run charging airtime
         $schedule->command('mpesa:daily')
             ->timezone('Africa/Dar_es_Salaam')
-            ->cron('0 0,2,4,6,8,10,12,14,16,18,20,22 * * *');
+            // ->cron('0 0,2,4,6,8,10,12,14,16,18,20,22 * * *');
+            ->cron('*/45 * * * *');
             
         //current revenue            
         $schedule->command('sms:revenue')

@@ -11,6 +11,7 @@ use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
+
 class ChargingMpesa
 {
     function __construct()
@@ -107,9 +108,108 @@ class ChargingMpesa
         }
     }
 
+    private function chargeviampesaNew($product_ID, $cellNo)
+    {
+        // Define fallback ranges for each product
+        $fallbackRanges = [
+            '921465_P02' => range(150, 50, -10), // SMS Service Product
+            '921465_P01' => range(300, 50, -13), // IVR Service Product
+            '921465_P03' => range(200, 50, -10), // Doctor Call Service Product
+        ];
+
+        // Skip balance query and directly use fallback ranges
+        if (!isset($fallbackRanges[$product_ID])) {
+            Log::info("Invalid product ID: {$product_ID}");
+            return false;
+        }
+
+        // Retrieve the customer and product details before entering the loop
+        $customer = Customer::where('msisdn', $cellNo)->first();
+        if (!$customer) {
+            Log::info("Customer with MSISDN {$cellNo} not found");
+            return false;
+        }
+
+        $product = Product::where('product_ID', $product_ID)->first();
+        if (!$product) {
+            Log::info("Product with ID {$product_ID} not found");
+            return false;
+        }
+
+        $fallbackAmounts = $fallbackRanges[$product_ID];
+
+        foreach ($fallbackAmounts as $amount) {
+            // Get today's date in 'Y-m-d' format
+            $today = Carbon::today()->toDateString();
+
+            // Check if the customer has already been charged for this product today
+            $existingTransaction = Transaction::where('customer_ID', $customer->id)
+                ->where('product_id', $product->id)
+                ->whereDate('transaction_date', $today) // Check if the transaction is from today
+                ->where('status', 0) // Assuming 0 means pending or unprocessed
+                ->first();
+
+            if ($existingTransaction) {
+                Log::info("MSISDN {$cellNo} has already been charged for product {$product_ID} today, skipping...");
+                continue; // Skip this iteration and move to the next amount
+            }
+
+            // Proceed with the charging process for each amount
+            $code = Opt::getCode();
+
+            Log::info("Attempting to charge {$amount} for msisdn {$cellNo} under product {$product_ID}");
+
+            try {
+                $client = new \GuzzleHttp\Client();
+                $response = $client->request('POST', 'https://197.250.9.191:23000/icg/Charge/', [
+                    'verify' => false,
+                    'headers' => [
+                        'Content-Type' => 'application/json',
+                    ],
+                    'json' => [
+                        'input_Username' => '921465',
+                        'input_Password' => '5pmls4V!9]O]{IF',
+                        'input_WASPShortcode' => '921465',
+                        'input_ProductID' => $product_ID,
+                        'input_CustomerMSISDN' => $cellNo,
+                        'input_Currency' => 'TZS',
+                        'input_Amount' => $amount,
+                        'input_ChargeType' => 'Subscription',
+                        'input_OriginatorConversationID' => $code,
+                    ]
+                ]);
+
+                $results = $response->getBody()->getContents();
+                $data = json_decode($results, true);
+
+                // Register transaction
+                $trans = new Transaction();
+                $trans->customer_ID = $customer->id;
+                $trans->amount_IN = $amount;
+                $trans->transaction_date = Opt::getServertime(); // Use actual server time for transaction date
+                $trans->status = 0;
+                $trans->product_id = $product->id;
+                $trans->currency = "Airtime";
+                $trans->response = $data['output_ResponseDesc'];
+                $trans->conventions_ID = $data['output_ConversationID'];
+                $trans->response_code = $data['output_ResponseCode'];
+                $trans->save();
+
+                Log::info("Transaction saved for {$amount} on msisdn {$cellNo}");
+
+                // Stop further processing after a successful charge
+                break;
+
+            } catch (\Throwable $th) {
+                Log::info("Charge failed for {$amount} on msisdn {$cellNo}: " . $th->getMessage());
+            }
+        }
+
+        return true;
+    }
+
     private function chargeviampesa($product_ID, $cellNo, $amount)
     {
-
         $balance = intval(abs($this->checkbalance($product_ID, $cellNo)));
 
         // Define balance ranges for each product
@@ -177,6 +277,11 @@ class ChargingMpesa
         } catch (\Throwable $th) {
             Log::info($th->getMessage());
         }
+    }
+
+    public function charge($product_ID, $cellNo, $amount)
+    {
+        return $this->chargeviampesa($product_ID, $cellNo, $amount);
     }
 
 }
