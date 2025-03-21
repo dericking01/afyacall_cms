@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # Application service
+  afyacall:
+    image: localhost:5000/afyacall_app:1.0.81
+    environment:
+      - APP_NAME=AfyaCall
+      - APP_ENV=local
+      - APP_URL=https://twiga.afyacall.co.tz
+      - LOG_CHANNEL=stack
+      - DB_CONNECTION=mysql
+      - DB_HOST=192.168.1.11
+      - DB_PORT=3306
+      - DB_DATABASE=afyacalltestdb
+      - DB_USERNAME=rm_db
+      - DB_PASSWORD=AfyPassdb123a*
+      - BROADCAST_DRIVER=log
+      - CACHE_DRIVER=file
+      - QUEUE_CONNECTION=redis
+      - SESSION_DRIVER=file
+      - SESSION_LIFETIME=30
+      - REDIS_HOST=redis-stack-server
+      - REDIS_PASSWORD=null
+      - REDIS_PORT=6379
+    volumes:
+      - /var/log/afyacall_core:/var/www/html/storage/logs
+    networks:
+      - redis-server_afycall_redis_net
+      - afyacall_core_afyacall_core_network
+
+  # Nginx service with SSL
+  nginx:
+    image: localhost:5000/afycall_core_nginx
+    ports:
+      - "5443:443"   # SSL port
+    volumes:
+      - /certs/default.conf:/etc/nginx/conf.d/default.conf
+      - /certs/twiga.afyacall.co.tz.crt:/etc/nginx/ssl/twiga.afyacall.co.tz.crt
+      - /certs/twiga.afyacall.co.tz.key:/etc/nginx/ssl/twiga.afyacall.co.tz.key
+    depends_on:
+      - afyacall
+    networks:
+      - afyacall_core_afyacall_core_network
+
+networks:
+  redis-server_afycall_redis_net:
+    external: true
+    name: redis-server_afycall_redis_net
+  afyacall_core_afyacall_core_network:
+    driver: overlay
+    attachable: true
