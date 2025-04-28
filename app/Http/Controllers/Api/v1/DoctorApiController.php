@@ -13,6 +13,8 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Controllers\Api\v1\IVRController;
+
 
 class DoctorApiController extends Controller
 {
@@ -327,10 +329,14 @@ class DoctorApiController extends Controller
         }
 
     }
-    public function chargedoctorrequestfrompbx(Request $request)
+
+    public function chargedoctorrequestfrompbx(Request $request, IVRController $subscription)
     {
         // Log all incoming requests
-        Log::info($request->all());
+
+        Log::info("Received DOC SUB API PBX request", [
+            'data' => json_encode($request->all(), JSON_PRETTY_PRINT)
+        ]);
     
         // Validate the incoming data
         $validator = Validator::make($request->all(), [
@@ -344,16 +350,25 @@ class DoctorApiController extends Controller
     
         $msisdn = $request->msisdn;
         $amount = $request->amount;
+        $docSuBproduct_Id = '921465_P03';
+
     
         $customer = Customer::where('msisdn', $msisdn)->first();
     
         if ($customer) {
+
+            if ($customer->doctor_enticement != 1) {
+
+                $sInfo = $subscription->ServiceInfoSub($msisdn, $docSuBproduct_Id);
+
+            }
+
             if ($customer->doctor_subscription_status != 1) {
                 $res = $this->chargiartimedoctorsubsription($msisdn, $amount);
     
                 if ($res) {
                     $customer->doctor_subscription_status = 1;
-                    $customer->other_status += 60;
+                    $customer->other_status += 300;
                     $customer->save();
 
                     //add the customer to subscribtion
@@ -417,11 +432,15 @@ class DoctorApiController extends Controller
                 return response()->json($response);
             }
         } else {
+
+            
             $customer = new Customer();
             $customer->msisdn = $msisdn;
             $customer->registered_at = Opt::getServertime();
             $customer->doctor_subscription_status = 0;
             $customer->save();
+            
+            $sInfo = $subscription->ServiceInfoSub($msisdn, $docSuBproduct_Id);
     
             $opt = new Opt();
             $opt->customer_ID = $customer->id;
@@ -434,7 +453,7 @@ class DoctorApiController extends Controller
     
             if ($res) {
                 $customer->doctor_subscription_status = 1;
-                $customer->other_status += 60;
+                $customer->other_status += 300;
                 $customer->save();
 
                 //add the customer to subscribtion
@@ -605,7 +624,7 @@ class DoctorApiController extends Controller
         //try charging
         try {
             $client = new \GuzzleHttp\Client;
-            $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');
+            $credentials = base64_encode('svc_afyacall:j8J7EPxXTnrW_#MQ');
             $response = $client->post('https://197.250.9.149:6202/middlewarev2/serviceAccountAdjustment', [
                 'verify' => false,
                 'headers' => [

@@ -106,7 +106,7 @@ class Dailysms
                         ->update(['content' => null]);
                     $sw = 'Message for this user has finished ' . $msisdn;
                     $en = 'Message for this user has finished ' . $msisdn;
-                    ProcessLanguage::dispatchSync('255746805383', $sw, $en);
+                    ProcessLanguage::dispatchSync('255743956595', $sw, $en);
                 }
             }
         }

@@ -16,6 +16,9 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
+use App\Events\SubscriptionUpdated;
+use Illuminate\Support\Facades\Log;
+
 
 class TransactionMpesaUpdates implements ShouldQueue
 {
@@ -65,6 +68,7 @@ class TransactionMpesaUpdates implements ShouldQueue
                             break;
                         case '921465_P03': // Doctor
                             $customer->doctor_subscription_status = 1;
+                            $customer->other_status += 300;
                             break;
                         case '921465_P02': // Default which is sms
                         default:
@@ -83,6 +87,9 @@ class TransactionMpesaUpdates implements ShouldQueue
                     $subscription->starts_at = Carbon::now();
                     $subscription->ends_at = Carbon::now()->addDays(1);
                     $subscription->save();
+
+                    // Dispatch the event to send data to the third party
+                    event(new SubscriptionUpdated($subscription));
                 }
             } else {
                 $transaction->status = 0;

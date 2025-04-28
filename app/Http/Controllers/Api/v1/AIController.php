@@ -12,6 +12,7 @@ class AIController extends Controller
     public function fromkannel(Request $request)
     {
 
+        Log::info("******FOWARDING TO BOT*******");
         Log::info($request->all());
         // Define authorized senders
         $authorizedSenders = [
@@ -34,7 +35,12 @@ class AIController extends Controller
             '+255767281851', '+255767281851', '+255755185361', '+255744173668',
             '+255763285448', '+255743844528', '+255761559696', '+255761350499',
             '+255769888868', '+255745346783', '+255749955988', '+255757745322',
-            '+255767455554', '+255754710283', '+255764636000', '+255756734448'
+            '+255767455554', '+255754710283', '+255764636000', '+255756734448',
+            '+255767201998', '+255766073577', '+255754711134', '+255753932250',
+            '+255756413267', '+255758052385', '+255742583904', '+255754946497',
+            '+255793581191', '+255744583729', '+255752007686', '+255743029761',
+            '+255754710082', '+255742901155', '+255757064197', '+255757064197',
+	        '+255744645959', '+255755701700'
         ];
         if (in_array(strtolower($request->sender), $authorizedSenders)) {
             $token = $this->getAuthToken();
@@ -42,11 +48,11 @@ class AIController extends Controller
             if ($token) {
                 try {
                         $client = new \GuzzleHttp\Client();
-                        $response = $client->request('POST', 'https://192.168.1.212/api/v1/chat', [
+                        $response = $client->request('POST', 'https://192.168.1.200:443/api/v1/chat-service/chat', [
                             'verify' => false,
                             'headers' => [
                                 'Content-Type' => 'application/json',
-                                'Authorization' => 'Bearer ' . $token,
+                                // 'Authorization' => 'Bearer ' . $token,
                             ],
                             'json' => [
                                 'sender' => $request->sender,
@@ -64,7 +70,7 @@ class AIController extends Controller
                         $this->sendSmsResponse($request->sender, $data['response']);
 
 
-                        return true;
+                        // return true;
                     } catch (\Throwable $th) {
                         Log::error("there is an error on redirect to AI");
                         Log::error($th->getMessage());
@@ -113,6 +119,8 @@ class AIController extends Controller
                         'text' => $message,
                     ]
                 ]);
+
+                return true;
 
         } catch (\Throwable $e) {
             Log::error($e->getMessage());

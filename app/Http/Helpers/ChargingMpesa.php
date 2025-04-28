@@ -50,7 +50,6 @@ class ChargingMpesa
             $results = $response->getBody()->getContents();
             $data = json_decode($results, true);
 
-
             if ($data['output_ResponseCode'] == '0'){
                 return $data['output_AirtimeBalance'];
             } else {
@@ -85,7 +84,7 @@ class ChargingMpesa
 
         try {
             $client = new \GuzzleHttp\Client;
-            $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');
+            $credentials = base64_encode('svc_afyacall:j8J7EPxXTnrW_#MQ');
             $response = $client->post('https://197.250.9.149:6202/middlewarev2/serviceBalance', [
                 'verify' => false,
                 'headers' => [
@@ -260,7 +259,8 @@ class ChargingMpesa
             ]);
             $results = $response->getBody()->getContents();
             $data = json_decode($results, true);
-            // Register transaction
+            // Log::info('SYNC RESPONSE: ' . json_encode($data));
+            // Register transaction Log::info('SYNC RESPONSE' .$data);
             $trans = new Transaction();
             $trans->customer_ID = $customer->id;
             $trans->amount_IN = $amount;
@@ -277,6 +277,241 @@ class ChargingMpesa
         } catch (\Throwable $th) {
             Log::info($th->getMessage());
         }
+    }
+
+    public function checkbotbalance($productID, $msisdn, $code){
+      
+        try {
+            $client = new \GuzzleHttp\Client();
+            $response = $client->request('POST', 'https://197.250.9.191:23000/icg/query/balance/', [
+                'verify' => false,
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => [
+                    'input_Username' => '921465',
+                    'input_Password' => '5pmls4V!9]O]{IF',
+                    'input_WASPShortcode' => '921465',
+                    'input_ChannelType' => 'API',
+                    'input_ProductID' => $productID,
+                    'input_CustomerMSISDN' => $msisdn,
+                    'input_OriginatorConversationID' => $code,
+                ]
+            ]);
+            $results = $response->getBody()->getContents();
+            $data = json_decode($results, true);
+
+            Log::info("BOT BALANCE:\n". json_encode($data, JSON_PRETTY_PRINT));
+
+            return $data;
+        } catch (\Throwable $th) {
+            Log::info($th->getMessage());
+        }
+
+    }
+
+    public function ChargeService($cellNo, $OriginatorConversation_id, $amount, $product_ID)
+    {
+        $code = Opt::getCode();
+        $customer = Customer::where('msisdn', $cellNo)->first();
+        if (!$customer) {
+            return response()->json([
+                "output_ResponseCode" => "-3",
+                "output_ResponseDesc" => "Customer Not Found",
+                "output_ProductID" => $product_ID,
+                "output_OriginatorConversationID" => $OriginatorConversation_id,
+                "output_ConversationID" => $code,
+            ]);
+        }
+
+        Log::info("Sending charge request to Vodacom for $cellNo | Amount: $amount");
+
+        $payload = [
+            'input_Username' => '921465',
+            'input_Password' => '5pmls4V!9]O]{IF',
+            'input_WASPShortcode' => '921465',
+            'input_ProductID' => $product_ID,
+            'input_CustomerMSISDN' => $cellNo,
+            'input_Currency' => 'TZS',
+            'input_Amount' => $amount,
+            'input_ChargeType' => 'Subscription',
+            'input_OriginatorConversationID' => 'a255c' . $OriginatorConversation_id,
+        ];
+
+        // Log the payload before sending
+        Log::info("BOT Sending Charge Request Payload:\n". json_encode($payload, JSON_PRETTY_PRINT));
+
+
+        try {
+            $client = new \GuzzleHttp\Client();
+            $response = $client->request('POST', 'https://197.250.9.191:23000/icg/Charge/', [
+                'verify' => false,
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => $payload
+            ]);
+            $results = $response->getBody()->getContents();
+            $data = json_decode($results, true);
+            // Log::info('SYNC RESPONSE: ' . json_encode($data));
+            // Check if JSON decoding failed
+            if (!is_array($data)) {
+                Log::error("Invalid JSON response from Vodacom API: " . $results);
+                return response()->json([
+                    "output_ResponseCode" => "-1",
+                    "output_ResponseDesc" => "Invalid response from Vodacom",
+                ], 500);
+            }
+            // Return sync response to Docker server
+            if ($data['output_ResponseCode'] === "0") {
+                // Extract OriginatorConversationID
+                $originatorID = $data['output_OriginatorConversationID'] ?? '';
+            
+                // Check if it starts with 'a255c' and clean it
+                if (str_starts_with($originatorID, 'a255c')) {
+                    $originatorID = substr($originatorID, strlen('a255c'));
+                }
+            
+                $forwardData = $data;
+
+                // Override only the OriginatorConversationID (if cleaned)
+                $forwardData['output_OriginatorConversationID'] = $originatorID;
+
+                Log::info("BOTY SYNC CHARGE RES 2B SENT:\n". json_encode($forwardData, JSON_PRETTY_PRINT));
+
+                $trans = new Transaction();
+                $trans->customer_ID = $customer->id;
+                $trans->amount_IN = $amount;
+                $trans->transaction_date = Opt::getServertime();
+                $trans->status = 0;
+                $trans->product_id = $product->id;
+                $trans->currency = "Airtime";
+                $trans->response = $data['output_ResponseDesc'];
+                $trans->conventions_ID = $data['output_ConversationID'];
+                $trans->response_code = $data['output_ResponseCode'];
+                $trans->save();
+
+                return response()->json($forwardData);
+
+            }
+            
+            // Register transaction Log::info('SYNC RESPONSE' .$data);
+            $trans = new Transaction();
+            $trans->customer_ID = $customer->id;
+            $trans->amount_IN = $amount;
+            $trans->transaction_date = Opt::getServertime();
+            $trans->status = 0;
+            $trans->product_id = $product->id;
+            $trans->currency = "Airtime";
+            $trans->response = $data['output_ResponseDesc'];
+            $trans->conventions_ID = $data['output_ConversationID'];
+            $trans->response_code = $data['output_ResponseCode'];
+            $trans->save();
+
+
+            return true;
+        } catch (\Throwable $th) {
+            Log::info($th->getMessage());
+
+            return response()->json([
+                "output_ResponseCode" => "-4",
+                "output_ResponseDesc" => "System Error",
+                "output_OriginatorConversationID" => $OriginatorConversation_id,
+                "output_ConversationID" => $code,
+            ], 500);
+        }
+    }
+
+    public function botOnDemand($msisdn, $product_ID, $amount, $OriginatorConversation_id)
+    {
+        Log::info("BOT ON DEMAND CHARGING MSISDN: {$msisdn}");
+        Log::info("BOT Product ID for this charge: {$product_ID}");
+
+        $code = Opt::getCode();
+        $customer = Customer::where('msisdn', $msisdn)->get()->first();
+        $product = Product::where('product_ID', $product_ID)->get()->first();
+
+        try {
+            $client = new \GuzzleHttp\Client();
+            $response = $client->request('POST', 'https://197.250.9.191:23000/icg/charge/without/sub', [
+                'verify' => false,
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => [
+                    'input_Username' => '921465',
+                    'input_Password' => '5pmls4V!9]O]{IF',
+                    'input_WASPShortcode' => '921465',
+                    'input_ProductID' => $product_ID,
+                    'input_CustomerMSISDN' => $msisdn,
+                    'input_Currency' => 'TZS',
+                    'input_Amount' => $amount,
+                    'input_ChargeType' => 'Subscription',
+                    'input_ChargeChannel' => 'Synchronous',
+                    'input_OriginatorConversationID' => $OriginatorConversation_id,
+                ],
+            ]);
+
+            $results = $response->getBody()->getContents();
+            $data = json_decode($results, true);
+            // Log::info('LONG CODE SYNC RESPONSE',$data);
+            Log::info("BOT LONG CODE SYNC RESPONSE:\n" . json_encode($data, JSON_PRETTY_PRINT));
+
+
+            if ($data['output_ResponseDesc'] == 'Processed Successfully') {
+                //check if customer found in database
+                if ($customer) {
+                    $customer->doctor_status = 1;
+                    $customer->save();
+
+                    //register successfully transaction
+                    $trans = new Transaction();
+                    $trans->customer_ID = $customer->id;
+                    $trans->amount_IN = $amount;
+                    $trans->transaction_date = Opt::getServertime();
+                    $trans->status = 1;
+                    $trans->product_id = $product->id;
+                    $trans->currency = "Airtime";
+                    $trans->response = $data['output_ResponseDesc'];
+                    $trans->conventions_ID = $data['output_ConversationID'];
+                    $trans->response_code = $data['output_ResponseCode'];
+                    $trans->save();
+
+                }
+            }
+
+            return $data;
+
+        } catch (\Throwable $th) {
+            Log::info("BOT ERROR: " . $th->getMessage());
+            return [
+                'error' => true,
+                'message' => $th->getMessage(),
+            ];
+        }
+    }
+
+    public function loginRequest($loginpayload)
+    {
+
+        try {
+            $client = new \GuzzleHttp\Client;
+            $response = $client->post('https://41.217.203.61:30010/iPG/b2c/ussd_push?wsdl', [
+                'verify' => false,
+                'headers' => [
+                    'Content-Type' => 'text/xml',
+                    'accept" => "*/*',
+                ],
+                'body' => $loginpayload
+            ]);
+
+            return $response;
+
+        } catch (\Throwable $th) {
+
+            return $th->getMessage();
+        }
+
     }
 
     public function charge($product_ID, $cellNo, $amount)

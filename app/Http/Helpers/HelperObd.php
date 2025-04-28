@@ -34,7 +34,7 @@ class HelperObd
         $campaign = Outboundcall::where('id', $campaing_id)->get()->first();
         try {
             $client = new \GuzzleHttp\Client();
-	    $client->request('GET', 'http://192.168.1.49/callfile/callfile.php', [
+	    $client->request('GET', 'http://192.168.1.49:80/callfile/callfile.php', [
 		     'verify' => false,
                 'query' => [
                     'msisdn' => $msisdn,
@@ -49,7 +49,7 @@ class HelperObd
             $this->deliverysms($campaign->id, $code, $msisdn);
             return true;
         } catch (\Throwable $e) {
-            Log::error($e->getMessage());
+            // Log::error($e->getMessage());
             return false;
         }
         return false;

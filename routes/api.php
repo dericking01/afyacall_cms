@@ -12,6 +12,8 @@ use App\Http\Controllers\Api\v1\AIController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\v1\DoctorApiController;
 use App\Http\Controllers\Api\v1\WebsiteApiController;
+use App\Http\Controllers\Api\v1\ServiceController;
+use App\Http\Controllers\Api\v1\SubscriptionController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -31,6 +33,8 @@ Route::middleware('api')->post('afyacall/TransactionListener2', [IPGController::
 Route::middleware('api')->post('afyacall/transactionRequest', [IPGController::class, 'transactionRequest']);
 Route::middleware('api')->get('afyacall/doctorstatus', [IPGController::class, 'subscriptiondoctorstatus']);
 Route::middleware('api')->post('afyacall/livecalldoctorstastics', [CallLogsController::class, 'livecalldoctorstastics']);
+Route::middleware('api')->post('afyacall/serviceRequest', [ServiceController::class, 'serviceRequests']);
+Route::middleware('api')->post('afyacall/subsInfo', [SubscriptionController::class, 'subsInfo']);
 
 Route::post('sms/receivedsms', [SMSController::class, 'receivedsmsfromkannel']);
 Route::post('ai/receivedsms', [AIController::class, 'fromkannel']);

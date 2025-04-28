@@ -55,7 +55,7 @@ class SMSController extends Controller
             return $customerService->subscribe_sms($request);
         } elseif (strtolower($request->service) == 'afyaivr') {
             return $customerService->subscribe_ivr($request);
-        } elseif (strtolower($request->service) == 'ondpa') {
+        } elseif (strtolower($request->service) == 'ondoa') {
             return $customerService->unsubscribe_allservices($request);
         } elseif ($this->searchKeyword($request->service) == 'ondoaivr') {
             return $customerService->unsubscribe_ivr($request);

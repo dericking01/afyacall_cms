@@ -21,7 +21,11 @@ class IPGController extends Controller
 {
     public function callbacksrequests(Request $request)
     {
-        Log::info("======================updated request=========================");
+        Log::info("======================CALLBACK IPG updated request=========================");
+        Log::info("======================CALLBACK IPG updated request=========================");
+        Log::info("======================CALLBACK IPG updated request=========================");
+        Log::info($request);
+        // return true;
         $xml_data = $request->getContent();
         Log::info($xml_data);
         $response = preg_replace("/(<\/?)(\w+):([^>]*>)/", "$1$2$3", $xml_data);
@@ -100,7 +104,7 @@ class IPGController extends Controller
 
     public function transactionRequest(Request $request)
     {
-
+        Log::info("======================MPESA TRANSACTION request FROM PBX=========================");
         //log the incoming data
         Log::info($request->all());
 
@@ -184,7 +188,7 @@ class IPGController extends Controller
             <dataItem>
                 <name>CallbackDestination</name>
                 <type>String</type>
-                <value>https://sms.afyacall.co.tz/api/afyacall/TransactionListener2</value>
+                <value>http://197.250.15.156:8090/api/afyacall/TransactionListener2</value>
             </dataItem>
             <dataItem>
                 <name>Username</name>

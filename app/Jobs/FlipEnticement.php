@@ -33,14 +33,14 @@ class FlipEnticement implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($output_ConversationID, $output_ResponseCode, $output_Receipt, $output_ResponseDesc,$output_ChargedAmount,$output_PaymentChannel)
+    public function __construct($output_ResponseCode, $output_ResponseDesc, $output_Receipt, $output_PaymentChannel, $output_ConversationID, $output_ChargedAmount)
     {
-        $this->output_ConversationID = $output_ConversationID;
         $this->output_ResponseCode = $output_ResponseCode;
-        $this->output_Receipt = $output_Receipt;
         $this->output_ResponseDesc = $output_ResponseDesc;
-        $this->output_ChargedAmount = $output_ChargedAmount;
+        $this->output_Receipt = $output_Receipt;
         $this->output_PaymentChannel = $output_PaymentChannel;
+        $this->output_ConversationID = $output_ConversationID;
+        $this->output_ChargedAmount = $output_ChargedAmount;
     }
 
 
@@ -51,10 +51,12 @@ class FlipEnticement implements ShouldQueue
      */
     public function handle()
     {
-
+        
         // Retrieve the transaction based on the provided conversation ID
         $transaction = Transaction::where("conventions_ID", $this->output_ConversationID)->first();
-    
+        // \Log::warning("output_ResponseCode value: {$this->output_ResponseCode}");
+        // \Log::warning("output_ResponseCode type: " . gettype($this->output_ResponseCode));
+        // \Log::warning('****************FLIPING TRANSACTION LOGIC****************');
         if (!$transaction) {
             // Log or handle the missing transaction case
             \Log::warning("Transaction not found for Conversation ID: {$this->output_ConversationID}");

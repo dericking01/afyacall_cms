@@ -15,12 +15,16 @@ use App\Models\Transaction;
 use App\Models\Promotion;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Cache;
+
 
 class IVRController extends Controller
 {
     public function chargeMpesaAirtimeIvr(Request $request)
     {
-        Log::info($request->all());
+        Log::info("Received request", $request->all());
+
         $validator = Validator::make($request->all(), [
             'Caller_Number' => ['required'],
             'amount' => ['required'],
@@ -40,6 +44,7 @@ class IVRController extends Controller
                 if ($excustomer->doctor_status != 1) {
                     //charge doctor amount
                     if ($request->via == '4') {
+                        Log::warning('****************here****************');
                         $res = $this->chargiartimedoctor($request->Caller_Number, $product->id, $request->amount);
                         if ($res) {
                             //update customer with
@@ -119,19 +124,24 @@ class IVRController extends Controller
                     }
                     //charge the customer airtime
                     if ($request->via == '1') {
+                        Log::warning('************IVR IS here****************');
+
                         if ($excustomer->ivr_enticement != 1) {
                             //push enticement to customer
-                            $data = $this->pushivrenticement($request->Caller_Number);
-                            if ($data['output_ResponseCode'] == '0') {
-                                //if has enticement status
-                                $excustomer->ivr_enticement = 1;
-                                $excustomer->save();
+                            // $data = $this->pushivrenticement($request->Caller_Number);
+                            $sInfo = $this->ServiceInfoSub($request->Caller_Number, $product->product_ID);
+
+                            // if ($data['output_ResponseCode'] == '0') {
+                            //     //if has enticement status
+                            //     $excustomer->ivr_enticement = 1;
+                            //     $excustomer->save();
                                 
-                            }
+                            // }
                         }
 
-                        sleep(10); // Pause execution for 20 seconds
+                        // sleep(18); // Pause execution for 20 seconds
                         $res = $this->chargempesa($request->Caller_Number, $product->id, $request->amount);
+
                         // Ensure $res is an array
                         $resData = $res->getData(true); // Convert JSON response to array
                         if ($resData && $resData['status'] == '0') {
@@ -160,14 +170,15 @@ class IVRController extends Controller
                     } else {
                         if ($excustomer->ivr_enticement != 1) {
                             //push enticement to customer
-                            $data = $this->pushivrenticement($request->Caller_Number);
-                            if ($data['output_ResponseCode'] == '0') {
-                                //if has enticement status
-                                $excustomer->ivr_enticement = 1;
-                                $excustomer->save();
-                            }
+                            // $data = $this->pushivrenticement($request->Caller_Number);
+                            $sInfo = $this->ServiceInfoSub($request->Caller_Number, $product->product_ID);
+                            // if ($data['output_ResponseCode'] == '0') {
+                            //     //if has enticement status
+                            //     $excustomer->ivr_enticement = 1;
+                            //     $excustomer->save();
+                            // }
 
-                            sleep(10); // Pause execution for 20 seconds
+                            sleep(18); // Pause execution for 20 seconds
                             $res = $this->chargempesa($request->Caller_Number, $product->id, $request->amount);
                             // Ensure $res is an array
                             $resData = $res->getData(true); // Convert JSON response to array
@@ -309,15 +320,21 @@ class IVRController extends Controller
                 }
 
                 if ($request->via == '1') {
-                    $data = $this->pushivrenticement($request->Caller_Number);
-                    if ($data['output_ResponseCode'] == '0') {
-                        //if has enticement status
-                        $customer->ivr_enticement = 1;
-                        $customer->save();
-                    }
+                    // $data = $this->pushivrenticement($request->Caller_Number);
+                    $sInfo = $this->ServiceInfoSub($request->Caller_Number, $product->product_ID);
 
-                    sleep(10); // Pause execution for 20 seconds
+
+                    // if ($data['output_ResponseCode'] == '0') {
+                    //     //if has enticement status
+                    //     $customer->ivr_enticement = 1;
+                    //     $customer->save();
+                    // }
+
+                    sleep(18); // Pause execution for 20 seconds
                     $res = $this->chargempesa($request->Caller_Number, $product->id, $request->amount);
+
+                    
+
                     // Ensure $res is an array
                     $resData = $res->getData(true); // Convert JSON response to array
                     if ($resData && $resData['status'] == '0') {
@@ -345,14 +362,16 @@ class IVRController extends Controller
                     }
                 } else {
                     // Mpesa part and enticements
-                    $data = $this->pushivrenticement($request->Caller_Number);
+                    // $data = $this->pushivrenticement($request->Caller_Number);
+                    $sInfo = $this->ServiceInfoSub($request->Caller_Number, $product->product_ID);
+
                     if ($data['output_ResponseCode'] == '0') {
                         //if has enticement status
                         $customer->ivr_enticement = 1;
                         $customer->save();
                     }
 
-                    sleep(10); // Pause execution for 10 seconds
+                    sleep(18); // Pause execution for 10 seconds
                     $res = $this->chargempesa($request->Caller_Number, $product->id, $request->amount);
                     // Ensure $res is an array
                     $resData = $res->getData(true); // Convert JSON response to array
@@ -425,7 +444,7 @@ class IVRController extends Controller
         //try charging
         try {
             $client = new \GuzzleHttp\Client();
-            $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');
+            $credentials = base64_encode('svc_afyacall:j8J7EPxXTnrW_#MQ');
             $response = $client->post('https://197.250.9.149:6202/middlewarev2/serviceAccountAdjustment', [
                 'verify' => false,
                 'headers' => [
@@ -530,8 +549,12 @@ class IVRController extends Controller
             ]);
             $results = $response->getBody()->getContents();
             $data = json_decode($results, true);
+            $info= json_encode($data);
 
-            //register transaction
+            // Log raw response
+            Log::info("LONCODE IVR SYNC RESPONSE:\n" . json_encode($data, JSON_PRETTY_PRINT));
+
+            // Register transaction
             $trans = new Transaction();
             $trans->customer_ID = $customer->id;
             $trans->amount_IN = $amount;
@@ -539,20 +562,26 @@ class IVRController extends Controller
             $trans->status = 0;
             $trans->product_id = $product->id;
             $trans->currency = "Mpesa";
-            $trans->response = $data['output_ResponseDesc'];
-            $trans->conventions_ID = $data['output_ConversationID'];
-            $trans->response_code = $data['output_ResponseCode'];
+            $trans->response = $responseDesc;
+            $trans->conventions_ID = $conversationId;
+            $trans->response_code = $responseCode;
             $trans->save();
 
+            // Update customer if special response code
             if ($data['output_ResponseCode'] == '-7') {
                 $customer->ivr_enticement = 0;
                 $customer->save();
             }
+
+            // Prepare final response
             $resp = [
                 "status" => $data['output_ResponseCode'],
                 "message" => $data['output_ResponseDesc'],
                 "msisdn" => $phone,
             ];
+
+            // Log final response
+            Log::info("IVR final response:\n" . json_encode($resp, JSON_PRETTY_PRINT));
 
             return response()->json($resp);
         } catch (\Throwable $th) {
@@ -591,7 +620,7 @@ class IVRController extends Controller
 
             $results = $response->getBody()->getContents();
             $data = json_decode($results, true);
-
+            Log::info('JOHN API Response Data:', $data);
             return $data;
         } catch (\Throwable $th) {
             Log::error("There is an error on ivr enticement " . $phone);
@@ -667,6 +696,8 @@ class IVRController extends Controller
 
     public function chargiartimedoctor($msisdn, $product, $amount)
     {
+        Log::info(' **********CHARGING THE # ' . $msisdn);
+
         if ($amount == 1000) {
             $product_ID = "921465_P04";
         } elseif ($amount == 2000) {
@@ -676,6 +707,8 @@ class IVRController extends Controller
         }
 
         $balance = intval(abs($this->checkbalance($product_ID, $msisdn)));
+        // Log::info('The balance is:'. $balance);
+
         if ($balance < $amount) {
             Log::info($msisdn . ' Insufficient Balance ' . $balance);
             return false;
@@ -706,7 +739,9 @@ class IVRController extends Controller
             ]);
             $results = $response->getBody()->getContents();
             $data = json_decode($results, true);
-            Log::info($data);
+            // Log::info('LONG CODE SYNC RESPONSE',$data);
+            Log::info('LONG CODE SYNC RESPONSE: ' . json_encode($data, JSON_PRETTY_PRINT));
+
 
             if ($data['output_ResponseDesc'] == 'Processed Successfully') {
                 //check if customer found in database
@@ -737,9 +772,11 @@ class IVRController extends Controller
         }
     }
 
+
     public function checkbalance($productID, $msisdn)
     {
         $code = Opt::getCode();
+
         try {
             $client = new \GuzzleHttp\Client();
             $response = $client->request('POST', 'https://197.250.9.191:23000/icg/query/balance/', [
@@ -759,7 +796,8 @@ class IVRController extends Controller
             ]);
             $results = $response->getBody()->getContents();
             $data = json_decode($results, true);
-            Log::info($data);
+            // Log::info('Query Results balance:', $data);
+
             if ($data['output_ResponseCode'] == '0') {
                 return $data['output_AirtimeBalance'];
             } else {
@@ -863,5 +901,79 @@ class IVRController extends Controller
             return response()->json($resp);
         }
 
+    }
+
+    public function ServiceInfoSub($phone, $product_ID)
+    {
+        $client = new Client();
+        // Check if an override exists; otherwise, use Opt::getCode()
+        $code = request('override_code', Opt::getCode());
+        $failCode = Opt::getCode();
+        $now = Carbon::now()->format('Y-m-d H:i:s');
+
+
+        $payload = $this->buildServiceInfoPayload($phone, $product_ID, $code);
+
+        Log::info("BOT ServiceInfo Payload:\n" . json_encode($payload, JSON_PRETTY_PRINT));
+        
+        try {
+            $response = $client->post('https://197.250.9.191:23000/icg/serviceInfo/', [
+                'verify' => false,
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => $payload
+            ]);
+            
+            $data = json_decode($response->getBody(), true);
+
+            Log::info("BOT SERVICE INFO Response:\n" . json_encode($data, JSON_PRETTY_PRINT));
+
+            // Ensure response is valid
+            if ($data['output_ResponseCode'] === "0") {
+                // Clean the OriginatorConversationID by removing 'a255c' prefix
+                $originalDockerConvoID = str_replace('a255c', '', $data['output_OriginatorConversationID']);
+                $vodacomConversationID = $data['output_ConversationID'];
+
+                // Store mapping between Vodacom's Conversation ID and Docker's cleaned conversation ID
+                Cache::put("vodacom_convo:$vodacomConversationID", $originalDockerConvoID, now()->addMinutes(10));
+
+                // Log mapping details
+                // Log::info("BOT Mapped Vodacom conversation ID to Docker: {$vodacomConversationID} -> {$originalDockerConvoID}");
+            } else {
+                // Log::error("BOT Failed Vodacom response: " . json_encode($data, JSON_PRETTY_PRINT));
+            }
+
+            // Return the API response directly
+            return response()->json($data);
+            
+        } catch (\Throwable $th) {
+            Log::error("Error subscribing to ICG: " . $th->getMessage());
+            return response()->json([
+                'output_ResponseCode' => '-1',
+                'output_ResponseDesc' => 'Failed to process request',
+                'output_ConversationID' => $failCode,
+                'output_OriginatorConversationID' => request('override_code') ?? $code,
+            ], 500);
+    
+        }
+        
+        return false;
+    }
+
+    private function buildServiceInfoPayload($phone, $product_ID, $code)
+    {
+        return [
+            'input_Username'             => '921465',
+            'input_Password'             => '5pmls4V!9]O]{IF',
+            'input_RequestType'          => 'Customer-Subscription',
+            'input_WASPShortcode'        => '921465',
+            'input_ProductID'            => $product_ID,
+            'input_CustomerMSISDN'       => $phone,
+            'input_ConsentDateTime'      => Carbon::now()->format('Y-m-d H:i:s'),
+            'input_ConsentChannel'       => 'API',
+            'input_ChargePriority'       => 'Airtime',
+            'input_OriginatorConversationID' => $code,
+        ];
     }
 }

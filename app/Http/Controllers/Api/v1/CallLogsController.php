@@ -85,7 +85,7 @@ class CallLogsController extends Controller
         $uuid = Opt::generateUUIDv1();
         try {
             $client = new \GuzzleHttp\Client;
-            $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');
+            $credentials = base64_encode('svc_afyacall:j8J7EPxXTnrW_#MQ');
             $response = $client->get('https://197.250.9.149:6202/middlewarev2/CustomerPrivacyProfile', [
                 'verify' => false,
                 'headers' => [
