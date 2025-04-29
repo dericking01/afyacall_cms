@@ -16,7 +16,8 @@ class LanguageHelper
 
     public function language($number, $sw, $en)
     {
-       
+        Log::info("*********well THERE***********");
+
         //time 
         $excustomer = Customer::where('msisdn',$number)->get()->first();
         if($excustomer){
@@ -28,20 +29,21 @@ class LanguageHelper
     public function sendnotificationmessage($number, $message,$excustomerid)
     {
         try {
+            Log::info("*********TTTTHERE***********");
             $code = Opt::getCode();
             $client = new \GuzzleHttp\Client();
-            $client->request('GET', 'http://192.168.1.10:6013/cgi-bin/sendsms', [
+            $client->request('GET', 'http://192.168.1.200:6013/cgi-bin/sendsms', [
                 'query' => [
                     'username' => 'afya',
                     'password' => 'Afya4017',
                     'from' => '15723',
                     'dlr-mask' => 31,
-                    'dlr-url' => 'http://192.168.1.10/api/sms/notifysms?id=' . $code . '&status=%d',
+                    'dlr-url' => 'http://192.168.1.200/api/sms/notifysms?id=' . $code . '&status=%d',
                     'to' => '+' . $number,
                     'text' => $message,
                 ]
             ]);
-
+            Log::info($message);
             $notifysms = new NotifySms();
             $notifysms->delivery_id = $code;
             $notifysms->contactid = $excustomerid;

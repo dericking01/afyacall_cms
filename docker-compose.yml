@@ -7,7 +7,7 @@ services:
       dockerfile: ./docker/Dockerfile
     container_name: afyacall-core
     working_dir: /var/www/html
-    image: localhost:5000/afyacall_app:1.0.81
+    image: localhost:5000/afyacall_app:1.0.82
     volumes:
       - vendor_data:/var/www/html/vendor
       - ./:/var/www/html
@@ -20,7 +20,7 @@ services:
       DB_CONNECTION: ${DB_CONNECTION:-mysql}
       DB_HOST: ${DB_HOST:-192.168.1.11}
       DB_PORT: ${DB_PORT:-3306}
-      DB_DATABASE: ${DB_DATABASE:-afyacalltestdb}
+      DB_DATABASE: ${DB_DATABASE:-afyacallproduction}
       DB_USERNAME: ${DB_USERNAME:-derrickdb}
       DB_PASSWORD: ${DB_PASSWORD}
       BROADCAST_DRIVER: ${BROADCAST_DRIVER:-log}
@@ -28,8 +28,8 @@ services:
       QUEUE_CONNECTION: ${QUEUE_CONNECTION:-sync}
       SESSION_DRIVER: ${SESSION_DRIVER:-file}
       SESSION_LIFETIME: ${SESSION_LIFETIME:-30}
-      REDIS_HOST: ${REDIS_HOST:-localhost}
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-null}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
       REDIS_PORT: ${REDIS_PORT:-6379}
     networks:
       - afyacall_core_network
@@ -56,9 +56,23 @@ services:
     networks:
       - afyacall_core_network
 
+# Redis service
+  redis:
+    image: redis:latest
+    container_name: afyacall_redis
+    ports:
+      - "6379:6379"  # Expose Redis port
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data  # Persist Redis data
+    networks:
+      - afyacall_core_network
+
 networks:
   afyacall_core_network:
-    driver: bridge
+    external: true
 
 volumes:
   vendor_data:
+  redis_data:

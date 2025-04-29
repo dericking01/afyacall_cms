@@ -65,13 +65,13 @@ class SmsRevenue extends Command
             // List of recipients with their names
             $recipients = [
                 ['msisdn' => '255743956595', 'name' => 'Derrick'],
-                ['msisdn' => '255746805383', 'name' => 'Julius'],
-                ['msisdn' => '255746088031', 'name' => 'Wingslaus'],
-                ['msisdn' => '255746193050', 'name' => 'Ireri'],
+                // ['msisdn' => '255746805383', 'name' => 'Julius'],
+                // ['msisdn' => '255746088031', 'name' => 'Wingslaus'],
+                // ['msisdn' => '255746193050', 'name' => 'Ireri'],
                 ['msisdn' => '255754710722', 'name' => 'Mwamba'],
-                ['msisdn' => '255754710702', 'name' => 'Sam'],
-                ['msisdn' => '255756532635', 'name' => 'Siwangu'],
-                ['msisdn' => '255745994671', 'name' => 'Rodrick']
+                // ['msisdn' => '255754710702', 'name' => 'Sam'],
+                // ['msisdn' => '255756532635', 'name' => 'Siwangu'],
+                // ['msisdn' => '255745994671', 'name' => 'Rodrick']
             ];
 
             // Loop through each recipient and send the personalized message
