@@ -37,8 +37,11 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Copy Laravel source code
 COPY . .
 
+# Fix the Git "dubious ownership" issue
+RUN git config --global --add safe.directory /var/www/html
+
 # Install dependencies
-RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
 
 # Add Horizon Assets
 RUN php artisan horizon:publish
