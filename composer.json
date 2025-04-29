@@ -11,6 +11,7 @@
         "php": "^7.3|^8.0",
         "arquivei/laravel-prometheus-exporter": "^2.0",
         "endclothing/prometheus_client_php": "^0.9.1",
+        "facade/ignition": "^2.17",
         "fideloper/proxy": "^4.4",
         "fruitcake/laravel-cors": "^2.0",
         "guzzlehttp/guzzle": "^7.0.1",
@@ -26,7 +27,6 @@
         "spatie/laravel-permission": "^3.18"
     },
     "require-dev": {
-        "facade/ignition": "^2.5",
         "fakerphp/faker": "^1.9.1",
         "laravel/sail": "^1.25",
         "mockery/mockery": "^1.4.2",
