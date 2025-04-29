@@ -2,18 +2,22 @@
 
 namespace App\Repositories;
 
-use App\Models\Opt;
-use App\Models\Content;
-use App\Models\Product;
-use App\Models\Customer;
-use App\Models\Enticement;
-use App\Models\ContentType;
-use App\Models\Transaction;
-use App\Models\Subscription;
-use App\Jobs\ProcessLanguage;
 use App\Http\Helpers\SmsHelper;
+use App\Jobs\ProcessLanguage;
+use App\Models\Content;
+use App\Models\ContentType;
+use App\Models\Customer;
+use App\Models\Opt;
 use App\Models\Log as FacadesLog;
+use App\Models\Product;
+use App\Models\Subscription;
+use App\Models\Transaction;
+use Carbon\Carbon;
+use App\Models\Enticement;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
+use GuzzleHttp\Client;
+
 
 class CustomerRepository
 {
@@ -39,8 +43,12 @@ class CustomerRepository
 
         $customer = Customer::where('msisdn', $msisdn)->first();
 
+        $product_ID = $product->product_ID;
+        $cellNo = $msisdn;
+        $amount = 150;
+
         if ($customer) {
-            if ($customer->status == 1 || $customer->status == 0) {
+            if ($customer->enticement == 1 ){
                 $swMessage = 'Tayari umejiunga na huduma hii kwa gharama ya Tsh 150/siku.Kujitoa tuma neno ONDOASMS kwenda 15723';
                 $enMessage = 'You are already subscribed to this service. To unsubscribe send the word ONDOASMS to 15723';
                 ProcessLanguage::dispatchSync($msisdn, $swMessage, $enMessage);
@@ -64,6 +72,9 @@ class CustomerRepository
                 $sw = 'Karibu tena katika huduma ya Vodacom Afyacall.Utapata dondoo mbalimbali kuhusu afya yako kila siku kwa Gharama ya Tsh 150 tu. Kujitoa tuma neno ONDOASMS kwenda 15723';
                 $en = 'Welcome again on Vodacom Afyacall Service. You will receive various tips about health daily at a cost of TZS 150/day.To unsubscribe send the word ONDOASMS to 15723';
                 ProcessLanguage::dispatch($msisdn, $sw, $en);
+
+
+
             }
         } else {
             //register new customer
@@ -115,33 +126,45 @@ class CustomerRepository
         //check if the customers is subscribe via icg,
 
         if ($customer->enticement == 0) {
-            $data = Enticement::pushEnticement($msisdn, $product->product_ID, $product->id);
+
+            // $data = Enticement::pushEnticement($msisdn, $product->product_ID,$product->id);
+            $sInfo = $this->ServiceInfoSub($msisdn, $product->product_ID);
 
             if ($data['output_ResponseCode'] == -7) {
             }
-        } else {
-            $res = $this->chargivrtiartime($customer->id, $customer->msisdn, $product->id, $product->price);
 
-            if ($res) {
-                $customer->status = 1;
-                $customer->save();
-
-                //add to the subscription
-                $this->updateCustomerSubscription($customer->id, $product->id);
-
-                $this->sendthefirstmessage($msisdn, $data['content']);
-
-                $swMessage = 'Umelipia Kikamilifu Tsh ' . $product->price . ' kwenye huduma ya Vodacom AFYACALL';
-                $enMessage = 'You have Successfully paid Tsh ' . $product->price . ' for the Vodacom AFYACALL';
-
-                ProcessLanguage::dispatchSync($msisdn, $swMessage, $enMessage);
-            } else {
-                $swMessage = 'Hauna salio la kutosha kupata huduma hii. Ongeza salio kisha Tuma neno AFYA kwenda 15723 au piga 0900011111.';
-                $enMessage = 'You have insufficient balance. Please recharge and send keyword AFYA to shortcode 15723 or dial 0900011111';
-
-                ProcessLanguage::dispatchSync($msisdn, $swMessage, $enMessage);
-            }
         }
+        //  else {
+        //     $res = $this->chargivrtiartime($customer->id, $customer->msisdn, $product->id, $product->price);
+        //     // $res = $this->chargeviaicg($product_ID, $cellNo, $amount);
+
+        //     if ($res) {
+
+        //         $customer->status = 1;
+        //         $customer->save();
+
+        //         //add to the subscription
+        //         $this->updateCustomerSubscription($customer->id, $product->id);
+
+        //         $this->sendthefirstmessage($msisdn, $data['content']);
+
+        //         $swMessage = 'Umelipia Kikamilifu Tsh ' . $product->price . ' kwenye huduma ya Vodacom AFYACALL';
+        //         $enMessage = 'You have Successfully paid Tsh ' . $product->price . ' for the Vodacom AFYACALL';
+
+        //         ProcessLanguage::dispatchSync($msisdn, $swMessage, $enMessage);
+
+        //     } else {
+        //         $swMessage = 'Hauna salio la kutosha kupata huduma hii. Ongeza salio kisha Tuma neno AFYA kwenda 15723 au piga 0900011111.';
+        //         $enMessage = 'You have insufficient balance. Please recharge and send keyword AFYA to shortcode 15723 or dial 0900011111';
+
+        //         ProcessLanguage::dispatchSync($msisdn, $swMessage, $enMessage);
+        //     }
+        // }
+      
+            // Call the chargeviaicg method
+            sleep(20); // Pause execution for 20 seconds
+            $res = $this->chargeviaicg($product_ID, $cellNo, $amount);
+    
     }
 
     public function unsubscribe_sms($data)
@@ -150,6 +173,10 @@ class CustomerRepository
 
         $customer = Customer::where('msisdn', $msisdn)->first();
         $product = Product::where('product_ID', '921465_P02')->get()->first();
+        $product_ID = $product->product_ID;
+
+        
+
         if ($customer && $customer->status != -1) {
             if ($customer->enticement == 0) {
                 $customer->status = -1;
@@ -173,7 +200,7 @@ class CustomerRepository
                 ];
                 ProcessLanguage::dispatchSync($msisdn, $message['sw'], $message['en']);
             } else {
-                $this->keyword_icg_unsubscribe($msisdn, null);
+                $this->keyword_icg_unsubscribe_specific_product($msisdn, $product_ID);
             }
         } else {
             $message = [
@@ -191,9 +218,14 @@ class CustomerRepository
         $product = Product::where('product_ID', '921465_P01')->first();
 
         $customer = Customer::where('msisdn', $msisdn)->first();
+        $product_ID = $product->product_ID;
+        $cellNo = $msisdn;
+        $amount = 300;
 
         if ($customer) {
-            if ($customer->ivr_status == 1 || $customer->ivr_status == 0) {
+
+            if ($customer->ivr_enticement == 1 ){
+
                 $swMessage = 'Tayari umejiunga na huduma hii piga namba 0900011111 kusikiliza dondoo za afya kwa gharama ya Tsh 300/IVR/siku.';
                 $enMessage = 'You are already subscribed to this service dial 0900011111 to listen to health tips at a cost of Tsh 300 /IVR/day.';
                 ProcessLanguage::dispatchSync($msisdn, $swMessage, $enMessage);
@@ -270,29 +302,40 @@ class CustomerRepository
         //check if the customers is subscribed via icg,
 
         if ($customer->ivr_enticement == 0) {
-            $data = Enticement::pushEnticement($msisdn, $product->product_ID, $product->id);
+
+            // $data = Enticement::pushEnticement($msisdn, $product->product_ID,$product->id);
+            $sInfo = $this->ServiceInfoSub($msisdn, $product->product_ID);
+
 
             if ($data['output_ResponseCode'] == -7) {
             }
-        } else {
-            $res = $this->chargivrtiartime($customer->id, $customer->msisdn, $product->id, $product->price);
 
-            if ($res) {
-                // Update the doctor_subscription_status
-                $customer->ivr_status = 1;
-                $customer->save();
-
-                //add to the subscription
-                $this->updateCustomerSubscription($customer->id, $product->id);
-
-                $swMessage = 'Umelipia Kikamilifu Tsh ' . $product->price . ' kwenye huduma ya Vodacom AFYACALL IVR piga 0900011111 kusikiliza ';
-                $enMessage = 'You have Successfully paid Tsh ' . $product->price . ' for the Vodacom AFYACALL IVR service dial 0900011111 to listen';
-            } else {
-                $swMessage = 'Hauna salio la kutosha kupata huduma hii. Ongeza salio kisha Tuma neno AFYAIVR kwenda 15723 au piga 0900011111 kwa gharama ya Tsh.300/IVR/siku.';
-                $enMessage = 'You have insufficient balance. Please recharge and send keyword AFYAIVR to shortcode 15723 or dial 0900011111 at a cost of Tsh.300/ IVR/day.';
-            }
-            ProcessLanguage::dispatchSync($msisdn, $swMessage, $enMessage);
         }
+        //  else {
+        //     $res = $this->chargivrtiartime($customer->id, $customer->msisdn, $product->id, $product->price);
+
+        //     if ($res) {
+        //         // Update the doctor_subscription_status
+        //         $customer->ivr_status = 1;
+        //         $customer->save();
+
+        //         //add to the subscription
+        //         $this->updateCustomerSubscription($customer->id, $product->id);
+
+        //         $swMessage = 'Umelipia Kikamilifu Tsh ' . $product->price . ' kwenye huduma ya Vodacom AFYACALL IVR piga 0900011111 kusikiliza ';
+        //         $enMessage = 'You have Successfully paid Tsh ' . $product->price . ' for the Vodacom AFYACALL IVR service dial 0900011111 to listen';
+               
+        //     } else {
+        //         $swMessage = 'Hauna salio la kutosha kupata huduma hii. Ongeza salio kisha Tuma neno AFYAIVR kwenda 15723 au piga 0900011111 kwa gharama ya Tsh.300/IVR/siku.';
+        //         $enMessage = 'You have insufficient balance. Please recharge and send keyword AFYAIVR to shortcode 15723 or dial 0900011111 at a cost of Tsh.300/ IVR/day.';
+                
+        //     }
+        //     ProcessLanguage::dispatchSync($msisdn, $swMessage, $enMessage);
+        // }
+        // Call the chargeviaicg method
+        sleep(20); // Pause execution for 20 seconds
+        $res = $this->chargeviaicg($product_ID, $cellNo, $amount);
+       
     }
 
     public function unsubscribe_ivr($data)
@@ -301,6 +344,10 @@ class CustomerRepository
 
         $customer = Customer::where('msisdn', $msisdn)->first();
         $product = Product::where('product_ID', '921465_P01')->get()->first();
+        $product_ID = $product->product_ID;
+
+        
+
         if ($customer && $customer->ivr_status != -1) {
             if ($customer->ivr_enticement == 0) {
                 $customer->ivr_status = -1;
@@ -324,7 +371,7 @@ class CustomerRepository
                 ];
                 ProcessLanguage::dispatchSync($msisdn, $message['sw'], $message['en']);
             } else {
-                $this->keyword_icg_unsubscribe($msisdn, null);
+                $this->keyword_icg_unsubscribe_specific_product($msisdn, $product_ID);
             }
         } else {
             $message = [
@@ -344,9 +391,13 @@ class CustomerRepository
 
         //check if the customer exists on the system
         $customer = Customer::where('msisdn', $msisdn)->first();
+        $product_ID = $product->product_ID;
+        $cellNo = $msisdn;
+        $amount = 200;
 
-        if ($customer) {
-            if ($customer->doctor_subscription_status == 1 || $customer->doctor_subscription_status == 0) {
+        if ($customer){
+
+            if($customer->doctor_enticement == 1){
                 //send the notification to customer for succefull subscribed on doctor subs
                 $swMessage = 'Tayari umejiunga na huduma hii. Kujitoa tuma neno ONDOADOC kwenda 15723';
                 $enMessage = 'You are already subscribed to this service. To unsubscribe send the word ONDOADOC to 15723';
@@ -432,31 +483,41 @@ class CustomerRepository
         //check if the customers is subscribed via icg,
 
         if ($customer->doctor_enticement == 0) {
-            $data = Enticement::pushEnticement($msisdn, $product->product_ID, $product->id);
+
+            // $data = Enticement::pushEnticement($msisdn, $product->product_ID,$product->id);
+            $sInfo = $this->ServiceInfoSub($msisdn, $product->product_ID);
 
             if ($data['output_ResponseCode'] == -7) {
             }
-        } else {
-            $res = $this->chargivrtiartime($customer->id, $customer->msisdn, $product->id, $product->price);
 
-            if ($res) {
-                // Update the doctor_subscription_status
-                $customer->doctor_subscription_status = 1;
-                $customer->other_status += 60;
-                $customer->save();
+        } 
+        // else {
 
-                //add to the subscription
-                $this->updateCustomerSubscription($customer->id, $product->id);
+        //     $res = $this->chargivrtiartime($customer->id, $customer->msisdn, $product->id, $product->price);
 
-                $swMessage = 'Umelipia Kikamilifu Tsh ' . $product->price . ' kwenye huduma ya Vodacom AFYACALL piga 0900011111 kusikiliza';
-                $enMessage = 'You have Successfully paid Tsh ' . $product->price . ' for the Vodacom AFYACALL service dial 0900011111 to listen';
-            } else {
-                //send the notification to customer for insufficient balance
-                $swMessage = 'Hauna salio la kutosha kupata huduma hii. Ongeza salio kisha Tuma neno AFYADOC kwenda 15723 au piga 0900011111 kwa gharama ya Tsh.200/siku.';
-                $enMessage = 'You have insufficient balance. Please recharge and send keyword AFYADOC to shortcode 15723 or dial 0900011111 at a cost of Tsh.200/day.';
-            }
-            ProcessLanguage::dispatchSync($msisdn, $swMessage, $enMessage);
-        }
+        //     if ($res) {
+        //         // Update the doctor_subscription_status
+        //         $customer->doctor_subscription_status = 1;
+        //         $customer->other_status += 60;
+        //         $customer->save();
+
+        //         //add to the subscription
+        //         $this->updateCustomerSubscription($customer->id, $product->id);
+
+        //         $swMessage = 'Umelipia Kikamilifu Tsh ' . $product->price . ' kwenye huduma ya Vodacom AFYACALL piga 0900011111 kusikiliza';
+        //         $enMessage = 'You have Successfully paid Tsh ' . $product->price . ' for the Vodacom AFYACALL service dial 0900011111 to listen';
+        //     } else {
+        //         //send the notification to customer for insufficient balance
+        //         $swMessage = 'Hauna salio la kutosha kupata huduma hii. Ongeza salio kisha Tuma neno AFYADOC kwenda 15723 au piga 0900011111 kwa gharama ya Tsh.200/siku.';
+        //         $enMessage = 'You have insufficient balance. Please recharge and send keyword AFYADOC to shortcode 15723 or dial 0900011111 at a cost of Tsh.200/day.';
+
+        //     }
+        //     ProcessLanguage::dispatchSync($msisdn, $swMessage, $enMessage); 
+	    // }
+
+        // Call the chargeviaicg method
+        sleep(20); // Pause execution for 20 seconds
+        $res = $this->chargeviaicg($product_ID, $cellNo, $amount);
     }
 
     public function unsubscribe_doctor_subscription($data)
@@ -465,7 +526,12 @@ class CustomerRepository
 
         $customer = Customer::where('msisdn', $msisdn)->first();
         $product = Product::where('product_ID', '921465_P03')->first();
+        $product_ID = $product->product_ID;
 
+        // $this->unsubtobot($msisdn, $product_ID);
+
+        
+        // Log::warning($product->product_ID);
         if ($customer->doctor_subscription_status != -1) {
             if ($customer->doctor_enticement == 0) {
                 $customer->doctor_subscription_status = -1;
@@ -489,17 +555,17 @@ class CustomerRepository
                 $message = [
                     'sw' => 'Umefanikiwa kujitoa kikamilifu kwenye huduma ya AFYACALL DOCTOR. Kujiunga tena na huduma piga namba 0900011111.',
                     'en' => 'You have successfully unsubscribed from AFYACALL Doctors Live Call service. To rejoin this service dial 0900011111.'
-                ];
-                ProcessLanguage::dispatchSync($msisdn, $message['sw'], $message['en']);
+            ];
+		     ProcessLanguage::dispatchSync($msisdn, $message['sw'], $message['en']);
             } else {
-                $this->keyword_icg_unsubscribe($msisdn, null);
+                $this->keyword_icg_unsubscribe_specific_product($msisdn, $product_ID);
             }
         } else {
             $message = [
                 'sw' => 'Tayari ulijitoa kikamilifu kwenye huduma ya AFYACALL DOCTOR. Kujiunga tena na huduma hii piga namba 0900011111.',
                 'en' => 'You are already unsubscribed to this service. To rejoin this service dial 0900011111.'
             ];
-            ProcessLanguage::dispatchSync($msisdn, $message['sw'], $message['en']);
+	     ProcessLanguage::dispatchSync($msisdn, $message['sw'], $message['en']);
         }
     }
 
@@ -536,7 +602,7 @@ class CustomerRepository
             $client = new \GuzzleHttp\Client();
 
             // Prepare the request headers
-            $credentials = base64_encode('svc_afyacall:wHroRA3U03_el701');
+            $credentials = base64_encode('svc_afyacall:j8J7EPxXTnrW_#MQ');
             $headers = [
                 'Authorization' => 'Basic ' . $credentials,
                 'Content-Type' => 'application/json',
@@ -604,7 +670,54 @@ class CustomerRepository
         $subscription->save();
     }
 
-    public function keyword_icg_unsubscribe($phone, $product_ID)
+
+    public function unsubtobot($msisdn, $product_ID)
+    {
+        $code = Opt::getCode();
+
+        $payload = [
+            'msisdn' => $msisdn,
+            'product_ID' => $product_ID,
+            'request_Type' => 'Unsubscription',
+            'OriginatorConversation_id' => $code
+        ];
+
+        // Log request payload as pretty JSON
+        // Log::info("BOT Sending unsubscription request to https://192.168.1.200:443/api/v1/billing/icg/callback");
+        Log::info("BOT unsubtobot Payload:\n" . json_encode($payload, JSON_PRETTY_PRINT));
+
+        try {
+            $client = new Client();
+
+            $response = $client->request('POST', 'https://192.168.1.200:443/api/v1/subscriptions/etl/sms', [
+                'verify' => false,
+                'headers' => ['Content-Type' => 'application/json'],
+                'json' => $payload
+            ]);
+
+            // Log response
+            Log::info("BOT unsubtobot Response Status: " . $response->getStatusCode());
+            Log::info("BOT unsubtobot Response Body:\n" . json_encode(json_decode($response->getBody(), true), JSON_PRETTY_PRINT));
+
+            return [
+                'success' => true,
+                'status' => $response->getStatusCode(),
+                'response' => json_decode($response->getBody(), true)
+            ];
+
+        } catch (\Exception $e) {
+            // Log error
+            Log::error("BOT unsubtobot Unsubscription API call failed: " . $e->getMessage());
+
+            return [
+                'success' => false,
+                'message' => $e->getMessage()
+            ];
+        }
+    }
+
+
+    public function keyword_icg_unsubscribe($phone,$product_ID)
     {
         //push enticement
         $code = Opt::getCode();
@@ -628,10 +741,16 @@ class CustomerRepository
             $results = $response->getBody()->getContents();
             $data = json_decode($results, true);
 
+
             Log::info($data);
 
             $excustomer = Customer::where('msisdn', $phone)->get()->first();
             if ($data['output_ResponseCode'] == 0) {
+
+                // send Unsub reqs to BOT SERVER
+                $product_ID = '921465_P02'; //bcoz currently BOT handles sms only
+                $this->unsubtobot($phone, $product_ID);
+
                 if ($excustomer) {
                     $excustomer->ivr_status = -1;
                     $excustomer->status = -1;
@@ -687,6 +806,189 @@ class CustomerRepository
             Log::error($th->getMessage());
         }
     }
+
+    public function keyword_icg_unsubscribe_specific_product($phone, $product_ID)
+    {
+        // Check if an override exists; otherwise, use Opt::getCode()
+        $code = request('override_code', Opt::getCode());
+        $failCode = Opt::getCode();
+        
+        try {
+            $client = new \GuzzleHttp\Client();
+            $response = $client->request('POST', 'https://197.250.9.191:23000/icg/unsub/', [
+                'verify' => false,
+                'headers' => ['Content-Type' => 'application/json'],
+                'json' => [
+                    'input_RequestType' => 'Opt-Out',
+                    'input_Username' => '921465',
+                    'input_Password' => '5pmls4V!9]O]{IF',
+                    'input_WASPShortcode' => '921465',
+                    'input_ProductID' => $product_ID,
+                    'input_CustomerMSISDN' => $phone,
+                    'input_OriginatorConversationID' => $code,
+                ]
+            ]);
+            
+            $data = json_decode($response->getBody()->getContents(), true);
+
+            Log::info($data);
+            
+            $excustomer = Customer::where('msisdn', $phone)->first();
+            
+            if ($data['output_ResponseCode'] == 0 && $excustomer) {
+
+                // send Unsub reqs to BOT SERVER
+                $this->unsubtobot($phone, $product_ID);
+
+                switch ($product_ID) {
+                    case '921465_P01':
+                        $excustomer->ivr_status = -1;
+                        $excustomer->ivr_enticement = 0;
+                        $product_id = 1;
+                        $message = [
+                            'sw' => 'Umefanikiwa kujitoa kikamilifu kwenye huduma ya AFYACALL IVR. Kujiunga tena na huduma hii tuma neno AFYAIVR kwenda 15723 kwa gharama ya Tsh 300/siku.',
+                            'en' => 'You have successfully unsubscribed from AFYACALL IVR service. To rejoin this service send the word AFYAIVR to 15723 at a cost of Tsh 300/day.'
+                        ];
+                        break;
+                    case '921465_P02':
+                        $excustomer->status = -1;
+                        $excustomer->enticement = 0;
+                        $product_id = 2;
+                        $message = [
+                            'sw' => 'Umefanikiwa kujitoa kikamilifu kwenye huduma ya AFYACALL SMS. Kujiunga tena na huduma hii tuma neno AFYASMS kwenda 15723 kwa gharama ya Tsh 150/siku.',
+                            'en' => 'You have successfully unsubscribed from AFYACALL SMS service. To rejoin this service send the word AFYASMS to 15723 at a cost of Tsh 150/day.'
+                        ];
+                        break;
+                    case '921465_P03':
+                        $excustomer->doctor_subscription_status = -1;
+                        $excustomer->doctor_enticement = 0;
+                        $product_id = 3;
+                        $message = [
+                            'sw' => 'Umefanikiwa kujitoa kikamilifu kwenye huduma ya AFYACALL DOCTOR. Kujiunga tena na huduma piga namba 0900011111.',
+                            'en' => 'You have successfully unsubscribed from AFYACALL Doctors Live Call service. To rejoin this service dial 0900011111.'
+                        ];
+                        break;
+                    default:
+                        return false;
+                }
+                
+                // Save changes
+                $excustomer->save();
+                
+                // Log opt-out
+                $opt = new Opt();
+                $opt->customer_ID = $excustomer->id;
+                $opt->product_ID = $product_id;
+                $opt->opt_value = -1;
+                $opt->date = Opt::getServertime();
+                $opt->save();
+                
+                // Remove subscription
+                Subscription::where('customer_ID', $excustomer->id)->delete();
+                
+                // Send notification
+                ProcessLanguage::dispatchSync($phone, $message['sw'], $message['en']);
+            } else {
+                // Handle failure response
+                ProcessLanguage::dispatchSync($phone, 'Kunatatizo la kiufundi, jaribu tena kujitoa.', 'There is a problem with the network, please try again.');
+            }
+            
+            // Return the API response directly
+            return response()->json([
+                'output_ResponseCode' => $data['output_ResponseCode'] ?? null,
+                'output_ResponseDesc' => $data['output_ResponseDesc'] ?? null,
+                'output_ConversationID' => $data['output_ConversationID'] ?? null,
+                'output_OriginatorConversationID' => request('override_code') ?? $code, // Ensure we return the correct ID
+            ]);
+        } catch (\Throwable $th) {
+            Log::error("Error unsubscribing from ICG: " . $th->getMessage());
+            return response()->json([
+                'output_ResponseCode' => '-1',
+                'output_ResponseDesc' => 'Failed to process request',
+                'output_ConversationID' => $failCode,
+                'output_OriginatorConversationID' => request('override_code') ?? $code,
+            ], 500);
+    
+        }
+        
+        return false;
+    }
+
+        
+    public function ServiceInfoSub($phone, $product_ID)
+    {
+        $client = new Client();
+        // Check if an override exists; otherwise, use Opt::getCode()
+        $code = request('override_code', Opt::getCode());
+        $failCode = Opt::getCode();
+        $now = Carbon::now()->format('Y-m-d H:i:s');
+
+
+        $payload = $this->buildServiceInfoPayload($phone, $product_ID, $code);
+
+        Log::info("BOT ServiceInfo Payload:\n" . json_encode($payload, JSON_PRETTY_PRINT));
+        
+        try {
+            $response = $client->post('https://197.250.9.191:23000/icg/serviceInfo/', [
+                'verify' => false,
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => $payload
+            ]);
+            
+            $data = json_decode($response->getBody(), true);
+
+            Log::info("BOT SERVICE INFO Response:\n" . json_encode($data, JSON_PRETTY_PRINT));
+
+            // Ensure response is valid
+            if ($data['output_ResponseCode'] === "0") {
+                // Clean the OriginatorConversationID by removing 'a255c' prefix
+                $originalDockerConvoID = str_replace('a255c', '', $data['output_OriginatorConversationID']);
+                $vodacomConversationID = $data['output_ConversationID'];
+
+                // Store mapping between Vodacom's Conversation ID and Docker's cleaned conversation ID
+                Cache::put("vodacom_convo:$vodacomConversationID", $originalDockerConvoID, now()->addMinutes(10));
+
+                // Log mapping details
+                // Log::info("BOT Mapped Vodacom conversation ID to Docker: {$vodacomConversationID} -> {$originalDockerConvoID}");
+            } else {
+                // Log::error("BOT Failed Vodacom response: " . json_encode($data, JSON_PRETTY_PRINT));
+            }
+
+            // Return the API response directly
+            return response()->json($data);
+            
+        } catch (\Throwable $th) {
+            Log::error("Error subscribing to ICG: " . $th->getMessage());
+            return response()->json([
+                'output_ResponseCode' => '-1',
+                'output_ResponseDesc' => 'Failed to process request',
+                'output_ConversationID' => $failCode,
+                'output_OriginatorConversationID' => request('override_code') ?? $code,
+            ], 500);
+    
+        }
+        
+        return false;
+    }
+
+    private function buildServiceInfoPayload($phone, $product_ID, $code)
+    {
+        return [
+            'input_Username'             => '921465',
+            'input_Password'             => '5pmls4V!9]O]{IF',
+            'input_RequestType'          => 'Customer-Subscription',
+            'input_WASPShortcode'        => '921465',
+            'input_ProductID'            => $product_ID,
+            'input_CustomerMSISDN'       => $phone,
+            'input_ConsentDateTime'      => Carbon::now()->format('Y-m-d H:i:s'),
+            'input_ConsentChannel'       => 'API',
+            'input_ChargePriority'       => 'Airtime',
+            'input_OriginatorConversationID' => $code,
+        ];
+    }
+    
 
     public function sendthefirstmessage($number, $message_content_key)
     {
@@ -768,6 +1070,63 @@ class CustomerRepository
                 'en' => 'You are already unsubscribed to this service. To subscribe send the word AFYA to 15723 or call 0900011111'
             ];
             ProcessLanguage::dispatchSync($msisdn, $message['sw'], $message['en']);
+        }
+    }
+
+    private function chargeviaicg($product_ID, $cellNo, $amount)
+    {
+        $code = Opt::getCode();
+
+        Log::info("SUBSCRIPTION amount to be charged ".$amount . " msisdn  ".$cellNo ."  Reference Code " .$code);
+
+        try {
+            $client = new \GuzzleHttp\Client();
+            $response = $client->request('POST', 'https://197.250.9.191:23000/icg/Charge/', [
+                'verify' => false,
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => [
+                    'input_Username' => '921465',
+                    'input_Password' => '5pmls4V!9]O]{IF',
+                    'input_WASPShortcode' => '921465',
+                    'input_ProductID' => $product_ID,
+                    'input_CustomerMSISDN' => $cellNo,
+                    'input_Currency' => 'TZS',
+                    'input_Amount' => $amount,
+                    'input_ChargeType' => 'Subscription',
+                    'input_OriginatorConversationID' => $code,
+                ]
+            ]);
+            $results = $response->getBody()->getContents();
+            $data = json_decode($results, true);
+            // Register transaction
+            $trans = new Transaction();
+            $trans->customer_ID = $customer->id;
+            $trans->amount_IN = $amount;
+            $trans->transaction_date = Opt::getServertime();
+            $trans->status = 0;
+            $trans->product_id = $product->id;
+            $trans->currency = "Airtime";
+            $trans->response = $data['output_ResponseDesc'];
+            $trans->conventions_ID = $data['output_ConversationID'];
+            $trans->response_code = $data['output_ResponseCode'];
+            $trans->save();
+
+            if ($data['output_ResponseCode'] == "0" && $product_ID === '921465_P02') {
+                if (isset($data['content'])) { // Check if 'content' exists in the $data array
+                    $this->sendthefirstmessage($msisdn, $data['content']);
+                } else {
+                    // Handle missing content gracefully
+                    Log::error('Content is missing in $data array');
+                }
+            }
+            
+            
+
+            return true;
+        } catch (\Throwable $th) {
+            Log::info($th->getMessage());
         }
     }
 }

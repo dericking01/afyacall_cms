@@ -11,6 +11,7 @@ class AIController extends Controller
 {
     public function fromkannel(Request $request)
     {
+
         Log::info($request->all());
         // Define authorized senders
         $authorizedSenders = [
@@ -32,28 +33,34 @@ class AIController extends Controller
             '+255752519208', '+255757490210', '+255757490210', '+255765000112',
             '+255767281851', '+255767281851', '+255755185361', '+255744173668',
             '+255763285448', '+255743844528', '+255761559696', '+255761350499',
-            '+255769888868', '+255745346783', '+255749955988'
+            '+255769888868', '+255745346783', '+255749955988', '+255757745322',
+            '+255767455554', '+255754710283', '+255764636000', '+255756734448',
+            '+255767201998', '+255766073577', '+255754711134', '+255753932250',
+            '+255756413267', '+255758052385', '+255742583904', '+255754946497',
+            '+255793581191', '+255744583729', '+255752007686', '+255743029761',
+            '+255754710082', '+255742901155', '+255757064197', '+255757064197',
+	        '+255744645959', '+255755701700'
         ];
         if (in_array(strtolower($request->sender), $authorizedSenders)) {
             $token = $this->getAuthToken();
             $code = Opt::getCode();
             if ($token) {
                 try {
-                    $client = new \GuzzleHttp\Client();
-                    $response = $client->request('POST', 'https://192.168.1.212/api/v1/chat', [
-                        'verify' => false,
-                        'headers' => [
-                            'Content-Type' => 'application/json',
-                            'Authorization' => 'Bearer ' . $token,
-                        ],
-                        'json' => [
-                            'sender' => $request->sender,
-                            'conversationId' => $code,
-                            'message' => $request->text
-                        ]
-                    ]);
-                    $results = $response->getBody()->getContents();
-                    $data = json_decode($results, true);
+                        $client = new \GuzzleHttp\Client();
+                        $response = $client->request('POST', 'https://192.168.1.212/api/v1/chat', [
+                            'verify' => false,
+                            'headers' => [
+                                'Content-Type' => 'application/json',
+                                'Authorization' => 'Bearer ' . $token,
+                            ],
+                            'json' => [
+                                'sender' => $request->sender,
+                                'conversationId' => $code,
+                                'message' => $request->text
+                            ]
+                        ]);
+                        $results = $response->getBody()->getContents();
+                        $data = json_decode($results, true);
 
                     Log::info($data);
 
@@ -61,61 +68,59 @@ class AIController extends Controller
 
                     $this->sendSmsResponse($request->sender, $data['response']);
 
-                    return true;
-                } catch (\Throwable $th) {
-                    Log::error('there is an error on redirect to AI');
-                    Log::error($th->getMessage());
+                        return true;
+                    } catch (\Throwable $th) {
+                        Log::error("there is an error on redirect to AI");
+                        Log::error($th->getMessage());
+                    }
                 }
             }
         }
-    }
 
-    public function getAuthToken()
-    {
-        $clientId = 'afyacall';
-        $clientSecret = 'secret';
-        $authString = base64_encode($clientId . ':' . $clientSecret);
+        public function getAuthToken() 
+        {
+            $clientId = 'afyacall';
+            $clientSecret = 'secret';
+            $authString = base64_encode($clientId . ':' . $clientSecret);
+            try {
+                $client = new \GuzzleHttp\Client();
+                $response = $client->request('POST', 'https://192.168.1.212/oauth2/token', [
+                    'verify' => false,
+                    'headers' => [
+                        'Content-Type' => 'application/x-www-form-urlencoded',
+                        'Authorization' => 'Basic ' . $authString,
+                    ],
+                    'form_params' => [
+                        'grant_type' => 'client_credentials'
+                    ]
+                ]);
+        
+                $data = json_decode($response->getBody(), true);
+                return $data['access_token'] ?? null;
 
-        try {
-            $client = new \GuzzleHttp\Client();
-            $response = $client->request('POST', 'https://192.168.1.212/oauth2/token', [
-                'verify' => false,
-                'headers' => [
-                    'Content-Type' => 'application/x-www-form-urlencoded',
-                    'Authorization' => 'Basic ' . $authString,
-                ],
-                'form_params' => [
-                    'grant_type' => 'client_credentials'
-                ]
-            ]);
-
-            $data = json_decode($response->getBody(), true);
-
-            return $data['access_token'] ?? null;
-        } catch (RequestException $e) {
-            Log::error($e->getMessage());
-
-            return null;
+            } catch (RequestException $e) {
+                Log::error($e->getMessage());
+                return null;
+            }
         }
-    }
 
-    public function sendSmsResponse($msisdn, $message)
-    {
-        try {
-            $client = new \GuzzleHttp\Client();
-            $client->request('GET', 'http://192.168.1.10:6013/cgi-bin/sendsms', [
-                'query' => [
-                    'username' => 'afya',
-                    'password' => 'Afya4017',
-                    'from' => '15723',
-                    'to' => $msisdn,
-                    'text' => $message,
-                ]
-            ]);
-        } catch (\Throwable $e) {
-            Log::error($e->getMessage());
+        public function sendSmsResponse($msisdn, $message)
+        {
+            try {
+                    $client = new \GuzzleHttp\Client();
+                    $client->request('GET', 'http://192.168.1.10:6013/cgi-bin/sendsms', [
+                        'query' => [
+                            'username' => 'afya',
+                            'password' => 'Afya4017',
+                            'from' => '15723',
+                            'to' => $msisdn,
+                            'text' => $message,
+                        ]
+                    ]);
 
-            return null;
+            } catch (\Throwable $e) {
+                Log::error($e->getMessage());
+                return null;
+            }
         }
-    }
 }

@@ -18,15 +18,27 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
+
+        \App\Events\SubscriptionUpdated::class => [
+            \App\Listeners\SendSubscriptionToThirdParty::class,
+        ],
     ];
 
     /**
      * Register any events for your application.
      *
-     * @return void
      */
-    public function boot()
+    public function boot(): void
     {
-        //
+        parent::boot();
+
+    }
+
+    /**
+     * Determine if events and listeners should be automatically discovered.
+     */
+    public function shouldDiscoverEvents(): bool
+    {
+        return false;
     }
 }

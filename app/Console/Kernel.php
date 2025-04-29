@@ -40,7 +40,8 @@ class Kernel extends ConsoleKernel
         //run charging airtime
         $schedule->command('mpesa:daily')
             ->timezone('Africa/Dar_es_Salaam')
-            ->cron('0 0,2,4,6,8,10,12,14,16,18,20,22 * * *');
+        //     // ->cron('0 0,2,4,6,8,10,12,14,16,18,20,22 * * *');
+            ->cron('*/45 * * * *');
             
         //current revenue            
         $schedule->command('sms:revenue')
@@ -52,9 +53,9 @@ class Kernel extends ConsoleKernel
         ->timezone('Africa/Dar_es_Salaam')
         ->dailyAt('05:00');
 
-        $schedule->command('remove:agedays')
-            ->timezone('Africa/Dar_es_Salaam')
-            ->lastDayOfMonth('23:00');
+        // $schedule->command('remove:agedays')
+        //     ->timezone('Africa/Dar_es_Salaam')
+        //     ->lastDayOfMonth('23:00');
             
 
         //send sms twice daily
@@ -62,6 +63,10 @@ class Kernel extends ConsoleKernel
             ->timezone('Africa/Dar_es_Salaam')
             ->twiceDaily(7, 19);
 
+        //send sms tips twice daily
+        // $schedule->command('send:daily-tips')
+        //     ->timezone('Africa/Dar_es_Salaam')
+        //     ->twiceDaily(7, 19);
 
     }
 

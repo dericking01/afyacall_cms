@@ -14,7 +14,7 @@ class Customer extends Model
 
     protected $dates = ['deleted_at'];
     protected $fillable = [
-        'msisdn', 'status','ivr_status','doctor_subscription_status','keyword'
+        'msisdn', 'status','ivr_status','doctor_subscription_status','keyword','enticement', 'ivr_enticement', 'doctor_enticement'
     ];
     public function products()
     {
