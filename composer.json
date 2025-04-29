@@ -23,10 +23,10 @@
         "predis/predis": "^1.1",
         "promphp/prometheus_client_php": "^2.13",
         "spatie/laravel-backup": "^6.15",
-        "spatie/laravel-permission": "^3.18"
+        "spatie/laravel-permission": "^3.18",
+        "facade/ignition": "^2.5"
     },
     "require-dev": {
-        "facade/ignition": "^2.5",
         "fakerphp/faker": "^1.9.1",
         "laravel/sail": "^1.25",
         "mockery/mockery": "^1.4.2",
@@ -60,7 +60,12 @@
     "scripts": {
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-            "@php artisan package:discover --ansi"
+            "@php artisan package:discover --ansi",
+            "@php artisan config:clear",
+            "@php artisan config:cache",
+            "@php artisan route:clear",
+            "@php artisan route:cache",
+            "@php artisan view:clear"
         ],
         "post-root-package-install": [
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""

@@ -17,7 +17,6 @@ use App\Models\Customer;
 use App\Models\Enticement;
 use App\Models\ContentType;
 use App\Models\Transaction;
-use App\Jobs\FlipEnticement;
 use App\Models\Subscription;
 use GuzzleHttp\Client;
 

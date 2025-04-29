@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
 use App\Models\Setting;
 use Illuminate\Http\Request;
 
-class SettingController 
+class SettingController extends Controller
 {
     /**
      * Display a listing of the resource.

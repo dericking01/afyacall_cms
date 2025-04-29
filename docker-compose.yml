@@ -7,7 +7,7 @@ services:
       dockerfile: ./docker/Dockerfile
     container_name: afyacall-core
     working_dir: /var/www/html
-    image: localhost:5000/afyacall_app:1.0.82
+    image: localhost:5000/afyacall_app:1.0.88
     volumes:
       - vendor_data:/var/www/html/vendor
       - ./:/var/www/html
