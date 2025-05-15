@@ -34,9 +34,9 @@ Route::middleware('api')->post('afyacall/transactionRequest', [IPGController::cl
 Route::middleware('api')->get('afyacall/doctorstatus', [IPGController::class, 'subscriptiondoctorstatus']);
 Route::middleware('api')->post('afyacall/livecalldoctorstastics', [CallLogsController::class, 'livecalldoctorstastics']);
 Route::middleware('api')->post('afyacall/serviceRequest', [ServiceController::class, 'serviceRequests']);
-Route::middleware('api')->post('afyacall/subsInfo', [SubscriptionController::class, 'subsInfo']);
+Route::middleware('api')->post('afyacall/subsinfo', [SubscriptionController::class, 'subsInfo']);
 
-Route::post('sms/receivedsms', [SMSController::class, 'receivedsmsfromkannel']);
+// Route::post('sms/receivedsms', [SMSController::class, 'receivedsmsfromkannel']);
 Route::post('ai/receivedsms', [AIController::class, 'fromkannel']);
 Route::get('sms/deliveryreport', [DeliverySMSCallbackController::class, 'deliveryreport']);
 Route::get('sms/dailydeliveryreport', [DeliverySMSCallbackController::class, 'dailydeliveryreport']);
