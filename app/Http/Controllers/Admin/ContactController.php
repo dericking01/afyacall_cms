@@ -11,6 +11,7 @@ use App\Models\Campaign;
 use App\Models\Contact;
 use App\Models\Customer;
 use App\Models\Group;
+use App\Services\SmsCampaignService;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
@@ -198,8 +199,19 @@ class ContactController extends Controller
         return [];
     }
 
-    public function pushcompaignservice(Request $request)
+    public function pushcompaignservice(Request $request, SmsCampaignService $smsService)
     {
+        $result = $smsService->pushCampaign($request->all());
+
+        return redirect()
+            ->route('admin.contact.campaign')
+            ->with('success', "Campaign sent to {$result['count']} recipients!");
+    }
+
+    public function pushcompaignservice_old(Request $request)
+    {
+        Log::info($request);
+        
         $count = 0;
         $importData_arr = array();
         $groupnames = array();
@@ -218,7 +230,10 @@ class ContactController extends Controller
                 $importData_arr[] = $contact->msisdn;
             }
             Log::info('import to array has been finished ' . count($importData_arr));
+            Log::info($importData_arr);
+
         }
+        return true;
         $campaing->delivery = $count;
         $campaing->uploadvia = implode(",", $groupnames);
 	   if ($campaing->save()) {
