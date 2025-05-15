@@ -15,15 +15,20 @@ class DeliverySMSCallbackController extends Controller
 {
     public function deliveryobd(Request $request)
     {
+        FacadesLog::info('THERE OBD');
+
      ProcessDeliverySMS::dispatch('obd', $request->account, $request->status)->onQueue('delivery');
     }
     public function deliveryreport(Request $request)
     {
+        FacadesLog::info('here dlr OBD');
     ProcessDeliverySMS::dispatch('campaign', $request->id, $request->status)->onQueue('delivery');
     }
 
     public function dailydeliveryreport(Request $request)
     {
+        return false;
+        FacadesLog::info('THERE DAILY OBD');
 
     ProcessDeliverySMS::dispatch('dailysms', $request->id, $request->status)->onQueue('delivery');
 	     
