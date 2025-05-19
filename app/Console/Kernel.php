@@ -68,6 +68,10 @@ class Kernel extends ConsoleKernel
             ->timezone('Africa/Dar_es_Salaam')
             ->twiceDaily(7, 19);
 
+        // delete expired bot subscriptions
+        $schedule->command('subscriptions:delete-expired')
+            ->everyFifteenMinutes();
+
     }
 
     /**

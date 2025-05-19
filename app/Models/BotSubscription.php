@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class BotSubscription extends Model
 {
     use HasFactory;
-    use SoftDeletes;
 
     protected $fillable = [
         'msisdn',
