@@ -41,7 +41,8 @@ COPY . .
 RUN git config --global --add safe.directory /var/www/html
 
 # 1. Require Ignition first (before install!)
-RUN composer require facade/ignition --ignore-platform-reqs
+RUN composer require facade/ignition --ignore-platform-reqs && \
+    composer require brick/math:0.10.2 --ignore-platform-reqs --with-all-dependencies
 
 # Install dependencies
 RUN composer update --no-dev --optimize-autoloader && \

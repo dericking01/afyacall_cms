@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\HomeController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Auth\TwoFactorAuthController;
 use App\Http\Controllers\Admin\CustomerReports;
 use App\Http\Controllers\Admin\BackupController;
 use App\Http\Controllers\Admin\OutBoundCampaign;
@@ -19,9 +20,12 @@ use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\BlacklistController;
 use App\Http\Controllers\Admin\PromotionController;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Artisan;
 
-
-
+Route::get('/cron/run', function () {
+    Artisan::call('schedule:run');
+    return '✅ Laravel schedule:run triggered';
+});
 Route::redirect('/', '/login');
 Route::redirect('/home', '/two-factor-auth');
 Auth::routes(['register' => false]);

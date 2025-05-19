@@ -7,7 +7,7 @@ services:
       dockerfile: ./docker/Dockerfile
     container_name: afyacall-core
     working_dir: /var/www/html
-    image: localhost:5000/afyacall_app:1.0.88
+    image: localhost:5000/afyacall_app:1.0.89
     volumes:
       - vendor_data:/var/www/html/vendor
       - ./:/var/www/html
@@ -60,8 +60,9 @@ services:
   redis:
     image: redis:latest
     container_name: afyacall_redis
+    command: redis-server --port 6380 --bind 0.0.0.0  # Force Redis to use 6380
     ports:
-      - "6380:6379"  # Expose Redis port
+      - "6380:6380"  # Expose Redis port
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
     volumes:
