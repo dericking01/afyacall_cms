@@ -70,7 +70,8 @@ class Kernel extends ConsoleKernel
 
         // delete expired bot subscriptions
         $schedule->command('subscriptions:delete-expired')
-            ->everyFifteenMinutes();
+            ->cron('* * * * *');
+
 
     }
 

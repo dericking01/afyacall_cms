@@ -58,6 +58,29 @@ class SmsHelper
         }
     }
 
+    public function SendDailyTips($number, $message)
+    {
+        try {
+            $code = Opt::getCode();
+
+                $client = new \GuzzleHttp\Client();
+                $client->request('GET', 'http://192.168.1.200:6013/cgi-bin/sendsms', [
+                    'query' => [
+                        'username' => 'afya',
+                        'password' => 'Afya4017',
+                        'from' => 'AFYACALL',
+                        'dlr-mask' => 31,
+                        'dlr-url' => 'http://192.168.1.200:5443/api/sms/dailydeliveryreport?id=' . $code . '&status=%d',
+                        'to' => '+' . $number,
+                        'text' => $message,
+                    ]
+                ]);
+                $this->logSmsToDB($number, $messageid,$code);
+
+        } catch (\Throwable $e) {
+        }
+    }
+
     public function logSmsToDB($number, $messageid,$code)
     {
 
