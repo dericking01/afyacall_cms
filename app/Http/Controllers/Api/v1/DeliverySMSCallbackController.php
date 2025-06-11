@@ -11,6 +11,8 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log as FacadesLog;
 use App\Models\ObdDelivery;
+use App\Http\Helpers\BotCampaignHelper;
+
 class DeliverySMSCallbackController extends Controller
 {
     public function deliveryobd(Request $request)
@@ -27,8 +29,13 @@ class DeliverySMSCallbackController extends Controller
 
     public function dailydeliveryreport(Request $request)
     {
-        return false;
-        FacadesLog::info('THERE DAILY OBD');
+        // FacadesLog::info($request->all());
+        $msisdn = $request->input('id');
+        $status = $request->input('status');
+        // return false;
+        BotCampaignHelper::updateStatus($msisdn, $status);
+
+        return response()->json(['message' => 'Status updated'], 200);
 
     ProcessDeliverySMS::dispatch('dailysms', $request->id, $request->status)->onQueue('delivery');
 	     

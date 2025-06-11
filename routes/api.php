@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\v1\MetricsApiController;
 use App\Http\Controllers\Api\v1\WebsiteApiController;
 use App\Http\Controllers\Api\v1\ServiceController;
 use App\Http\Controllers\Api\v1\SubscriptionController;
+use App\Http\Controllers\Api\v1\DeliverySMSCallbackController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
