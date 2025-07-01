@@ -51,6 +51,11 @@ RUN composer update --no-dev --optimize-autoloader && \
 # Add Horizon Assets
 RUN php artisan horizon:publish
 
+#conf for php-fpm high performance concurrent requests
+RUN mkdir -p /var/log/php-fpm && \
+    touch /var/log/php-fpm/slowlog.log /var/log/php-fpm/error.log && \
+    chown -R www-data:www-data /var/log/php-fpm
+
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
