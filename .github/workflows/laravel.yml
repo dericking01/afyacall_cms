@@ -80,7 +80,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 4358
           script: |
-            echo "🚀 Connecting to server..."
+            echo "🚀 Connecting to server...."
             
             # Go to project dir
             cd /root/afyacall || { echo "❌ Project directory not found"; exit 1; }
