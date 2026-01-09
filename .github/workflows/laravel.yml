@@ -53,8 +53,12 @@ jobs:
       - name: Copy .env 
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
 
-      - name: Install dependencies
-        run: composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+      - name: Install dependencies (force update + install)
+        run: |
+          # Update composer & rebuild lock (like Dockerfile)
+          composer update --no-dev --optimize-autoloader
+          composer install --no-dev --no-progress --prefer-dist --optimize-autoloader
+
 
       - name: Generate key
         run: php artisan key:generate
