@@ -38,7 +38,7 @@ services:
   # Nginx service with SSL
   nginx:
     platform: linux/amd64
-    image: localhost:5000/afycall_core_nginx
+    image: localhost:5000/afyacall_core_nginx
     build:
       context: .
       dockerfile: ./docker/nginx/Dockerfile
