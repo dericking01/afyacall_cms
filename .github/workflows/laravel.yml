@@ -73,4 +73,5 @@ jobs:
         run: php artisan migrate --force
 
       - name: Run tests
-        run: php artisan serve
+        run: vendor/bin/phpunit --colors=always
+
