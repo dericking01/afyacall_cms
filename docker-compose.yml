@@ -78,3 +78,4 @@ networks:
 volumes:
   vendor_data:
   redis_data:
+  
