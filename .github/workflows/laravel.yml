@@ -71,3 +71,36 @@ jobs:
           DB_USERNAME: root
           DB_PASSWORD: root
         run: php artisan migrate --force
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 4358
+          script: |
+            echo "🚀 Connecting to server..."
+            
+            # Go to project dir
+            cd /root/afyacall || { echo "❌ Project directory not found"; exit 1; }
+            echo "✅ Directory exists: $(pwd)"
+      
+            # Pull latest code
+            echo "⏳ Pulling latest code..."
+            git fetch origin working-docker
+            git reset --hard origin/working-docker || { echo "❌ Git pull failed"; exit 1; }
+            echo "✅ Git updated successfully"
+      
+            # Build Docker images
+            echo "⏳ Building Docker images..."
+            docker compose build || { echo "❌ Docker build failed"; exit 1; }
+            echo "✅ Docker build completed"
+      
+            # Deploy containers
+            echo "⏳ Deploying containers..."
+            docker compose up -d || { echo "❌ Docker up failed"; exit 1; }
+            echo "✅ Docker containers are running"
+      
+            echo "🎉 Deployment succeeded!"
+
