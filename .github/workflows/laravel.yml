@@ -25,48 +25,48 @@ jobs:
           --health-retries=3
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up PHP
+      # -----------------------------
+      # PHP
+      # -----------------------------
+      - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.1
           extensions: mbstring, pdo, pdo_mysql, bcmath, intl, pcntl, gd, exif
           coverage: none
 
+      # -----------------------------
+      # Guaranteed Composer
+      # -----------------------------
       - name: Install Composer
         run: |
           php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
           php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+          echo "/usr/local/bin" >> $GITHUB_PATH
           composer --version
 
-      - name: Copy .env
-        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+      # -----------------------------
+      # Laravel setup
+      # -----------------------------
+      - name: Copy env
+        run: cp .env.example .env
 
-      - name: Install Composer dependencies
-        run: composer update --no-dev --optimize-autoloader && \
-              composer install --no-dev --no-progress --prefer-dist --optimize-autoloader
+      - name: Install dependencies
+        run: composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
 
-      - name: Generate app key
+      - name: Generate key
         run: php artisan key:generate
 
       - name: Run migrations
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
-          DB_PORT: 3306
           DB_DATABASE: laravel_test
           DB_USERNAME: root
           DB_PASSWORD: root
         run: php artisan migrate --force
 
       - name: Run tests
-        env:
-          DB_CONNECTION: mysql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 3306
-          DB_DATABASE: laravel_test
-          DB_USERNAME: root
-          DB_PASSWORD: root
         run: php artisan test
