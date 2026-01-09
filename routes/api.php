@@ -75,6 +75,6 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/sms/afyacall/enticement', [WebsiteApiController::class, 'websiteEnticement']);
 });
 
-Route::get('/metrics', [MetricsApiController::class, 'index'])
-    ->name('metrics')
-    ->withoutMiddleware(['web', 'auth']);
+// Route::get('/metrics', [MetricsApiController::class, 'index'])
+//     ->name('metrics')
+//     ->withoutMiddleware(['web', 'auth']);
