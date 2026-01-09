@@ -72,12 +72,12 @@ jobs:
           DB_PASSWORD: root
         run: php artisan migrate --force
 
-      - name: Login to private registry
-        run: |
-          echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login \
-            ${{ secrets.REGISTRY_HOST }} \
-            -u "${{ secrets.REGISTRY_USER }}" \
-            --password-stdin
+      # - name: Login to private registry
+      #   run: |
+      #     echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login \
+      #       ${{ secrets.REGISTRY_HOST }} \
+      #       -u "${{ secrets.REGISTRY_USER }}" \
+      #       --password-stdin
 
       - name: Deploy to server
         uses: appleboy/ssh-action@v1
