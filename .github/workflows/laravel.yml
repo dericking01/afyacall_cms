@@ -32,9 +32,14 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.1
-          tools: composer:v2
           extensions: mbstring, pdo, pdo_mysql, bcmath, intl, pcntl, gd, exif
           coverage: none
+
+      - name: Install Composer
+        run: |
+          php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+          php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+          composer --version
 
       - name: Copy .env
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
