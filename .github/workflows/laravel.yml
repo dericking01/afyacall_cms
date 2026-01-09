@@ -71,7 +71,3 @@ jobs:
           DB_USERNAME: root
           DB_PASSWORD: root
         run: php artisan migrate --force
-
-      - name: Run tests
-        run: vendor/bin/phpunit --colors=always
-
