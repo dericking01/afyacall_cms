@@ -50,6 +50,15 @@ jobs:
       - name: Generate key
         run: php artisan key:generate
 
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: laravel-build
+          path: |
+            vendor
+            .env
+
+
 
 # --------------------------------------------------
 # STAGE 2: DATABASE & MIGRATIONS
@@ -82,8 +91,10 @@ jobs:
           extensions: mbstring, pdo, pdo_mysql, bcmath, intl, pcntl, gd, exif
           coverage: none
 
-      - name: Copy .env 
-        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: laravel-build
 
       - name: Run migrations
         env:
@@ -94,10 +105,9 @@ jobs:
           DB_PASSWORD: root
         run: php artisan migrate --force
 
-
-# --------------------------------------------------
-# STAGE 3: DEPLOYMENT
-# --------------------------------------------------
+  # --------------------------------------------------
+  # STAGE 3: DEPLOYMENT
+  # --------------------------------------------------
   deploy:
     runs-on: ubuntu-latest
     needs: migrate
