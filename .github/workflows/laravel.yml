@@ -140,3 +140,44 @@ jobs:
             echo "✅ Docker containers are running"
 
             echo "🎉 Deployment succeeded!"
+  # --------------------------------------------------
+  # STAGE 4: SONARQUBE SCAN
+  # --------------------------------------------------
+  sonar_scan:
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.1
+          extensions: mbstring, pdo, pdo_mysql, bcmath, intl, pcntl, gd, exif
+
+      - name: Install Composer
+        run: |
+          php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+          php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+          echo "/usr/local/bin" >> $GITHUB_PATH
+          composer --version
+
+      - name: Install sonar-scanner
+        run: |
+          curl -sSLo sonar-scanner-cli.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.1.0.15803-linux.zip
+          unzip sonar-scanner-cli.zip
+          sudo mv sonar-scanner-5.1.0.15803-linux /opt/sonar-scanner
+          echo "/opt/sonar-scanner/bin" >> $GITHUB_PATH
+
+      - name: Run SonarQube Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          sonar-scanner \
+            -Dsonar.projectKey=afyacall_cms \
+            -Dsonar.projectName=AfyaCallCMS \
+            -Dsonar.projectVersion=1.0 \
+            -Dsonar.sources=. \
+            -Dsonar.host.url=http://197.250.15.155:9091/ \
+            -Dsonar.login=$SONAR_TOKEN \
+            -Dsonar.branch.name=working-docker
