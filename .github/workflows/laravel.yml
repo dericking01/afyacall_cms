@@ -162,24 +162,14 @@ jobs:
           echo "/usr/local/bin" >> $GITHUB_PATH
           composer --version
 
-      - name: Install SonarScanner
-        run: |
-          SONAR_SCANNER_VERSION="5.12.0.31254-linux"  # updated stable version
-          curl -sSLo sonar-scanner.zip \
-            "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}.zip"
-          unzip sonar-scanner.zip
-          sudo mv sonar-scanner-${SONAR_SCANNER_VERSION} /opt/sonar-scanner
-          echo "/opt/sonar-scanner/bin" >> $GITHUB_PATH
-
       - name: Run SonarQube Scan
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          sonar-scanner \
-            -Dsonar.projectKey=afyacall_cms \
-            -Dsonar.projectName=AfyaCallCMS \
-            -Dsonar.projectVersion=1.0 \
-            -Dsonar.sources=. \
-            -Dsonar.host.url=http://197.250.15.155:9091/ \
-            -Dsonar.login=$SONAR_TOKEN \
+        uses: docker://sonarsource/sonar-scanner-cli:latest
+        with:
+          args: >
+            -Dsonar.projectKey=afyacall_cms
+            -Dsonar.projectName=AfyaCallCMS
+            -Dsonar.projectVersion=1.0
+            -Dsonar.sources=.
+            -Dsonar.host.url=http://197.250.15.155:9091/
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
             -Dsonar.branch.name=working-docker
