@@ -172,4 +172,3 @@ jobs:
             -Dsonar.sources=.
             -Dsonar.host.url=http://197.250.15.155:9091/
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-            -Dsonar.branch.name=working-docker
